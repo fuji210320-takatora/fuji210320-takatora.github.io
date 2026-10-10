@@ -38,23 +38,20 @@
         .stats { font-size: 11px; color: #555; margin-top: 5px; line-height: 1.4; }
         
         .counter { font-size: 24px; font-weight: bold; color: #0056b3; }
-        .upload-area { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px dashed #aaa; border-radius: 5px; }
+        
+        /* 読み込み中・エラーメッセージ用のスタイル */
+        #statusMessage { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px solid #aaa; border-radius: 5px; color: #333; font-weight: bold;}
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="upload-area">
-        <label><strong>選手データのエクセルファイルを読み込む: </strong></label>
-        <input type="file" id="excelUpload" accept=".xlsx, .xls">
-        <p style="font-size: 12px; color: gray; margin-top: 5px;">※「基本データ」「投手」「野手」「2軍投手」「2軍野手」シートがあるファイルを指定してください。</p>
-    </div>
+    <div id="statusMessage">データを読み込んでいます... しばらくお待ちください。</div>
 
-    <div class="header">
+    <div class="header hidden" id="mainHeader">
         <div>
             <h2>FAプロテクトシミュレーター</h2>
-            <select id="teamSelector" class="team-select" style="display: none;">
-                <option value="">球団を選択してください</option>
-            </select>
+            <select id="teamSelector" class="team-select"></select>
         </div>
         <div class="counter">プロテクト: <span id="protectCount">0</span>/28</div>
     </div>
@@ -82,7 +79,6 @@
             'm': '千葉ロッテマリーンズ'
         };
 
-        // 打率のフォーマット
         function formatAvg(avg) {
             if (avg === undefined || avg === null || avg === '') return '---';
             const num = parseFloat(avg);
@@ -94,29 +90,41 @@
             return str;
         }
 
-        // 金額のフォーマット
         function formatSalary(salary) {
             if (!salary || salary === '-' || salary === 0) return '';
             return String(salary) + ' ';
         }
 
-        // 名前の空白（全角・半角）をすべて削除して正規化する関数
         function normalizeName(name) {
             if (!name) return '';
             return String(name).replace(/[\s ]+/g, '');
         }
 
-        document.getElementById('excelUpload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                processExcelData(workbook);
-            };
-            reader.readAsArrayBuffer(file);
+        // ページ読み込み時に自動でエクセルを取得する処理
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('./baseball_data.xlsx')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    processExcelData(workbook);
+                    
+                    // 読み込み完了後、UIを表示して最初のチームを選択
+                    document.getElementById('statusMessage').classList.add('hidden');
+                    document.getElementById('mainHeader').classList.remove('hidden');
+                    
+                    const teamSelector = document.getElementById('teamSelector');
+                    if(teamSelector.options.length > 0) {
+                        currentTeam = teamSelector.options[0].value;
+                        updateUI();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching excel:', error);
+                    document.getElementById('statusMessage').innerText = 'データの読み込みに失敗しました。baseball_data.xlsx が正しく配置されているか確認してください。';
+                });
         });
 
         function processExcelData(workbook) {
@@ -126,7 +134,6 @@
             const pitcher2 = XLSX.utils.sheet_to_json(workbook.Sheets['2軍投手']) || [];
             const fielder2 = XLSX.utils.sheet_to_json(workbook.Sheets['2軍野手']) || [];
 
-            // 空白を除去した名前をキーにしてマップを作成
             const createMap = (arr) => {
                 let map = {};
                 arr.forEach(row => { 
@@ -158,12 +165,11 @@
                 const isPitcher = (position === '投手');
                 
                 const originalName = player['選手名'];
-                const normName = normalizeName(originalName); // 検索用の空白無し名前
+                const normName = normalizeName(originalName);
                 
                 let stats1Str = '出場なし';
                 let stats2Str = '出場なし';
 
-                // 投手なら投手成績のみ、野手なら野手成績のみを検索
                 if (isPitcher) {
                     const p1 = statsMap['投手'][normName];
                     const p2 = statsMap['2軍投手'][normName];
@@ -190,23 +196,22 @@
                     }
                 }
 
-                // 「1軍の成績 / 2軍の成績」のフォーマットに結合
                 const statsCombined = `${stats1Str} / ${stats2Str}`;
                 const salaryStr = formatSalary(player['年俸']);
 
                 allPlayersData.push({
                     id: player['No'] || (player['背番号'] + '_' + originalName),
-                    name: originalName, // 表示用は元の名前を使用
+                    name: originalName,
                     team: teamName,
                     position: position,
                     age: player['年齢'],
-                    salaryStats: `${salaryStr}<br>${statsCombined}`, // 年俸と成績を改行して表示
+                    salaryStats: `${salaryStr}<br>${statsCombined}`,
                     codeOrder: Object.keys(teamCodeMap).indexOf(code)
                 });
             });
 
             const teamSelector = document.getElementById('teamSelector');
-            teamSelector.innerHTML = '<option value="">球団を選択してください</option>';
+            teamSelector.innerHTML = '';
             
             let sortedTeams = Array.from(teamsSet).sort((a, b) => {
                 const indexA = Object.values(teamCodeMap).indexOf(a);
@@ -217,9 +222,6 @@
             sortedTeams.forEach(team => {
                 teamSelector.innerHTML += `<option value="${team}">${team}</option>`;
             });
-            teamSelector.style.display = 'inline-block';
-            
-            alert('エクセルデータの読み込みが完了しました！');
         }
 
         document.getElementById('teamSelector').addEventListener('change', function(e) {
