@@ -39,7 +39,6 @@
         
         .counter { font-size: 24px; font-weight: bold; color: #0056b3; }
         
-        /* 読み込み中・エラーメッセージ用のスタイル */
         #statusMessage { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px solid #aaa; border-radius: 5px; color: #333; font-weight: bold;}
         .hidden { display: none !important; }
     </style>
@@ -79,6 +78,9 @@
             'm': '千葉ロッテマリーンズ'
         };
 
+        // 日本の都道府県一覧（外国人判定用）
+        const prefectures = ['北海道','青森','岩手','宮城','秋田','山形','福島','茨城','栃木','群馬','埼玉','千葉','東京','神奈川','新潟','富山','石川','福井','山梨','長野','岐阜','静岡','愛知','三重','滋賀','京都','大阪','兵庫','奈良','和歌山','鳥取','島根','岡山','広島','山口','徳島','香川','愛媛','高知','福岡','佐賀','長崎','熊本','大分','宮崎','鹿児島','沖縄'];
+
         function formatAvg(avg) {
             if (avg === undefined || avg === null || avg === '') return '---';
             const num = parseFloat(avg);
@@ -100,7 +102,6 @@
             return String(name).replace(/[\s ]+/g, '');
         }
 
-        // ページ読み込み時に自動でエクセルを取得する処理
         window.addEventListener('DOMContentLoaded', () => {
             fetch('./baseball_data.xlsx')
                 .then(response => {
@@ -111,7 +112,6 @@
                     const workbook = XLSX.read(data, {type: 'array'});
                     processExcelData(workbook);
                     
-                    // 読み込み完了後、UIを表示して最初のチームを選択
                     document.getElementById('statusMessage').classList.add('hidden');
                     document.getElementById('mainHeader').classList.remove('hidden');
                     
@@ -157,6 +157,17 @@
             basicData.forEach(player => {
                 if (!player['選手名'] || !player['コード']) return; 
 
+                // 1. 育成選手の除外（背番号が3桁以上の場合はスキップ）
+                const uniformNo = String(player['背番号'] || '').trim();
+                if (uniformNo.length >= 3) return;
+
+                // 2. 外国人選手の除外（出身が日本の都道府県を含まない場合はスキップ）
+                const origin = String(player['出身'] || '');
+                if (origin) {
+                    const isJapan = prefectures.some(pref => origin.includes(pref));
+                    if (!isJapan) return; // 外国人と判定して除外
+                }
+
                 const code = String(player['コード']).toLowerCase();
                 const teamName = teamCodeMap[code] || code;
                 teamsSet.add(teamName);
@@ -196,15 +207,19 @@
                     }
                 }
 
-                const statsCombined = `${stats1Str} / ${stats2Str}`;
+                // 3. 成績表記のフォーマット指定
+                const statsCombined = `${stats1Str} / (2軍)${stats2Str}`;
                 const salaryStr = formatSalary(player['年俸']);
+
+                // 4. 年齢の「歳」を一度消す（二重表示防止）
+                const ageNum = String(player['年齢']).replace(/歳$/, '');
 
                 allPlayersData.push({
                     id: player['No'] || (player['背番号'] + '_' + originalName),
                     name: originalName,
                     team: teamName,
                     position: position,
-                    age: player['年齢'],
+                    age: ageNum,
                     salaryStats: `${salaryStr}<br>${statsCombined}`,
                     codeOrder: Object.keys(teamCodeMap).indexOf(code)
                 });
