@@ -43,10 +43,12 @@ function normalizeName(name) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    // 一つ上の階層にあるデータファイルを参照する
-    fetch('../baseball_data.xlsx')
+    
+    // ★修正箇所：不安定な ../ をやめ、リポジトリのルートからの絶対パスで指定します
+    // 例：URLが https://takatora.github.io/baseball-app/ の場合、'/baseball-app/baseball_data.xlsx' とします
+    fetch('/fuji210320-takatora.github.io/baseball_data.xlsx')
         .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) throw new Error(`HTTPエラー ステータス: ${response.status}`);
             return response.arrayBuffer();
         })
         .then(data => {
@@ -65,7 +67,8 @@ window.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Error fetching excel:', error);
-            document.getElementById('statusMessage').innerText = 'データ(../baseball_data.xlsx)の読み込みに失敗しました。';
+            // ★修正箇所：フリーズを回避し、画面に具体的なエラー原因を赤字で出力します
+            document.getElementById('statusMessage').innerHTML = `<span style="color:red; font-weight:bold;">エラー: ${error.message}</span><br>ファイルパス（リポジトリ名）が間違っているか、ファイルが存在しません。`;
         });
 });
 
