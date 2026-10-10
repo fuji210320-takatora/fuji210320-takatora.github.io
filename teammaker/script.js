@@ -13,8 +13,8 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // 先ほどエクセルを見つけられたパス（一つ上の階層）を指定
-        const res = await fetch('../baseball_data.xlsx');
+        // ★ 絶対URLで指定し、404エラーによる「Invalid HTML」を完全に回避します
+        const res = await fetch('https://fuji210320-takatora.github.io/baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
