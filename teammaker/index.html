@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚾ 野球チームメーカー</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        button { background-color: #00796b; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
+        button:hover { background-color: #005a4f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚾ 野球チームメーカー</h1>
+        
+        <!-- 読み込み中画面 -->
+        <div id="screen-loading" class="screen active">
+            <p style="text-align: center;">共通エクセルデータを読み込んでいます...</p>
+        </div>
+
+        <!-- ドラフト画面 -->
+        <div id="screen-draft" class="screen">
+            <h2 id="draft-title">ドラフト会議</h2>
+            <div id="draft-card" style="border:1px solid #ccc; padding:20px; text-align:center; margin-bottom:15px; border-radius:8px;"></div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="skipPlayer()" style="background-color:#c62828;">見送る</button>
+                <button onclick="takePlayer()" style="background-color:#2e7d32;">獲得する</button>
+            </div>
+        </div>
+
+        <!-- オーダー設定画面 -->
+        <div id="screen-setup" class="screen">
+            <h2>オーダー＆投手起用</h2>
+            <p>※ここに打順・投手起用のUIを配置します</p>
+            <button onclick="startPennant()">ペナントレース開幕！</button>
+        </div>
+
+        <!-- ペナント結果画面 -->
+        <div id="screen-result" class="screen">
+            <h2>🏆 ペナントレース結果</h2>
+            <div id="result-display"></div>
+            <a href="../" style="display:block; text-align:center; margin-top:20px;">トップに戻る</a>
+        </div>
+    </div>
+
+    <!-- チームメーカーのロジックを読み込み -->
+    <script src="script.js"></script>
+</body>
+</html>
