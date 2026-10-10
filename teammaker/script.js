@@ -9,36 +9,34 @@ let requiredCount = 9;
 let skipsLeft = 5;
 
 // ==========================================
-// 1. 共通エクセルの読み込み（Python版のロジックを完全再現）
+// 1. 共通エクセルの読み込み
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        const res = await fetch('/fuji210320-takatora.github.io/baseball_data.xlsx');
+        // 先ほどエクセルを見つけられたパス（一つ上の階層）を指定
+        const res = await fetch('../baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         
-        // シート名を取得（野手能力/投手能力タブを正確に狙う）
-        const sheetF = workbook.Sheets['野手能力'] || workbook.Sheets['野手'];
-        const sheetP = workbook.Sheets['投手能力'] || workbook.Sheets['投手'];
+        // 画像で確認した「野手能力」「投手能力」タブを確実に指定
+        const sheetF = workbook.Sheets['野手能力'];
+        const sheetP = workbook.Sheets['投手能力'];
         
         if (!sheetF || !sheetP) {
-            throw new Error(`「野手能力」「投手能力」タブが見つかりません。`);
+            throw new Error(`タブが見つかりません。現在のタブ一覧: [ ${workbook.SheetNames.join(', ')} ]`);
         }
 
         const rawFielders = XLSX.utils.sheet_to_json(sheetF) || [];
         const rawPitchers = XLSX.utils.sheet_to_json(sheetP) || [];
         
-        // 選手名（名前）の列がどんな名称でも取得できるようにする安全な処理
-        const getName = (row) => row['選手名'] || row['名前'] || row['氏名'] || row['選手'] || Object.values(row)[0];
-
-        // データを格納（名前が空っぽの行は除外）
-        fieldersData = rawFielders.filter(p => getName(p));
-        pitchersData = rawPitchers.filter(p => getName(p));
+        // 画像通り「選手名」の列を基準にデータを取得
+        fieldersData = rawFielders.filter(p => p['選手名']);
+        pitchersData = rawPitchers.filter(p => p['選手名']);
         
         if (fieldersData.length === 0 || pitchersData.length === 0) {
-            throw new Error("シートは見つかりましたが、選手データの行が読み取れませんでした。");
+            throw new Error("タブはありましたが、データが0件です。");
         }
 
         // 読み込みが成功したらドラフト開始
@@ -134,17 +132,16 @@ function skipPlayer() {
 // 4. カード描画（Python版の能力値パラメータを完全再現）
 // ==========================================
 function renderCard(player, type) {
-    const getName = (row) => row['選手名'] || row['名前'] || row['氏名'] || row['選手'] || Object.values(row)[0];
-    const name = getName(player) || "不明";
-    const team = player["チーム"] || player["球団"] || player["コード"] || "フリー";
+    const name = player["選手名"] || "不明";
+    const team = player["チーム"] || "フリー";
     const htmlContainer = document.getElementById('draft-card');
     
     if (type === 'fielder') {
-        // Python版に存在していた「ミート」「パワー」「走力」「守備力」を正確に取得
+        // 画像にある「ミート」「パワー」「走力」「守備力」を正確に取得
         const contact = player["ミート"] !== undefined ? player["ミート"] : "-";
         const power = player["パワー"] !== undefined ? player["パワー"] : "-";
         const speed = player["走力"] !== undefined ? player["走力"] : "-";
-        const defense = player["守備力"] !== undefined ? player["守備力"] : (player["守備"] !== undefined ? player["守備"] : "-");
+        const defense = player["守備力"] !== undefined ? player["守備力"] : "-";
 
         htmlContainer.innerHTML = `
             <div class="card">
@@ -160,7 +157,6 @@ function renderCard(player, type) {
             </div>
         `;
     } else {
-        // Python版の投手能力「球威」「制球」「スタミナ」を正確に取得
         const pitchPower = player["球威"] !== undefined ? player["球威"] : "-";
         const control = player["制球"] !== undefined ? player["制球"] : "-";
         const stamina = player["スタミナ"] !== undefined ? player["スタミナ"] : "-";
@@ -186,11 +182,10 @@ function renderCard(player, type) {
 function initSetupScreen() {
     showScreen('screen-setup');
     
-    const getName = (row) => row['選手名'] || row['名前'] || row['氏名'] || row['選手'] || Object.values(row)[0];
-    const fList = myTeam.fielders.map(p => getName(p)).join("、");
+    const fList = myTeam.fielders.map(p => p["選手名"]).join("、");
     document.getElementById('my-fielders-list').innerText = fList;
     
-    const pList = myTeam.pitchers.map(p => getName(p)).join("、");
+    const pList = myTeam.pitchers.map(p => p["選手名"]).join("、");
     document.getElementById('my-pitchers-list').innerText = pList;
 }
 
