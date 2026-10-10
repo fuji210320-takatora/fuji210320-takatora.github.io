@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>FAプロテクトシミュレーター</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .team-select { padding: 10px; font-size: 16px; }
+        
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .category-title { grid-column: 1 / -1; font-weight: bold; margin-top: 20px; border-bottom: 2px solid #ccc; padding-bottom: 5px; display: flex; justify-content: space-between;}
+        
+        .player-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+            position: relative;
+        }
+        .player-card:hover { border-color: #999; }
+        
+        .player-card.protected {
+            background: #1a1a1a;
+            color: #fff;
+            border: 2px solid #d4af37;
+        }
+        .player-card.protected .name { color: #d4af37; }
+        .player-card.protected .stats { color: #ccc; }
+        
+        .player-info { display: flex; justify-content: space-between; align-items: baseline; }
+        .name { font-size: 18px; font-weight: bold; }
+        .age { font-size: 12px; color: gray; }
+        .stats { font-size: 11px; color: #555; margin-top: 5px; line-height: 1.4; }
+        
+        .counter { font-size: 24px; font-weight: bold; color: #0056b3; }
+        .upload-area { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px dashed #aaa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="upload-area">
+        <label><strong>選手データのエクセルファイルを読み込む: </strong></label>
+        <input type="file" id="excelUpload" accept=".xlsx, .xls">
+        <p style="font-size: 12px; color: gray; margin-top: 5px;">※「基本データ」「投手」「野手」「2軍投手」「2軍野手」シートがあるファイルを指定してください。</p>
+    </div>
+
+    <div class="header">
+        <div>
+            <h2>FAプロテクトシミュレーター</h2>
+            <select id="teamSelector" class="team-select" style="display: none;">
+                <option value="">球団を選択してください</option>
+            </select>
+        </div>
+        <div class="counter">プロテクト: <span id="protectCount">0</span>/28</div>
+    </div>
+
+    <div id="playersContainer"></div>
+
+    <script>
+        let allPlayersData = [];
+        let currentTeam = '';
+        const MAX_PROTECT = 28;
+        let protectedIds = new Set();
+
+        const teamCodeMap = {
+            't': '阪神タイガース',
+            'yb': '横浜DeNAベイスターズ',
+            'g': '読売ジャイアンツ',
+            'c': '広島東洋カープ',
+            'd': '中日ドラゴンズ',
+            's': '東京ヤクルトスワローズ',
+            'h': '福岡ソフトバンクホークス',
+            'f': '北海道日本ハムファイターズ',
+            'bs': 'オリックス・バファローズ',
+            'e': '東北楽天ゴールデンイーグルス',
+            'l': '埼玉西武ライオンズ',
+            'm': '千葉ロッテマリーンズ'
+        };
+
+        // 打率のフォーマット
+        function formatAvg(avg) {
+            if (avg === undefined || avg === null || avg === '') return '---';
+            const num = parseFloat(avg);
+            if (isNaN(num)) return '---';
+            let str = num.toFixed(3);
+            if (str.startsWith('0.')) {
+                return str.substring(1); 
+            }
+            return str;
+        }
+
+        // 金額のフォーマット
+        function formatSalary(salary) {
+            if (!salary || salary === '-' || salary === 0) return '';
+            return String(salary) + ' ';
+        }
+
+        // 名前の空白（全角・半角）をすべて削除して正規化する関数
+        function normalizeName(name) {
+            if (!name) return '';
+            return String(name).replace(/[\s ]+/g, '');
+        }
+
+        document.getElementById('excelUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                processExcelData(workbook);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function processExcelData(workbook) {
+            const basicData = XLSX.utils.sheet_to_json(workbook.Sheets['基本データ']) || [];
+            const pitcher1 = XLSX.utils.sheet_to_json(workbook.Sheets['投手']) || [];
+            const fielder1 = XLSX.utils.sheet_to_json(workbook.Sheets['野手']) || [];
+            const pitcher2 = XLSX.utils.sheet_to_json(workbook.Sheets['2軍投手']) || [];
+            const fielder2 = XLSX.utils.sheet_to_json(workbook.Sheets['2軍野手']) || [];
+
+            // 空白を除去した名前をキーにしてマップを作成
+            const createMap = (arr) => {
+                let map = {};
+                arr.forEach(row => { 
+                    if (row['選手名']) {
+                        map[normalizeName(row['選手名'])] = row; 
+                    }
+                });
+                return map;
+            };
+            
+            const statsMap = {
+                '投手': createMap(pitcher1),
+                '野手': createMap(fielder1),
+                '2軍投手': createMap(pitcher2),
+                '2軍野手': createMap(fielder2)
+            };
+
+            let teamsSet = new Set();
+            allPlayersData = [];
+
+            basicData.forEach(player => {
+                if (!player['選手名'] || !player['コード']) return; 
+
+                const code = String(player['コード']).toLowerCase();
+                const teamName = teamCodeMap[code] || code;
+                teamsSet.add(teamName);
+
+                const position = player['守備位置'];
+                const isPitcher = (position === '投手');
+                
+                const originalName = player['選手名'];
+                const normName = normalizeName(originalName); // 検索用の空白無し名前
+                
+                let stats1Str = '出場なし';
+                let stats2Str = '出場なし';
+
+                // 投手なら投手成績のみ、野手なら野手成績のみを検索
+                if (isPitcher) {
+                    const p1 = statsMap['投手'][normName];
+                    const p2 = statsMap['2軍投手'][normName];
+                    
+                    if (p1) {
+                        let hp = p1['HP'] ? `${p1['HP']}H ` : '';
+                        let sv = p1['セーブ'] ? `${p1['セーブ']}S` : '';
+                        stats1Str = `${p1['登板数']||0}試 ${p1['勝利']||0}勝${p1['敗北']||0}敗 ${hp}${sv}`.trim();
+                    }
+                    if (p2) {
+                        let hp = p2['HP'] ? `${p2['HP']}H ` : '';
+                        let sv = p2['セーブ'] ? `${p2['セーブ']}S` : '';
+                        stats2Str = `${p2['登板数']||0}試 ${p2['勝利']||0}勝${p2['敗北']||0}敗 ${hp}${sv}`.trim();
+                    }
+                } else {
+                    const f1 = statsMap['野手'][normName];
+                    const f2 = statsMap['2軍野手'][normName];
+                    
+                    if (f1) {
+                        stats1Str = `${f1['試合数']||0}試 ${formatAvg(f1['打率'])} ${f1['本塁打']||0}本 ${f1['打点']||0}点`;
+                    }
+                    if (f2) {
+                        stats2Str = `${f2['試合数']||0}試 ${formatAvg(f2['打率'])} ${f2['本塁打']||0}本 ${f2['打点']||0}点`;
+                    }
+                }
+
+                // 「1軍の成績 / 2軍の成績」のフォーマットに結合
+                const statsCombined = `${stats1Str} / ${stats2Str}`;
+                const salaryStr = formatSalary(player['年俸']);
+
+                allPlayersData.push({
+                    id: player['No'] || (player['背番号'] + '_' + originalName),
+                    name: originalName, // 表示用は元の名前を使用
+                    team: teamName,
+                    position: position,
+                    age: player['年齢'],
+                    salaryStats: `${salaryStr}<br>${statsCombined}`, // 年俸と成績を改行して表示
+                    codeOrder: Object.keys(teamCodeMap).indexOf(code)
+                });
+            });
+
+            const teamSelector = document.getElementById('teamSelector');
+            teamSelector.innerHTML = '<option value="">球団を選択してください</option>';
+            
+            let sortedTeams = Array.from(teamsSet).sort((a, b) => {
+                const indexA = Object.values(teamCodeMap).indexOf(a);
+                const indexB = Object.values(teamCodeMap).indexOf(b);
+                return (indexA > -1 ? indexA : 99) - (indexB > -1 ? indexB : 99);
+            });
+
+            sortedTeams.forEach(team => {
+                teamSelector.innerHTML += `<option value="${team}">${team}</option>`;
+            });
+            teamSelector.style.display = 'inline-block';
+            
+            alert('エクセルデータの読み込みが完了しました！');
+        }
+
+        document.getElementById('teamSelector').addEventListener('change', function(e) {
+            currentTeam = e.target.value;
+            protectedIds.clear(); 
+            updateUI();
+        });
+
+        function updateUI() {
+            const container = document.getElementById('playersContainer');
+            container.innerHTML = '';
+            
+            if (!currentTeam) return;
+
+            const teamPlayers = allPlayersData.filter(p => p.team === currentTeam);
+            const positions = ['投手', '捕手', '内野手', '外野手'];
+            
+            positions.forEach(pos => {
+                const playersInPos = teamPlayers.filter(p => p.position === pos);
+                if (playersInPos.length === 0) return;
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'category-title';
+                
+                const protectedInPos = playersInPos.filter(p => protectedIds.has(p.id)).length;
+                titleDiv.innerHTML = `<span>${pos}</span> <span style="font-size:14px; color:#0056b3;">プロテクト ${protectedInPos}/${playersInPos.length}</span>`;
+                container.appendChild(titleDiv);
+
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'player-grid';
+
+                playersInPos.forEach(p => {
+                    const card = document.createElement('div');
+                    const isProtected = protectedIds.has(p.id);
+                    card.className = `player-card ${isProtected ? 'protected' : ''}`;
+                    
+                    const checkIcon = isProtected ? ' <span style="color:#d4af37; margin-left:5px;">✔</span>' : '';
+
+                    card.innerHTML = `
+                        <div class="player-info">
+                            <span class="name">${p.name}${checkIcon}</span>
+                            <span class="age">${p.age}歳</span>
+                        </div>
+                        <div class="stats">${p.salaryStats}</div>
+                    `;
+
+                    card.onclick = () => toggleProtect(p.id);
+                    gridDiv.appendChild(card);
+                });
+
+                container.appendChild(gridDiv);
+            });
+
+            document.getElementById('protectCount').innerText = protectedIds.size;
+        }
+
+        function toggleProtect(playerId) {
+            if (protectedIds.has(playerId)) {
+                protectedIds.delete(playerId);
+            } else {
+                if (protectedIds.size >= MAX_PROTECT) {
+                    alert('プロテクト枠の上限（28人）に達しています。');
+                    return;
+                }
+                protectedIds.add(playerId);
+            }
+            updateUI();
+        }
+    </script>
+</body>
+</html>
