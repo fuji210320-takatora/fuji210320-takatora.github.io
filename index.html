@@ -184,13 +184,11 @@
         .player-card.protected .name { color: #d4af37; }
         .player-card.protected .stats { color: #ccc; }
         
-        .player-info { display: flex; flex-direction: column; align-items: flex-start; }
-        @media (min-width: 768px) {
-            .player-info { flex-direction: row; align-items: baseline; justify-content: space-between; }
-        }
+        /* 名前と年齢の配置（スマホでもPCでも横並び） */
+        .player-info { display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; }
         
         .name { font-size: clamp(9px, 2.2vw, 16px); font-weight: bold; line-height: 1.1; letter-spacing: -0.5px; }
-        .age { font-size: clamp(8px, 1.8vw, 12px); color: gray; margin-top: 2px; }
+        .age { font-size: clamp(8px, 1.8vw, 12px); color: gray; margin-left: 2px; }
         .stats { font-size: clamp(7px, 1.5vw, 11px); color: #555; margin-top: 4px; line-height: 1.25; overflow-wrap: anywhere; word-break: break-all; }
         
         .counter { font-size: 16px; font-weight: bold; color: #0056b3; }
@@ -265,12 +263,11 @@
 
         function openApp(appId) {
             if (appId === 'simulator') {
-                window.location.hash = 'simulator'; // URLの末尾に #simulator を追加
+                window.location.hash = 'simulator'; 
             }
         }
 
         function closeApp() {
-            // URLからハッシュを消去してホームに戻る
             history.pushState('', document.title, window.location.pathname + window.location.search);
             handleHashChange();
         }
@@ -321,7 +318,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            handleHashChange(); // リロード時にURLをチェックして画面を復元
+            handleHashChange(); 
 
             fetch('./baseball_data.xlsx')
                 .then(response => {
