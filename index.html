@@ -2,12 +2,145 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>FAプロテクトシミュレーター</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たかとらの部屋</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .team-select { padding: 10px; font-size: 16px; }
+        /* ==========================================
+           共通・ポータル画面 (たかとらの部屋) のスタイル
+           ========================================== */
+        body { 
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; 
+            background-color: #f6f5f0; /* 画像に近いオフホワイト */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* ポータル画面レイアウト */
+        #portalScreen {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .portal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .portal-header h1 {
+            font-size: 22px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .portal-intro {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .disclaimer-box {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 40px;
+        }
+        
+        .disclaimer-box strong {
+            color: #222;
+        }
+
+        /* アプリリストのスタイル */
+        .app-list {
+            border-top: 1px solid #ccc;
+        }
+
+        .app-item {
+            display: flex;
+            padding: 25px 0;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .app-item:hover {
+            background-color: #f0efe9;
+        }
+
+        .app-item-left {
+            width: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #888;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .app-num {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .app-icon {
+            font-size: 24px;
+        }
+
+        .app-item-right {
+            flex: 1;
+            padding-left: 10px;
+        }
+
+        .app-item-right h2 {
+            font-size: 18px;
+            margin: 0 0 10px 0;
+            color: #111;
+        }
+
+        .app-item-right p {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 15px 0;
+        }
+
+        .app-tags {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* ==========================================
+           シミュレーター画面のスタイル
+           ========================================== */
+        #simulatorScreen {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: #0056b3;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .back-button:hover { text-decoration: underline; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+        .team-select { padding: 8px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc;}
         
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .category-title { grid-column: 1 / -1; font-weight: bold; margin-top: 20px; border-bottom: 2px solid #ccc; padding-bottom: 5px; display: flex; justify-content: space-between;}
@@ -33,35 +166,108 @@
         .player-card.protected .stats { color: #ccc; }
         
         .player-info { display: flex; justify-content: space-between; align-items: baseline; }
-        .name { font-size: 18px; font-weight: bold; }
+        .name { font-size: 16px; font-weight: bold; }
         .age { font-size: 12px; color: gray; }
         .stats { font-size: 11px; color: #555; margin-top: 5px; line-height: 1.4; }
         
-        .counter { font-size: 24px; font-weight: bold; color: #0056b3; }
-        
+        .counter { font-size: 20px; font-weight: bold; color: #0056b3; }
         #statusMessage { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px solid #aaa; border-radius: 5px; color: #333; font-weight: bold;}
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="statusMessage">データを読み込んでいます... しばらくお待ちください。</div>
-
-    <div class="header hidden" id="mainHeader">
-        <div>
-            <h2>FAプロテクトシミュレーター</h2>
-            <select id="teamSelector" class="team-select"></select>
+    <!-- ==========================================
+         ポータル画面 (たかとらの部屋)
+         ========================================== -->
+    <div id="portalScreen">
+        <div class="portal-header">
+            <h1>たかとらの部屋</h1>
         </div>
-        <div class="counter">プロテクト: <span id="protectCount">0</span>/28</div>
+        
+        <div class="portal-intro">
+            どれも登録なし・無料で遊べます。
+        </div>
+
+        <div class="disclaimer-box">
+            本サイトは日本野球機構（NPB）・各球団・選手本人とは関係のない<strong>非公式のファンサイト</strong>です。ここで表示される能力値・試合結果・順位等は、実際の記録ではなく<strong>当サイト独自のシミュレーションによる架空のもの</strong>です。
+        </div>
+
+        <div class="app-list">
+            <!-- 01: FAプロテクトシミュレーター -->
+            <div class="app-item" onclick="openApp('simulator')">
+                <div class="app-item-left">
+                    <div class="app-num">01</div>
+                    <div class="app-icon">🛡️</div>
+                </div>
+                <div class="app-item-right">
+                    <h2>FAプロテクトシミュレーター</h2>
+                    <p>FA宣言した選手を獲得した際の「人的補償」に備え、28名のプロテクトリストを作成するシミュレーター。12球団の最新データに対応。</p>
+                    <div class="app-tags">ひとりで / 5〜10分</div>
+                </div>
+            </div>
+
+            <!-- 将来追加するアプリの枠組み（例） -->
+            <!-- 
+            <div class="app-item" onclick="openApp('quiz')">
+                <div class="app-item-left">
+                    <div class="app-num">02</div>
+                    <div class="app-icon">⚾</div>
+                </div>
+                <div class="app-item-right">
+                    <h2>NPB成績あてクイズ</h2>
+                    <p>打率・本塁打・打点・OPSだけを見て、それが誰の成績かを当てる。</p>
+                    <div class="app-tags">ひとりで / 数分</div>
+                </div>
+            </div> 
+            -->
+        </div>
     </div>
 
-    <div id="playersContainer"></div>
 
+    <!-- ==========================================
+         シミュレーター画面 (最初は非表示)
+         ========================================== -->
+    <div id="simulatorScreen" class="hidden">
+        <div class="back-button" onclick="closeApp()">← たかとらの部屋に戻る</div>
+        
+        <div id="statusMessage">選手データを読み込んでいます... しばらくお待ちください。</div>
+
+        <div class="header hidden" id="mainHeader">
+            <div>
+                <h2 style="margin: 0 0 10px 0; font-size: 20px;">FAプロテクトシミュレーター</h2>
+                <select id="teamSelector" class="team-select"></select>
+            </div>
+            <div class="counter">プロテクト: <span id="protectCount">0</span>/28</div>
+        </div>
+
+        <div id="playersContainer"></div>
+    </div>
+
+    <!-- ==========================================
+         JavaScript (動作ロジック)
+         ========================================== -->
     <script>
+        // --- 画面切り替えロジック ---
+        function openApp(appId) {
+            if (appId === 'simulator') {
+                document.getElementById('portalScreen').classList.add('hidden');
+                document.getElementById('simulatorScreen').classList.remove('hidden');
+                window.scrollTo(0, 0); // 画面上部へスクロール
+            }
+        }
+
+        function closeApp() {
+            document.getElementById('simulatorScreen').classList.add('hidden');
+            document.getElementById('portalScreen').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        // --- シミュレーターロジック ---
         let allPlayersData = [];
         let currentTeam = '';
         const MAX_PROTECT = 28;
         let protectedIds = new Set();
+        let isDataLoaded = false;
 
         const teamCodeMap = {
             't': '阪神タイガース',
@@ -78,7 +284,6 @@
             'm': '千葉ロッテマリーンズ'
         };
 
-        // 日本の都道府県一覧（外国人判定用）
         const prefectures = ['北海道','青森','岩手','宮城','秋田','山形','福島','茨城','栃木','群馬','埼玉','千葉','東京','神奈川','新潟','富山','石川','福井','山梨','長野','岐阜','静岡','愛知','三重','滋賀','京都','大阪','兵庫','奈良','和歌山','鳥取','島根','岡山','広島','山口','徳島','香川','愛媛','高知','福岡','佐賀','長崎','熊本','大分','宮崎','鹿児島','沖縄'];
 
         function formatAvg(avg) {
@@ -102,6 +307,7 @@
             return String(name).replace(/[\s ]+/g, '');
         }
 
+        // ページ読み込み時にバックグラウンドでExcelを取得
         window.addEventListener('DOMContentLoaded', () => {
             fetch('./baseball_data.xlsx')
                 .then(response => {
@@ -112,6 +318,7 @@
                     const workbook = XLSX.read(data, {type: 'array'});
                     processExcelData(workbook);
                     
+                    isDataLoaded = true;
                     document.getElementById('statusMessage').classList.add('hidden');
                     document.getElementById('mainHeader').classList.remove('hidden');
                     
@@ -123,7 +330,7 @@
                 })
                 .catch(error => {
                     console.error('Error fetching excel:', error);
-                    document.getElementById('statusMessage').innerText = 'データの読み込みに失敗しました。baseball_data.xlsx が正しく配置されているか確認してください。';
+                    document.getElementById('statusMessage').innerText = 'データ(baseball_data.xlsx)の読み込みに失敗しました。';
                 });
         });
 
@@ -157,15 +364,13 @@
             basicData.forEach(player => {
                 if (!player['選手名'] || !player['コード']) return; 
 
-                // 1. 育成選手の除外（背番号が3桁以上の場合はスキップ）
                 const uniformNo = String(player['背番号'] || '').trim();
                 if (uniformNo.length >= 3) return;
 
-                // 2. 外国人選手の除外（出身が日本の都道府県を含まない場合はスキップ）
                 const origin = String(player['出身'] || '');
                 if (origin) {
                     const isJapan = prefectures.some(pref => origin.includes(pref));
-                    if (!isJapan) return; // 外国人と判定して除外
+                    if (!isJapan) return; 
                 }
 
                 const code = String(player['コード']).toLowerCase();
@@ -207,11 +412,8 @@
                     }
                 }
 
-                // 3. 成績表記のフォーマット指定
                 const statsCombined = `${stats1Str} / (2軍)${stats2Str}`;
                 const salaryStr = formatSalary(player['年俸']);
-
-                // 4. 年齢の「歳」を一度消す（二重表示防止）
                 const ageNum = String(player['年齢']).replace(/歳$/, '');
 
                 allPlayersData.push({
@@ -249,7 +451,7 @@
             const container = document.getElementById('playersContainer');
             container.innerHTML = '';
             
-            if (!currentTeam) return;
+            if (!currentTeam || !isDataLoaded) return;
 
             const teamPlayers = allPlayersData.filter(p => p.team === currentTeam);
             const positions = ['投手', '捕手', '内野手', '外野手'];
