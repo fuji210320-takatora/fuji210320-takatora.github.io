@@ -13,14 +13,14 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // ★ 修正：プロテクト側で成功した、一つ上の階層を直接見に行くパス指定
-        const res = await fetch('../baseball_data.xlsx');
+        // ★ プロテクト側で大成功した「リポジトリ名での絶対パス指定」
+        const res = await fetch('/fuji210320-takatora.github.io/baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         
-        // ★ 修正：シート名を「野手能力」「投手能力」に指定
+        // ★ エクセルの中にある実際のシート名
         const rawFielders = XLSX.utils.sheet_to_json(workbook.Sheets['野手能力']) || [];
         const rawPitchers = XLSX.utils.sheet_to_json(workbook.Sheets['投手能力']) || [];
         
@@ -36,7 +36,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('screen-loading').classList.remove('active');
         startDraft('fielder');
     } catch (e) {
-        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span><br>データ（../baseball_data.xlsx）の読み込みに失敗しました。`;
+        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span><br>データの読み込みに失敗しました。`;
         console.error(e);
     }
 });
@@ -126,7 +126,6 @@ function renderCard(player, type) {
     const team = player["チーム"] || player["コード"] || "フリー";
     const htmlContainer = document.getElementById('draft-card');
     
-    // エクセルの列名に合わせて表示内容を調整（存在しない場合は打率などを表示）
     if (type === 'fielder') {
         const contact = player["ミート"] || player["打率"] || "-";
         const power = player["パワー"] || player["本塁打"] || "-";
@@ -180,7 +179,7 @@ function initSetupScreen() {
 function startPennant() {
     showScreen('screen-result');
     
-    // 架空のペナントシミュレーション（UI確認用・順位計算）
+    // 架空のペナントシミュレーション（UI確認用）
     let teams = [
         { name: "あなたのオリジナルチーム", wins: 0, losses: 0 },
         { name: "ライバル球団A", wins: 0, losses: 0 },
@@ -190,10 +189,8 @@ function startPennant() {
         { name: "ライバル球団E", wins: 0, losses: 0 }
     ];
 
-    // あなたのチームの強さを能力値（今回は簡易乱数）で算出
     let baseStrength = 0.45 + (Math.random() * 0.15); 
 
-    // 143試合を消化
     for(let i=0; i<143; i++) {
         if(Math.random() < baseStrength) teams[0].wins++;
         else teams[0].losses++;
@@ -204,10 +201,8 @@ function startPennant() {
         }
     }
 
-    // 順位ソート
     teams.sort((a, b) => b.wins - a.wins);
 
-    // 結果出力
     let myRank = teams.findIndex(t => t.name === "あなたのオリジナルチーム") + 1;
     document.getElementById('final-rank').innerHTML = `6チーム中 <span style="color:#c62828; font-size:40px;">${myRank}位</span>`;
 
