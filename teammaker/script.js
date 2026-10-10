@@ -11,33 +11,35 @@ let skipsLeft = 5;
 // ==========================================
 // 1. 共通エクセルの読み込み
 // ==========================================
-window.onload = async () => {
+window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // ★ リポジトリルートのファイルを絶対パスで指定
-        const res = await fetch('/baseball_data.xlsx');
+        // ★ 修正：プロテクト側で成功した、一つ上の階層を直接見に行くパス指定
+        const res = await fetch('../baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         
-        // シート名はプロテクト側と同じ「野手」「投手」を指定
-        const rawFielders = XLSX.utils.sheet_to_json(workbook.Sheets['野手']) || [];
-        const rawPitchers = XLSX.utils.sheet_to_json(workbook.Sheets['投手']) || [];
+        // ★ 修正：シート名を「野手能力」「投手能力」に指定
+        const rawFielders = XLSX.utils.sheet_to_json(workbook.Sheets['野手能力']) || [];
+        const rawPitchers = XLSX.utils.sheet_to_json(workbook.Sheets['投手能力']) || [];
         
         // 選手名があるデータのみ抽出
         fieldersData = rawFielders.filter(p => p['選手名']);
         pitchersData = rawPitchers.filter(p => p['選手名']);
         
         if (fieldersData.length === 0 || pitchersData.length === 0) {
-            throw new Error("シート『野手』または『投手』にデータが見つかりません。");
+            throw new Error("シート『野手能力』または『投手能力』にデータが見つかりません。");
         }
 
+        // 読み込みが成功したら、ローディング画面を隠してドラフト開始
+        document.getElementById('screen-loading').classList.remove('active');
         startDraft('fielder');
     } catch (e) {
-        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span>`;
+        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span><br>データ（../baseball_data.xlsx）の読み込みに失敗しました。`;
         console.error(e);
     }
-};
+});
 
 // ==========================================
 // 2. 画面切り替え・UI更新
@@ -179,7 +181,6 @@ function startPennant() {
     showScreen('screen-result');
     
     // 架空のペナントシミュレーション（UI確認用・順位計算）
-    // 本格的な成績計算ロジックはPythonからさらに移植していく土台になります
     let teams = [
         { name: "あなたのオリジナルチーム", wins: 0, losses: 0 },
         { name: "ライバル球団A", wins: 0, losses: 0 },
