@@ -3,20 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>野球シミュレーション総合サイト</title>
+    <title>たかとらの部屋</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f0f2f5; }
-        .menu-box { margin-top: 30px; display: flex; justify-content: center; gap: 20px; }
-        a.btn { display: block; padding: 20px 30px; background: #00796b; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; transition: 0.2s; }
-        a.btn:hover { background: #005a4f; }
+        /* =========================================
+           たかとらの部屋 オリジナルデザイン
+           ========================================= */
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ヘッダー部分 */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #bdc3c7;
+        }
+
+        /* コンテンツ領域 */
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-msg {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        /* メニューボタン（カード風） */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+
+        .menu-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .menu-desc {
+            font-size: 13px;
+            color: #777;
+        }
+
+        /* フッター */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 12px;
+            margin-top: 50px;
+        }
     </style>
 </head>
 <body>
-    <h1>野球シミュレーション総合サイト</h1>
-    <p>遊びたいモードを選んでください。</p>
-    <div class="menu-box">
-        <a href="protect/" class="btn">🛡️ プロテクト・拡張ドラフト</a>
-        <a href="teammaker/" class="btn">⚾ 野球チームメーカー</a>
+
+    <header>
+        <h1>たかとらの部屋</h1>
+        <p>〜 プロ野球シミュレーション 〜</p>
+    </header>
+
+    <div class="container">
+        <div class="welcome-msg">
+            ようこそ「たかとらの部屋」へ！<br>
+            ここはプロ野球の編成やシミュレーションをとことん楽しむための場所です。<br>
+            遊びたいコンテンツを選んでください。
+        </div>
+
+        <div class="menu-grid">
+            <!-- 1. プロテクト・拡張ドラフトへのリンク -->
+            <a href="protect/" class="menu-card">
+                <div class="menu-icon">🛡️</div>
+                <div class="menu-title">プロテクト・拡張ドラフト</div>
+                <div class="menu-desc">他球団からの引き抜きに備えよ！<br>FA補強に伴うプロテクト名簿を作成・シミュレーションします。</div>
+            </a>
+
+            <!-- 2. 野球チームメーカーへのリンク -->
+            <a href="teammaker/" class="menu-card">
+                <div class="menu-icon">⚾</div>
+                <div class="menu-title">野球チームメーカー</div>
+                <div class="menu-desc">ドラフトで自分だけの最強チームを結成！<br>143試合のペナントレースを戦い抜き、リーグ優勝を目指せ。</div>
+            </a>
+        </div>
     </div>
+
+    <footer>
+        &copy; たかとらの部屋 All Rights Reserved.
+    </footer>
+
 </body>
 </html>
