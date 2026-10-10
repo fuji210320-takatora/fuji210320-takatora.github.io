@@ -4,51 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚾ 野球チームメーカー</title>
+    <!-- SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; margin: 0; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .screen { display: none; }
+        /* =========================================
+           ベース・モダンデザイン
+           ========================================= */
+        :root {
+            --primary: #00796b;
+            --bg-color: #f4f7f6;
+            --text-main: #111;
+            --text-sub: #666;
+            --card-bg: #fff;
+        }
+        body {
+            font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
-        button { background-color: #00796b; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
-        button:hover { background-color: #005a4f; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           カード ＆ ドラフトUI（Streamlit版を再現）
+           ========================================= */
+        .card {
+            border: 1px solid #e0e0e0; border-radius: 12px; padding: 24px;
+            background-color: var(--card-bg); margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .p-tag {
+            background-color: #00796b; color: white; padding: 6px 14px;
+            border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; margin-bottom: 12px;
+        }
+        .p-name { font-size: 32px; font-weight: 900; margin: 0 0 5px 0; color: #111; }
+        .p-meta { font-size: 14px; color: #777; margin-bottom: 20px; }
+        
+        .stats-box { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .stat-item {
+            background-color: #f8f9fa; border: 1px solid #eee; border-radius: 8px;
+            padding: 12px 8px; text-align: center; flex: 1; min-width: 70px;
+        }
+        .stat-label { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold; }
+        .stat-val { font-size: 22px; font-weight: 900; color: #333; }
+        
+        .pos-list { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; font-size: 14px; color: #555; }
+        .pos-badge {
+            background-color: #e8f5e9; color: #2e7d32; padding: 4px 10px;
+            border-radius: 6px; font-weight: bold; font-size: 13px; margin-right: 5px;
+        }
+
+        /* =========================================
+           ボタン群
+           ========================================= */
+        .btn-group { display: flex; gap: 15px; }
+        .btn {
+            flex: 1; padding: 20px; font-size: 20px; font-weight: bold;
+            border: none; border-radius: 12px; cursor: pointer; transition: 0.1s;
+            color: white; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        .btn-take { background-color: #2e7d32; }
+        .btn-skip { background-color: #c62828; }
+        .btn-primary { background-color: var(--primary); width: 100%; box-shadow: 0 4px 0 #004d40; }
+        .btn-disabled { background-color: #bdbdbd; cursor: not-allowed; box-shadow: none; transform: none !important; }
+
+        /* ヘッダー・ステータス */
+        .draft-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
+        .draft-count { font-size: 24px; font-weight: bold; }
+        .skip-badge { background-color: #ffebee; color: #c62828; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>⚾ 野球チームメーカー</h1>
-        
-        <!-- 読み込み中画面 -->
-        <div id="screen-loading" class="screen active">
-            <p style="text-align: center;">共通エクセルデータを読み込んでいます...</p>
-        </div>
 
-        <!-- ドラフト画面 -->
-        <div id="screen-draft" class="screen">
-            <h2 id="draft-title">ドラフト会議</h2>
-            <div id="draft-card" style="border:1px solid #ccc; padding:20px; text-align:center; margin-bottom:15px; border-radius:8px;"></div>
-            <div style="display:flex; gap:10px;">
-                <button onclick="skipPlayer()" style="background-color:#c62828;">見送る</button>
-                <button onclick="takePlayer()" style="background-color:#2e7d32;">獲得する</button>
-            </div>
-        </div>
-
-        <!-- オーダー設定画面 -->
-        <div id="screen-setup" class="screen">
-            <h2>オーダー＆投手起用</h2>
-            <p>※ここに打順・投手起用のUIを配置します</p>
-            <button onclick="startPennant()">ペナントレース開幕！</button>
-        </div>
-
-        <!-- ペナント結果画面 -->
-        <div id="screen-result" class="screen">
-            <h2>🏆 ペナントレース結果</h2>
-            <div id="result-display"></div>
-            <a href="../" style="display:block; text-align:center; margin-top:20px;">トップに戻る</a>
+<div class="container">
+    <!-- ローディング画面 -->
+    <div id="screen-loading" class="screen active">
+        <div class="card" style="text-align: center; padding: 50px;">
+            <h2 style="color: #555;">⚾ データを準備中...</h2>
+            <p id="loading-text">共通ファイル (baseball_data.xlsx) を読み込んでいます</p>
         </div>
     </div>
 
-    <!-- チームメーカーのロジックを読み込み -->
-    <script src="script.js"></script>
+    <!-- ドラフト画面 -->
+    <div id="screen-draft" class="screen">
+        <div style="font-size: 14px; font-weight: bold; color: #666;" id="draft-type-label">野手を獲得</div>
+        <div class="draft-header">
+            <div class="draft-count" id="draft-progress">0 / 9 <span style="font-size:14px; color:#666;">あと9人</span></div>
+            <div class="skip-badge" id="draft-skips">見送り残り：5回</div>
+        </div>
+
+        <div id="draft-card">
+            <!-- JSで選手カードがここに生成されます -->
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-skip" id="btn-skip" onclick="skipPlayer()">見送る</button>
+            <button class="btn btn-take" id="btn-take" onclick="takePlayer()">取る</button>
+        </div>
+    </div>
+
+    <!-- オーダー設定画面 -->
+    <div id="screen-setup" class="screen">
+        <div class="card">
+            <h2>📋 オーダー＆投手起用設定</h2>
+            <p>※ここに打順・守備位置の設定UIが入ります（今回はUIモックアップ）</p>
+            <button class="btn btn-primary" onclick="startPennant()">ペナントレース開幕！</button>
+        </div>
+    </div>
+
+    <!-- ペナント結果画面 -->
+    <div id="screen-result" class="screen">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 14px; color: #555; letter-spacing: 2px; margin-bottom: 10px;">１４３試合を終えて</div>
+            <h2 style="font-size: 36px; margin: 0 0 20px 0;">シーズン終了</h2>
+            <p style="font-size: 24px; font-weight: bold;">6チーム中 <span style="color:#c62828; font-size:40px;">1位</span></p>
+            <p>※ここに順位表や個人成績のテーブルを出力します</p>
+            <a href="../" style="display:inline-block; margin-top:20px; color:#00796b; font-weight:bold;">トップに戻る</a>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
