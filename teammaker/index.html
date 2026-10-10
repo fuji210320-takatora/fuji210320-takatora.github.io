@@ -4,39 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚾ 野球チームメーカー</title>
-    <!-- SheetJS -->
+    <!-- エクセル読み込みライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* =========================================
-           ベース・モダンデザイン
-           ========================================= */
         :root {
             --primary: #00796b;
             --bg-color: #f4f7f6;
-            --text-main: #111;
-            --text-sub: #666;
             --card-bg: #fff;
         }
         body {
             font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-main);
+            color: #111;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            padding: 15px;
         }
         .container {
-            width: 100%;
             max-width: 800px;
+            margin: 0 auto;
         }
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: #0056b3;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-button:hover { text-decoration: underline; }
+
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* =========================================
-           カード ＆ ドラフトUI（Streamlit版を再現）
-           ========================================= */
         .card {
             border: 1px solid #e0e0e0; border-radius: 12px; padding: 24px;
             background-color: var(--card-bg); margin-bottom: 24px;
@@ -46,7 +47,7 @@
             background-color: #00796b; color: white; padding: 6px 14px;
             border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; margin-bottom: 12px;
         }
-        .p-name { font-size: 32px; font-weight: 900; margin: 0 0 5px 0; color: #111; }
+        .p-name { font-size: 32px; font-weight: 900; margin: 0 0 5px 0; }
         .p-meta { font-size: 14px; color: #777; margin-bottom: 20px; }
         
         .stats-box { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -56,16 +57,7 @@
         }
         .stat-label { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold; }
         .stat-val { font-size: 22px; font-weight: 900; color: #333; }
-        
-        .pos-list { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; font-size: 14px; color: #555; }
-        .pos-badge {
-            background-color: #e8f5e9; color: #2e7d32; padding: 4px 10px;
-            border-radius: 6px; font-weight: bold; font-size: 13px; margin-right: 5px;
-        }
 
-        /* =========================================
-           ボタン群
-           ========================================= */
         .btn-group { display: flex; gap: 15px; }
         .btn {
             flex: 1; padding: 20px; font-size: 20px; font-weight: bold;
@@ -78,15 +70,20 @@
         .btn-primary { background-color: var(--primary); width: 100%; box-shadow: 0 4px 0 #004d40; }
         .btn-disabled { background-color: #bdbdbd; cursor: not-allowed; box-shadow: none; transform: none !important; }
 
-        /* ヘッダー・ステータス */
         .draft-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
         .draft-count { font-size: 24px; font-weight: bold; }
         .skip-badge { background-color: #ffebee; color: #c62828; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #f0f0f0; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <a href="../" class="back-button">← たかとらの部屋に戻る</a>
+
     <!-- ローディング画面 -->
     <div id="screen-loading" class="screen active">
         <div class="card" style="text-align: center; padding: 50px;">
@@ -103,9 +100,7 @@
             <div class="skip-badge" id="draft-skips">見送り残り：5回</div>
         </div>
 
-        <div id="draft-card">
-            <!-- JSで選手カードがここに生成されます -->
-        </div>
+        <div id="draft-card"></div>
 
         <div class="btn-group">
             <button class="btn btn-skip" id="btn-skip" onclick="skipPlayer()">見送る</button>
@@ -117,8 +112,16 @@
     <div id="screen-setup" class="screen">
         <div class="card">
             <h2>📋 オーダー＆投手起用設定</h2>
-            <p>※ここに打順・守備位置の設定UIが入ります（今回はUIモックアップ）</p>
-            <button class="btn btn-primary" onclick="startPennant()">ペナントレース開幕！</button>
+            <p>獲得した選手でペナントレースを戦います。</p>
+            <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>獲得した野手 (9名)</h3>
+                <div id="my-fielders-list" style="font-size: 14px; color: #333;"></div>
+            </div>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>獲得した投手 (15名)</h3>
+                <div id="my-pitchers-list" style="font-size: 14px; color: #333;"></div>
+            </div>
+            <button class="btn btn-primary" onclick="startPennant()">ペナントレース開幕！ (143試合)</button>
         </div>
     </div>
 
@@ -126,10 +129,12 @@
     <div id="screen-result" class="screen">
         <div class="card" style="text-align: center;">
             <div style="font-size: 14px; color: #555; letter-spacing: 2px; margin-bottom: 10px;">１４３試合を終えて</div>
-            <h2 style="font-size: 36px; margin: 0 0 20px 0;">シーズン終了</h2>
-            <p style="font-size: 24px; font-weight: bold;">6チーム中 <span style="color:#c62828; font-size:40px;">1位</span></p>
-            <p>※ここに順位表や個人成績のテーブルを出力します</p>
-            <a href="../" style="display:inline-block; margin-top:20px; color:#00796b; font-weight:bold;">トップに戻る</a>
+            <h2 style="font-size: 36px; margin: 0 0 10px 0;">シーズン終了</h2>
+            <p id="final-rank" style="font-size: 24px; font-weight: bold; margin-bottom: 20px;"></p>
+            
+            <div id="result-standings" style="margin-bottom: 30px;"></div>
+            
+            <button class="btn btn-primary" onclick="location.reload()" style="font-size: 16px; padding: 12px;">最初からやり直す</button>
         </div>
     </div>
 </div>
