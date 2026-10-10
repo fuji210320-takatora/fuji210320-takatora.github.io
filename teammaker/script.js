@@ -13,30 +13,37 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // ★ プロテクト側で大成功した「リポジトリ名での絶対パス指定」
         const res = await fetch('/fuji210320-takatora.github.io/baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         
-        // ★ エクセルの中にある実際のシート名
-        const rawFielders = XLSX.utils.sheet_to_json(workbook.Sheets['野手能力']) || [];
-        const rawPitchers = XLSX.utils.sheet_to_json(workbook.Sheets['投手能力']) || [];
+        // ★修正：プロテクトと同じ「野手」「投手」シートを探す（「野手能力」になっていても対応可能）
+        const sheetF = workbook.Sheets['野手'] || workbook.Sheets['野手能力'];
+        const sheetP = workbook.Sheets['投手'] || workbook.Sheets['投手能力'];
         
-        // 選手名があるデータのみ抽出
-        fieldersData = rawFielders.filter(p => p['選手名']);
-        pitchersData = rawPitchers.filter(p => p['選手名']);
+        // それでも見つからない場合のエラー表示（実際にあるシート名を画面に表示させます）
+        if (!sheetF || !sheetP) {
+            throw new Error(`「野手」または「投手」シートが見つかりません。現在のシート一覧: [ ${workbook.SheetNames.join(', ')} ]`);
+        }
+
+        const rawFielders = XLSX.utils.sheet_to_json(sheetF) || [];
+        const rawPitchers = XLSX.utils.sheet_to_json(sheetP) || [];
+        
+        // 「選手名」列があるデータのみ抽出（もし列の名前が「名前」などでも対応）
+        fieldersData = rawFielders.filter(p => p['選手名'] || p['名前']);
+        pitchersData = rawPitchers.filter(p => p['選手名'] || p['名前']);
         
         if (fieldersData.length === 0 || pitchersData.length === 0) {
-            throw new Error("シート『野手能力』または『投手能力』にデータが見つかりません。");
+            throw new Error("シートは見つかりましたが「選手名」の列が見つかりません。エクセルの1行目を確認してください。");
         }
 
         // 読み込みが成功したら、ローディング画面を隠してドラフト開始
         document.getElementById('screen-loading').classList.remove('active');
         startDraft('fielder');
     } catch (e) {
-        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span><br>データの読み込みに失敗しました。`;
+        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span>`;
         console.error(e);
     }
 });
@@ -122,14 +129,16 @@ function skipPlayer() {
 }
 
 function renderCard(player, type) {
-    const name = player["選手名"] || "不明";
+    const name = player["選手名"] || player["名前"] || "不明";
     const team = player["チーム"] || player["コード"] || "フリー";
     const htmlContainer = document.getElementById('draft-card');
     
     if (type === 'fielder') {
-        const contact = player["ミート"] || player["打率"] || "-";
-        const power = player["パワー"] || player["本塁打"] || "-";
-        const rbi = player["打点"] || "-";
+        // ★ご指定通り、ミート・パワー・走力・守備力を表示
+        const contact = player["ミート"] || "-";
+        const power = player["パワー"] || "-";
+        const speed = player["走力"] || "-";
+        const defense = player["守備力"] || player["守備"] || "-";
 
         htmlContainer.innerHTML = `
             <div class="card">
@@ -137,16 +146,17 @@ function renderCard(player, type) {
                 <div class="p-name">${name}</div>
                 <div class="p-meta">${team}</div>
                 <div class="stats-box">
-                    <div class="stat-item"><div class="stat-label">ミート/打率</div><div class="stat-val">${contact}</div></div>
-                    <div class="stat-item"><div class="stat-label">パワー/HR</div><div class="stat-val">${power}</div></div>
-                    <div class="stat-item"><div class="stat-label">打点</div><div class="stat-val">${rbi}</div></div>
+                    <div class="stat-item"><div class="stat-label">ミート</div><div class="stat-val">${contact}</div></div>
+                    <div class="stat-item"><div class="stat-label">パワー</div><div class="stat-val">${power}</div></div>
+                    <div class="stat-item"><div class="stat-label">走力</div><div class="stat-val">${speed}</div></div>
+                    <div class="stat-item"><div class="stat-label">守備力</div><div class="stat-val">${defense}</div></div>
                 </div>
             </div>
         `;
     } else {
-        const era = player["防御率"] || player["球威"] || "-";
-        const win = player["勝利"] || "-";
-        const strike = player["奪三振"] || "-";
+        const era = player["防御率"] || player["球威"] || player["球速"] || "-";
+        const win = player["勝利"] || player["制球"] || player["コントロール"] || "-";
+        const strike = player["奪三振"] || player["スタミナ"] || "-";
 
         htmlContainer.innerHTML = `
             <div class="card">
@@ -155,8 +165,8 @@ function renderCard(player, type) {
                 <div class="p-meta">${team}</div>
                 <div class="stats-box">
                     <div class="stat-item"><div class="stat-label">防御率/球威</div><div class="stat-val">${era}</div></div>
-                    <div class="stat-item"><div class="stat-label">勝利</div><div class="stat-val">${win}</div></div>
-                    <div class="stat-item"><div class="stat-label">奪三振</div><div class="stat-val">${strike}</div></div>
+                    <div class="stat-item"><div class="stat-label">勝利/制球</div><div class="stat-val">${win}</div></div>
+                    <div class="stat-item"><div class="stat-label">奪三振/ｽﾀﾐﾅ</div><div class="stat-val">${strike}</div></div>
                 </div>
             </div>
         `;
@@ -169,10 +179,11 @@ function renderCard(player, type) {
 function initSetupScreen() {
     showScreen('screen-setup');
     
-    const fList = myTeam.fielders.map(p => p["選手名"]).join("、");
+    // 選んだ選手のリストを見やすく表示
+    const fList = myTeam.fielders.map(p => (p["選手名"] || p["名前"])).join("、");
     document.getElementById('my-fielders-list').innerText = fList;
     
-    const pList = myTeam.pitchers.map(p => p["選手名"]).join("、");
+    const pList = myTeam.pitchers.map(p => (p["選手名"] || p["名前"])).join("、");
     document.getElementById('my-pitchers-list').innerText = pList;
 }
 
