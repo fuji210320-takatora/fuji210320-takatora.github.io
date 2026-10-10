@@ -122,7 +122,7 @@
            シミュレーター画面のスタイル
            ========================================== */
         #simulatorScreen {
-            padding: 10px; /* スマホ向けに画面端の余白を削る */
+            padding: 10px;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -141,14 +141,13 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         .team-select { padding: 6px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc;}
         
-        /* 横5列固定のグリッドレイアウト（スマホの画面幅に強制的に収める） */
         .player-grid-container {
             width: 100%;
         }
         .player-grid { 
             display: grid; 
-            grid-template-columns: repeat(5, 1fr); /* 常に5列 */
-            gap: 2px; /* スマホ向けに隙間を最小限に */
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 2px; 
             margin-bottom: 20px; 
         }
         @media (min-width: 768px) {
@@ -164,7 +163,7 @@
             background: white;
             border: 1px solid #ddd;
             border-radius: 3px;
-            padding: 4px 2px; /* スマホ向けにカード内の余白を極限まで削る */
+            padding: 4px 2px;
             cursor: pointer;
             user-select: none;
             transition: 0.2s;
@@ -185,16 +184,13 @@
         .player-card.protected .name { color: #d4af37; }
         .player-card.protected .stats { color: #ccc; }
         
-        /* 名前と年齢の配置（スマホは縦並び、PCは横並び） */
         .player-info { display: flex; flex-direction: column; align-items: flex-start; }
         @media (min-width: 768px) {
             .player-info { flex-direction: row; align-items: baseline; justify-content: space-between; }
         }
         
-        /* 画面幅に合わせて文字サイズを自動で縮小(clamp)させる */
         .name { font-size: clamp(9px, 2.2vw, 16px); font-weight: bold; line-height: 1.1; letter-spacing: -0.5px; }
         .age { font-size: clamp(8px, 1.8vw, 12px); color: gray; margin-top: 2px; }
-        /* 成績テキストは長くなるため改行を許可 */
         .stats { font-size: clamp(7px, 1.5vw, 11px); color: #555; margin-top: 4px; line-height: 1.25; overflow-wrap: anywhere; word-break: break-all; }
         
         .counter { font-size: 16px; font-weight: bold; color: #0056b3; }
@@ -252,20 +248,34 @@
     </div>
 
     <script>
-        function openApp(appId) {
-            if (appId === 'simulator') {
+        // --- 画面切り替えロジック (ハッシュルーティング対応) ---
+        function handleHashChange() {
+            if (window.location.hash === '#simulator') {
                 document.getElementById('portalScreen').classList.add('hidden');
                 document.getElementById('simulatorScreen').classList.remove('hidden');
                 window.scrollTo(0, 0); 
+            } else {
+                document.getElementById('simulatorScreen').classList.add('hidden');
+                document.getElementById('portalScreen').classList.remove('hidden');
+                window.scrollTo(0, 0);
+            }
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        function openApp(appId) {
+            if (appId === 'simulator') {
+                window.location.hash = 'simulator'; // URLの末尾に #simulator を追加
             }
         }
 
         function closeApp() {
-            document.getElementById('simulatorScreen').classList.add('hidden');
-            document.getElementById('portalScreen').classList.remove('hidden');
-            window.scrollTo(0, 0);
+            // URLからハッシュを消去してホームに戻る
+            history.pushState('', document.title, window.location.pathname + window.location.search);
+            handleHashChange();
         }
 
+        // --- シミュレーターロジック ---
         let allPlayersData = [];
         let currentTeam = '';
         const MAX_PROTECT = 28;
@@ -311,6 +321,8 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            handleHashChange(); // リロード時にURLをチェックして画面を復元
+
             fetch('./baseball_data.xlsx')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -516,6 +528,3 @@
     </script>
 </body>
 </html>
-```eof
-
-これで、スマホのような横幅の狭い画面でもスクロールバーが出ず、1画面内に横5列が圧縮されて全体を見渡せるレイアウトになっています！
