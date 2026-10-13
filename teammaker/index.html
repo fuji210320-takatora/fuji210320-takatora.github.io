@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ドラフトシミュレーター</title>
+    <title>ペナントシミュレーター（修正版v2）</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f6f5f0; color: #333; margin: 0; padding: 20px; }
@@ -44,6 +44,20 @@
         .setup-badge { padding: 6px 10px; font-size: 13px; font-weight: 900; border-radius: 4px; white-space: nowrap; }
 
         .setup-pos-select { flex: 1; padding: 8px; font-size: 14px; font-weight: bold; border: 1px solid #dcdcdc; border-radius: 6px; }
+        .setup-aptitude-row { display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:7px; }
+        .setup-aptitude-label { font-size:11px; color:#666; font-weight:bold; margin-right:2px; }
+        .compact-pos-tag { padding:2px 5px; font-size:11px; min-width:22px; text-align:center; }
+        .league-standings-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
+        .league-standings-panel { min-width:0; border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; }
+        .central-panel { border-top:4px solid #1976d2; }
+        .pacific-panel { border-top:4px solid #2e7d32; }
+        .league-panel-title { font-size:18px; font-weight:900; margin:0 0 8px; }
+        .league-panel-title span { font-size:12px; font-weight:normal; color:#666; margin-left:5px; }
+        .league-standings-panel h3 { display:none; }
+        .league-standings-panel table { font-size:12px; }
+        .league-standings-panel th, .league-standings-panel td { padding:6px 3px; }
+        .standings-note { font-size:12px; color:#666; margin-top:12px; }
+        @media (max-width:560px) { .league-standings-grid { grid-template-columns:1fr; } }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
@@ -285,7 +299,7 @@ const SCHEDULE_TEXT = `
 148	巨 中 Ｄ ヤ 神 広
 149	巨 中 Ｄ ヤ 神 広 日 オ 楽 ソ ロ 西
 150	巨 ヤ 中 広 神 Ｄ 日 オ 楽 ソ ロ 西
-151	ヤ 神 中 広 神 Ｄ 日 オ 楽 ソ ロ 西
+151	ヤ 巨 中 広 神 Ｄ 日 オ 楽 ソ ロ 西
 152	ヤ 神 Ｄ 中 広 巨 日 楽 ソ 西
 153	Ｄ 中 広 巨 日 楽 ロ オ ソ 西
 154	日 楽
@@ -432,26 +446,26 @@ function selectLeague(leagueStr) {
         allTeams.push(t);
     });
 
-    // 入れ替え
+    // 選択したリーグ内で自チームを既存球団1つと入れ替える
     let targetSyms = myTeam.isCentral ? centralSyms : pacificSyms;
     let replacedSym = targetSyms[Math.floor(Math.random() * targetSyms.length)];
-    myTeam.symbol = replacedSym; // スケジュール上の記号を引き継ぐ
+    myTeam.symbol = replacedSym; // 球団記号を引き継ぐ
     allTeams = allTeams.filter(t => t.symbol !== replacedSym);
     allTeams.push(myTeam);
 
-    // スケジュールパース
+    // 12球団を維持し、元の日程表どおりに対戦カードを読み込む。
+    // セ・パ交流戦も日程表に記載された組み合わせで実施する。
     scheduleMatches = [];
     SCHEDULE_TEXT.trim().split('\n').forEach(line => {
-        let parts = line.trim().split(/\s+/).slice(1); // 先頭の番号を削除
-        let dayMatches = [];
-        for(let i=0; i<parts.length; i+=2) {
-            if(parts[i+1]) {
-                let t1 = allTeams.find(t => t.symbol === parts[i]);
-                let t2 = allTeams.find(t => t.symbol === parts[i+1]);
-                if(t1 && t2) dayMatches.push([t1, t2]);
-            }
+        const parts = line.trim().split(/\s+/).slice(1); // 先頭の日程番号を除く
+        const dayMatches = [];
+        for (let i = 0; i < parts.length; i += 2) {
+            if (!parts[i + 1]) continue;
+            const teamA = allTeams.find(t => t.symbol === parts[i]);
+            const teamB = allTeams.find(t => t.symbol === parts[i + 1]);
+            if (teamA && teamB) dayMatches.push([teamA, teamB]);
         }
-        if(dayMatches.length > 0) scheduleMatches.push(dayMatches);
+        if (dayMatches.length) scheduleMatches.push(dayMatches);
     });
 
     initSetupScreen();
@@ -508,9 +522,10 @@ function renderSetupTables() {
         for(let i=1; i<=(myTeam.isCentral?8:9); i++) orderOptions += `<option value="${i}" ${p.order === i ? 'selected' : ''}>${i}</option>`;
         if(myTeam.isCentral) orderOptions += `<option value="控え" ${p.order === '控え' ? 'selected' : ''}>控え</option>`;
         
-        let posOptions = ''; POSITIONS.forEach(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}（適性${ri.rank}）</option>`; });
-        let aptitudeHtml = POSITIONS.filter(pos => pos !== '指名打者').map(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); return `<span class="pos-tag">${pos.replace('手','')} <b style="color:${ri.color}">${ri.rank}</b></span>`; }).join('');
-        fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">打順</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="defense-positions" style="margin-top:8px">${aptitudeHtml}</div></div></div>`;
+        let posOptions = ''; POSITIONS.forEach(pos => { posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}</option>`; });
+        const shortPos = { '捕手':'捕', '一塁手':'一', '二塁手':'二', '三塁手':'三', '遊撃手':'遊', '左翼手':'左', '中堅手':'中', '右翼手':'右' };
+        let aptitudeHtml = POSITIONS.filter(pos => pos !== '指名打者').map(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); return `<span class="pos-tag compact-pos-tag" title="${pos}適性">${shortPos[pos]} <b style="color:${ri.color}">${ri.rank}</b></span>`; }).join('');
+        fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">打順</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="setup-aptitude-row"><span class="setup-aptitude-label">適性</span>${aptitudeHtml}</div></div></div>`;
     });
     document.getElementById('setup-fielders').innerHTML = fHtml;
 
@@ -822,7 +837,7 @@ function startPennant() {
         t.pitchers.forEach(p => { p.stats = makePitchingStats(); p.battingStats = makeBattingStats(); });
     });
 
-    // 解析した160日間のスケジュールを実行
+    // SCHEDULE_TEXTから読み込んだ元の日程表（交流戦を含む全日程）を順番どおり実行
     scheduleMatches.forEach(dayMatches => {
         allTeams.forEach(t => t.pitchers.forEach(p => { p.stats.pitched_today = false; p.stats.pitches_today = 0; }));
         let teamsPlayed = new Set();
@@ -833,17 +848,24 @@ function startPennant() {
         });
     });
 
-    let rankList = [...allTeams].sort((a,b)=>b.wins-a.wins);
-    let myRank = rankList.findIndex(t=>t===myTeam) + 1;
-    document.getElementById('final-rank').innerHTML = `12球団中 <span style="color:#c62828; font-size:40px;">${myRank}位</span>`;
-    
-    let tableHtml = `<table><tr><th>順位</th><th>チーム名</th><th>勝</th><th>敗</th><th>勝率</th></tr>`;
-    rankList.forEach((t, i) => {
-        let wp = (t.wins / (t.wins + t.losses)).toFixed(3).replace(/^0\./, '.');
-        let bg = t === myTeam ? 'style="background-color:#fff9c4; font-weight:bold;"' : '';
-        tableHtml += `<tr ${bg}><td>${i+1}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.losses}</td><td>${wp}</td></tr>`;
-    });
-    document.getElementById('tab-standings').innerHTML = tableHtml + `</table>`;
+    // 順位表はセ・パ別。ただし交流戦の勝敗も各球団の勝敗に含める。
+    const centralTeams = allTeams.filter(t => t.isCentral).sort((a,b) => b.wins-a.wins);
+    const pacificTeams = allTeams.filter(t => !t.isCentral).sort((a,b) => b.wins-a.wins);
+    const myLeagueTeams = myTeam.isCentral ? centralTeams : pacificTeams;
+    const myRank = myLeagueTeams.findIndex(t => t === myTeam) + 1;
+    document.getElementById('final-rank').innerHTML = `${myTeam.isCentral ? 'セ・リーグ' : 'パ・リーグ'}6球団中 <span style="color:#c62828; font-size:40px;">${myRank}位</span>`;
+
+    function makeStandingsTable(title, teams) {
+        let html = `<h3>${title}</h3><table><tr><th>順位</th><th>チーム名</th><th>勝</th><th>敗</th><th>勝率</th></tr>`;
+        teams.forEach((t, i) => {
+            const total = t.wins + t.losses;
+            const wp = total > 0 ? (t.wins / total).toFixed(3).replace(/^0\./, '.') : '.000';
+            const bg = t === myTeam ? 'style="background-color:#fff9c4; font-weight:bold;"' : '';
+            html += `<tr ${bg}><td>${i+1}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.losses}</td><td>${wp}</td></tr>`;
+        });
+        return html + `</table>`;
+    }
+    document.getElementById('tab-standings').innerHTML = `<div class="league-standings-grid"><section class="league-standings-panel central-panel"><div class="league-panel-title">セ・リーグ <span>${centralTeams.length}球団</span></div>${makeStandingsTable('', centralTeams)}</section><section class="league-standings-panel pacific-panel"><div class="league-panel-title">パ・リーグ <span>${pacificTeams.length}球団</span></div>${makeStandingsTable('', pacificTeams)}</section></div><p class="standings-note">※順位はリーグ別に表示。交流戦の勝敗も各球団のシーズン勝敗に含まれます。対戦カードは元の日程表を使用しています。</p>`;
 
     let statFHtml = `<table><tr><th>打順</th><th>守備位置</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th><th>盗塁</th><th>失策</th></tr>`;
     myTeam.fielders.filter(p=>p.order !== '控え').forEach(p => {
