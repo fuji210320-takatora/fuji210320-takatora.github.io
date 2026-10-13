@@ -509,9 +509,8 @@ function renderSetupTables() {
         if(myTeam.isCentral) orderOptions += `<option value="控え" ${p.order === '控え' ? 'selected' : ''}>控え</option>`;
         
         let posOptions = ''; POSITIONS.forEach(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}（適性${ri.rank}）</option>`; });
-        let rawDef = typeof p["守備力"] === 'string' && p["守備力"].includes(':') ? p["守備力"].split('/')[0].split(':')[0].trim() : 'DH';
         let aptitudeHtml = POSITIONS.filter(pos => pos !== '指名打者').map(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); return `<span class="pos-tag">${pos.replace('手','')} <b style="color:${ri.color}">${ri.rank}</b></span>`; }).join('');
-        fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">打順</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50} 本職:${parsePositionName(rawDef)}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="defense-positions" style="margin-top:8px">${aptitudeHtml}</div></div></div>`;
+        fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">打順</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="defense-positions" style="margin-top:8px">${aptitudeHtml}</div></div></div>`;
     });
     document.getElementById('setup-fielders').innerHTML = fHtml;
 
@@ -520,8 +519,7 @@ function renderSetupTables() {
         let roleOptions = '';
         ['先発', '中継ぎエース', '僅差', 'リード', 'ビハインド', '敗戦処理', '抑え'].forEach(r => roleOptions += `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`);
         let rankInfo = getRankInfo(parseInt(p["スタミナ"])||50);
-        let pitchTags = Object.keys(p).filter(key => key.startsWith('球種_') && p[key] !== '' && p[key] != null).map(key => { let n = parseInt(p[key],10); let val = Number.isNaN(n) ? p[key] : getRankInfo(n).rank; return `<span class="pitch-tag">${key.replace('球種_', '')} <b>${val}</b></span>`; }).join('');
-        pHtml += `<div class="setup-card"><div class="setup-order-box" style="background:#f9f9f9;"><div class="setup-order-select" style="cursor:default;">${index + 1}</div><div class="setup-order-label">投手</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">球威:${parseInt(p["球威"])||50} 制球:${parseInt(p["制球"])||50} スタミナ:${parseInt(p["スタミナ"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePitcherRole(${index}, this.value)">${roleOptions}</select><span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border:1px solid ${rankInfo.color};">スタミナ${rankInfo.rank}</span></div>${pitchTags ? `<div class="pitch-types" style="margin-top:8px">${pitchTags}</div>` : '<div class="setup-meta" style="margin-top:8px">変化球データなし</div>'}</div></div>`;
+        pHtml += `<div class="setup-card"><div class="setup-order-box" style="background:#f9f9f9;"><div class="setup-order-select" style="cursor:default;">${index + 1}</div><div class="setup-order-label">投手</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">球威:${parseInt(p["球威"])||50} 制球:${parseInt(p["制球"])||50} スタミナ:${parseInt(p["スタミナ"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePitcherRole(${index}, this.value)">${roleOptions}</select><span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border:1px solid ${rankInfo.color};">スタミナ${rankInfo.rank}</span></div></div></div>`;
     });
     document.getElementById('setup-pitchers').innerHTML = pHtml;
 }
@@ -682,6 +680,10 @@ class PitchingState {
         let runs = this.pitcher_runs.get(p) || 0;
         let current_outs = this.current_start_outs;
         let isStarter = this.starters.includes(p);
+
+        // 先発・中継ぎとも、登板後は最低3アウト（1イニング相当）を取るまで交代させない。
+        // 大量失点や球数超過、抑えへの交代条件よりも先に判定する。
+        if (current_outs < 3) return false;
         
         if (!isStarter && current_outs >= 3) {
             if (score_diff >= 1 && score_diff <= 3 && p !== this.closer) return true;
