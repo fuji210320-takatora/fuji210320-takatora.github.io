@@ -60,7 +60,7 @@
         .pitch-types, .defense-positions { display: flex; flex-wrap: wrap; gap: 6px; }
         .pos-tag, .pitch-tag { background-color: #e8f5e9; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid #c8e6c9; }
 
-        /* ======== 起用画面カードデザイン (Screenshot_20261013-133528.png 再現) ======== */
+        /* ======== 起用画面カードデザイン ======== */
         .setup-card { display: flex; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); overflow: hidden; }
         .setup-order-box { background: #f3eee6; width: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #e0e0e0; padding: 15px 5px; }
         .setup-order-select { font-size: 24px; font-weight: 900; font-family: "Arial Black", sans-serif; border: none; background: transparent; text-align: center; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; color: #333; }
@@ -181,7 +181,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 function getRankInfo(num) {
     if (isNaN(num)) return { rank: '-', color: '#999' };
     if (num >= 90) return { rank: 'S', color: '#D4AF37' };
-    if (num >= 80) return { rank: 'A', color: '#4CAF50' }; // 緑色系に変更（写真参考）
+    if (num >= 80) return { rank: 'A', color: '#4CAF50' };
     if (num >= 70) return { rank: 'B', color: '#FF9800' };
     if (num >= 60) return { rank: 'C', color: '#FBC02D' };
     if (num >= 50) return { rank: 'D', color: '#E53935' };
@@ -193,7 +193,7 @@ function getRankInfo(num) {
 // 守備位置の日本語変換と適性取得
 function parsePositionName(shortPos) {
     const map = {'捕':'捕手','一':'一塁手','二':'二塁手','三':'三塁手','遊':'遊撃手','左':'左翼手','中':'中堅手','右':'右翼手','DH':'指名打者'};
-    return map[shortPos] || shortPos;
+    return map[shortPos.trim()] || shortPos.trim();
 }
 
 function getPositionAptitude(player, targetPos) {
@@ -204,22 +204,26 @@ function getPositionAptitude(player, targetPos) {
     let apt = 10;
     let parts = player["守備力"].toString().split('/');
     parts.forEach(p => {
-        let [pos, val] = p.split(':');
-        if (pos && parsePositionName(pos.trim()) === targetPos) {
-            apt = parseInt(val, 10);
+        let splitData = p.split(':');
+        if (splitData.length >= 2) {
+            let pos = splitData[0].trim();
+            let val = parseInt(splitData[1], 10);
+            if (parsePositionName(pos) === targetPos && !isNaN(val)) {
+                apt = val;
+            }
         }
     });
     return apt;
 }
 
 // ==========================================
-// 2. ドラフト進行処理（省略・前回のまま）
+// 2. ドラフト進行処理（カード描画完全復活）
 // ==========================================
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
-function updateDraftHeader() { /* ...（前回のコード）... */
+function updateDraftHeader() {
     const currentCount = currentDraftType === 'fielder' ? myTeam.fielders.length : myTeam.pitchers.length;
     const remain = requiredCount - currentCount;
     document.getElementById('draft-type-label').innerText = currentDraftType === 'fielder' ? "野手ドラフト" : "投手ドラフト";
@@ -259,7 +263,8 @@ function takePlayer() {
 function skipPlayer() {
     if (skipsLeft > 0) { skipsLeft--; draftPool = draftPool.filter(p => p !== currentCandidate); nextCandidate(); }
 }
-function renderCard(player, type) { /* ...（前回のコード・省略せずにそのまま機能）... */
+
+function renderCard(player, type) {
     const name = player["選手名"] || "不明";
     const team = player["チーム"] || "フリー";
     const htmlContainer = document.getElementById('draft-card');
@@ -267,18 +272,95 @@ function renderCard(player, type) { /* ...（前回のコード・省略せず�
     function createStatCard(label, val) {
         const num = parseInt(val, 10);
         const data = getRankInfo(num);
-        return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-rank" style="color:${data.color};">${data.rank}</div><div class="stat-val">${isNaN(num)?'-':num}</div></div>`;
+        const displayRank = data.rank === '-' ? '' : `<div class="stat-rank" style="color: ${data.color};">${data.rank}</div>`;
+        return `<div class="stat-card"><div class="stat-label">${label}</div>${displayRank}<div class="stat-val">${isNaN(num)?'-':num}</div></div>`;
     }
 
     if (type === 'fielder') {
-        htmlContainer.innerHTML = `<div class="card"><div class="p-tag">野手</div><div class="p-name">${name}</div><div class="p-meta">${team}</div><div class="stats-box grid-4">${createStatCard('ミート', player["ミート"])}${createStatCard('パワー', player["パワー"])}${createStatCard('走力', player["走力"])}${createStatCard('守備力', player["守備力"]?player["守備力"].split(':')[1]||50:50)}</div></div>`;
+        // 守備力の分解タグ生成
+        let defenseMax = 0;
+        let posTags = [];
+        if (typeof player["守備力"] === 'string' && player["守備力"].includes(':')) {
+            player["守備力"].split('/').forEach(p => {
+                const arr = p.split(':');
+                if (arr.length >= 2) {
+                    const rating = parseInt(arr[1], 10);
+                    if (!isNaN(rating)) {
+                        if (rating > defenseMax) defenseMax = rating;
+                        posTags.push({ pos: arr[0].trim(), val: rating });
+                    }
+                }
+            });
+        } else {
+            defenseMax = parseInt(player["守備力"], 10) || 0;
+        }
+
+        let posHtml = '';
+        if (posTags.length > 0) {
+            posHtml = `
+            <div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 13px; color: #555; font-weight: bold; white-space: nowrap;">守れる所</div>
+                <div class="defense-positions">
+                    ${posTags.map(t => {
+                        const r = getRankInfo(t.val);
+                        return `<span class="pos-tag">${t.pos} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        }
+
+        htmlContainer.innerHTML = `
+        <div class="card">
+            <div class="p-tag">野手</div>
+            <div class="p-name">${name}</div>
+            <div class="p-meta">${team}</div>
+            <div class="stats-box grid-4">
+                ${createStatCard('ミート', player["ミート"])}
+                ${createStatCard('パワー', player["パワー"])}
+                ${createStatCard('走力', player["走力"])}
+                ${createStatCard('守備力', defenseMax)}
+            </div>
+            ${posHtml}
+        </div>`;
     } else {
-        htmlContainer.innerHTML = `<div class="card"><div class="p-tag" style="background-color:#E53935;">投手</div><div class="p-name">${name}</div><div class="p-meta">${team}</div><div class="stats-box grid-3">${createStatCard('球威', player["球威"])}${createStatCard('制球', player["制球"])}${createStatCard('スタミナ', player["スタミナ"])}</div></div>`;
+        // 球種の分解タグ生成
+        let pitchTags = '';
+        Object.keys(player).forEach(key => {
+            if (key.startsWith('球種_') && player[key]) {
+                const pitchName = key.replace('球種_', '');
+                const pitchVal = parseInt(player[key], 10);
+                if(!isNaN(pitchVal)) {
+                    const r = getRankInfo(pitchVal);
+                    pitchTags += `<span class="pitch-tag">${pitchName} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`;
+                } else {
+                    pitchTags += `<span class="pitch-tag">${pitchName} ${player[key]}</span>`;
+                }
+            }
+        });
+
+        let pitchHtml = pitchTags ? `
+        <div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 13px; color: #555; font-weight: bold; white-space: nowrap;">球種</div>
+            <div class="pitch-types">${pitchTags}</div>
+        </div>` : '';
+
+        htmlContainer.innerHTML = `
+        <div class="card">
+            <div class="p-tag" style="background-color:#E53935;">投手</div>
+            <div class="p-name">${name}</div>
+            <div class="p-meta">${team}</div>
+            <div class="stats-box grid-3">
+                ${createStatCard('球威', player["球威"])}
+                ${createStatCard('制球', player["制球"])}
+                ${createStatCard('スタミナ', player["スタミナ"])}
+            </div>
+            ${pitchHtml}
+        </div>`;
     }
 }
 
 // ==========================================
-// 3. 写真風・起用設定画面（打順自動入れ替え対応）
+// 3. 写真風・起用設定画面（打順自動入れ替え・適性反映）
 // ==========================================
 function initSetupScreen() {
     showScreen('screen-setup');
@@ -287,7 +369,6 @@ function initSetupScreen() {
 }
 
 function renderSetupTables() {
-    // 打順でソート
     myTeam.fielders.sort((a, b) => a.order - b.order);
 
     // 野手UI生成
@@ -298,23 +379,26 @@ function renderSetupTables() {
             orderOptions += `<option value="${i}" ${p.order === i ? 'selected' : ''}>${i}</option>`;
         }
 
-        // 初期ポジションの取得
-        let rawDef = p["守備力"] ? p["守備力"].split(':')[0] : 'DH';
+        // 初期ポジションの抽出
+        let rawDef = 'DH';
+        if (typeof p["守備力"] === 'string' && p["守備力"].includes(':')) {
+            rawDef = p["守備力"].split('/')[0].split(':')[0].trim();
+        }
         let defaultPos = p.pos || parsePositionName(rawDef);
         if(!p.pos) p.pos = defaultPos; 
 
-        // 適性バッジの計算
+        // 選択されたポジションの適性バッジ
         let aptitude = getPositionAptitude(p, p.pos);
         let rankInfo = getRankInfo(aptitude);
         let badgeHtml = `<span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border: 1px solid ${rankInfo.color};">適性${rankInfo.rank}</span>`;
 
+        // ドロップダウン生成
         let posOptions = '';
         POSITIONS.forEach(pos => {
             let r = getRankInfo(getPositionAptitude(p, pos)).rank;
             posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}（適性${r}）</option>`;
         });
 
-        // 年齢出身の代わりに能力表示
         let meet = parseInt(p["ミート"])||50; let pow = parseInt(p["パワー"])||50; let spd = parseInt(p["走力"])||50;
 
         fHtml += `
@@ -348,7 +432,7 @@ function renderSetupTables() {
         });
 
         let kyui = parseInt(p["球威"])||50; let ctrl = parseInt(p["制球"])||50; let sta = parseInt(p["スタミナ"])||50;
-        let rankInfo = getRankInfo(sta); // スタミナを適性の代わりとして表示
+        let rankInfo = getRankInfo(sta); 
 
         pHtml += `
         <div class="setup-card">
