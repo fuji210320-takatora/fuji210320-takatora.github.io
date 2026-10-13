@@ -914,11 +914,11 @@ class PitchingState {
     }
     shouldReplace(score_diff, inning) {
         let p = this.current; if (!p) return false;
-        let runs = this.pitcher_runs.get(p) || 0; let current_outs = this.current_start_outs; let isStarter = this.starters.includes(p);
-        if (!isStarter && current_outs >= 3) { if (score_diff >= 1 && score_diff <= 3 && p !== this.closer) return true; }
-        if (inning >= 9 && score_diff >= 1 && score_diff <= 3 && this.closer && p !== this.closer) {
-            if (this.closer.stats.pitches_today === 0 && this.closer.stats.games_pitched_in_row < 3) return true;
-        }
+        let runs = this.pitcher_runs.get(p) || 0; 
+        let current_outs = this.current_start_outs; 
+        let isStarter = this.starters.includes(p);
+
+        // 球数制限の計算
         let pitches = p.stats.pitches_today;
         if (!this.max_pitches.has(p)) {
             let stamina = parseInt(p["スタミナ"]) || 50; let limit = 0;
@@ -927,14 +927,39 @@ class PitchingState {
             else { limit = Math.min(stamina * (1.1 + Math.random() * 0.2) + 20, 45); }
             this.max_pitches.set(p, Math.max(15, limit));
         }
-        if (pitches >= this.max_pitches.get(p)) return true;
-        if (runs >= 6) return true; if (runs >= 5 && current_outs >= 9) return true; if (runs >= 4 && current_outs >= 15) return true; if (runs >= 3 && current_outs >= 18) return true;
+        let maxPitches = this.max_pitches.get(p);
+
+        // ① 抑え投手（クローザー）への交代条件（9回以降のセーブシチュエーションは最優先）
+        if (inning >= 9 && score_diff >= 1 && score_diff <= 3 && this.closer && p !== this.closer) {
+            if (this.closer.stats.pitches_today === 0 && this.closer.stats.games_pitched_in_row < 3) return true;
+        }
+
+        // ② 大炎上・球数限界の強制降板（シミュレーション破綻防止）
+        if (pitches >= maxPitches) return true;
+        if (runs >= 5 && isStarter && current_outs < 15) return true; // 先発の早期大炎上
+        if (runs >= 4 && !isStarter) return true; // リリーフの炎上
+        if (runs >= 6) return true; 
+        if (runs >= 5 && current_outs >= 9) return true; 
+        if (runs >= 4 && current_outs >= 15) return true; 
+        if (runs >= 3 && current_outs >= 18) return true;
+
+        // ③ ★リリーフは最低でも「1イニング（3アウト）」は必ず投げる
+        if (!isStarter && current_outs < 3) {
+            return false;
+        }
+
+        // ④ 3アウト以上投げた後の処理
         if (isStarter) return false;
+        
         let role = this.getRole(p);
-        if (["僅差", "中継ぎエース", "抑え"].includes(role) && current_outs > 0) return true;
+        // 勝ちパターンのリリーフ（僅差・エース・抑え）は1イニング（3アウト）でお役御免とする
+        if (["僅差", "中継ぎエース", "抑え"].includes(role)) return true;
+        
+        // リード・ビハインド・敗戦処理などのロングリリーフ判定
         if ((p.force_continue_outs || 0) > 0 && current_outs < p.force_continue_outs) return false;
         let priority = this.getRolePriority(inning, score_diff);
         if (priority && role === priority[0]) return false;
+        
         return true;
     }
     _selectBullpen(inning, score_diff) {
