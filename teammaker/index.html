@@ -255,7 +255,7 @@ function renderSetupTables() {
     document.getElementById('setup-fielders').innerHTML = fHtml;
 
     let pHtml = '';
-    const defaultPitcherRoles = ['先発','先発','先発','先発','先発','先発','中継ぎ','中継ぎ','中継ぎ','中継ぎ','中継ぎ','中継ぎ','敗戦処理','抑え','抑え'];
+    const defaultPitcherRoles = ['先発','先発','先発','先発','先発','先発','中継ぎエース','中継ぎ','中継ぎ','中継ぎ','中継ぎ','中継ぎ','敗戦処理','抑え','抑え'];
     myTeam.pitchers.forEach((p, index) => {
         if (!p.role) p.role = defaultPitcherRoles[index] || '中継ぎ';
         let roleOptions = '';
@@ -282,13 +282,13 @@ function switchTab(tabId) {
 }
 
 // ==========================================
-// 4. 新・完全ペナントエンジン (全6チーム総当たり・交代＆公式記録条件完全対応)
+// 4. 新・完全ペナントエンジン (PitchingState・公式記録連動版)
 // ==========================================
 
 function preparePennant() {
     let starters = myTeam.pitchers.filter(p => p.role === '先発');
     if(starters.length < 6) {
-        alert("先発投手が6人未満です。ローテーションを回すため、起用設定で6人を「先発」に設定してください。");
+        alert("先発投手が6人未満です。ローテーションを回すため、起用設定で最低6人を「先発」に設定してください。");
         return;
     }
     startPennant();
@@ -352,30 +352,249 @@ function createCPUTeams() {
         let t = { name: cpuNames[i], fielders: [], pitchers: [], isCPU: true };
         for(let f=1; f<=9; f++) t.fielders.push({ "選手名": "野手"+f, "ミート": baseStr[i]+Math.random()*10, "パワー": baseStr[i]+Math.random()*10, stats: {} });
         for(let p=1; p<=6; p++) t.pitchers.push({ "選手名": "先発"+p, role: '先発', "球威": baseStr[i]+5, "制球": baseStr[i]+5, "スタミナ": 70, stats: {} });
-        for(let p=1; p<=5; p++) t.pitchers.push({ "選手名": "中継"+p, role: '中継ぎ', "球威": baseStr[i], "制球": baseStr[i], "スタミナ": 40, stats: {} });
+        for(let p=1; p<=5; p++) {
+            let role = p === 1 ? '中継ぎエース' : '中継ぎ';
+            t.pitchers.push({ "選手名": "中継"+p, role: role, "球威": baseStr[i], "制球": baseStr[i], "スタミナ": 40, stats: {} });
+        }
         t.pitchers.push({ "選手名": "抑え", role: '抑え', "球威": baseStr[i]+10, "制球": baseStr[i], "スタミナ": 30, stats: {} });
         teams.push(t);
     }
     return teams;
 }
 
+// ★ 投手交代ロジックエンジン (Python版からの完全移植)
+class PitchingState {
+    constructor(team, rotationIdx) {
+        this.team = team;
+        this.starters = team.pitchers.filter(p => p.role === '先発');
+        this.bullpen = team.pitchers.filter(p => p.role !== '先発' && p.role !== '抑え');
+        let closers = team.pitchers.filter(p => p.role === '抑え');
+        this.closer = closers.length > 0 ? closers[0] : null;
+
+        this.current = null;
+        this.current_start_outs = 0;
+        this.used_bullpen = [];
+        this.pitcher_runs = new Map();
+        this.max_pitches = new Map();
+        this.pitchersUsedRecord = []; // WP, LP, SV, HLD 判定用
+
+        this.chooseStarter(rotationIdx);
+    }
+
+    getRole(p) {
+        if (this.starters.includes(p)) return "先発";
+        if (p === this.closer) return "抑え";
+        let r = p.role;
+        // JSの起用オプション（中継ぎエース, 中継ぎ, ビハインド, 敗戦処理）をマップ
+        if (r === '中継ぎエース' || r === '敗戦処理' || r === 'ビハインド') return r;
+        return "僅差"; // 「中継ぎ」は汎用として「僅差・リード」のPythonロジックに対応させる
+    }
+
+    getRolePriority(inning, score_diff) {
+        if (inning >= 9 && score_diff >= 1 && score_diff <= 4) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        if (inning === 12 && score_diff === 0) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        if (inning >= 6 && inning <= 8 && score_diff >= 1 && score_diff <= 3) return ["中継ぎエース", "僅差", "リード", "抑え", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 8 && score_diff >= 4) return ["リード", "僅差", "中継ぎエース", "ビハインド", "抑え", "敗戦処理"];
+        if (inning >= 9 && score_diff >= 4) return ["リード", "抑え", "中継ぎエース", "僅差", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 9 && score_diff <= -1 && score_diff >= -3) return ["ビハインド", "敗戦処理", "リード", "僅差", "中継ぎエース", "抑え"];
+        if (inning >= 1 && inning <= 9 && score_diff <= -4) return ["敗戦処理", "ビハインド", "リード", "僅差", "中継ぎエース", "抑え"];
+        if (inning >= 6 && inning <= 8 && score_diff === 0) return ["僅差", "中継ぎエース", "リード", "抑え", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 5 && score_diff >= 0) return ["リード", "僅差", "ビハインド", "中継ぎエース", "敗戦処理", "抑え"];
+        if (inning >= 10 && score_diff < 0) return ["ビハインド", "僅差", "リード", "敗戦処理", "中継ぎエース", "抑え"];
+        if (inning >= 9 && score_diff === 0) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        return ["僅差", "中継ぎエース", "ビハインド", "リード", "敗戦処理", "抑え"];
+    }
+
+    chooseStarter(rotationIdx) {
+        if (this.starters.length === 0) return null;
+        let p = this.starters[rotationIdx % this.starters.length];
+        this._initPitcher(p, 0, 0);
+        return p;
+    }
+
+    _initPitcher(p, defScore, offScore) {
+        p.stats.pitched_today = true;
+        p.stats.pitches_today = 0;
+        p.stats.games++;
+        this.current = p;
+        this.current_start_outs = 0;
+        this.pitcher_runs.set(p, 0);
+
+        this.pitchersUsedRecord.push({
+            p: p, outs: 0, er: 0,
+            entryScoreDef: defScore, entryScoreOff: offScore,
+            exitScoreDef: defScore, exitScoreOff: offScore
+        });
+    }
+
+    shouldReplace(score_diff, inning) {
+        let p = this.current;
+        if (!p) return false;
+
+        let runs = this.pitcher_runs.get(p) || 0;
+        let current_outs = this.current_start_outs;
+        let isStarter = this.starters.includes(p);
+        
+        // ▼ 中継ぎの回跨ぎ禁止ルール（リード＆3点差以内の勝ちパターンの場合のみ）
+        if (!isStarter && current_outs >= 3) {
+            if (score_diff >= 1 && score_diff <= 3 && p !== this.closer) return true;
+        }
+
+        // ▼ 9回のセーブシチュエーションなら抑えに強制交代
+        if (inning >= 9 && score_diff >= 1 && score_diff <= 3 && this.closer && p !== this.closer) {
+            if (this.closer.stats.pitches_today === 0 && this.closer.stats.games_pitched_in_row < 3) return true;
+        }
+
+        let pitches = p.stats.pitches_today;
+        if (!this.max_pitches.has(p)) {
+            let stamina = parseInt(p["スタミナ"]) || 50;
+            let limit = 0;
+            if (isStarter && stamina <= 53) {
+                limit = stamina * (0.8 + Math.random() * 0.3) + 20;
+            } else if (isStarter) {
+                limit = stamina * (1.1 + Math.random() * 0.2) + 20;
+            } else {
+                limit = Math.min(stamina * (1.1 + Math.random() * 0.2) + 20, 45); // 中継ぎ制限
+            }
+            this.max_pitches.set(p, Math.max(15, limit));
+        }
+
+        let max_limit = this.max_pitches.get(p);
+        let is_stamina_empty = pitches >= max_limit;
+        let role = this.getRole(p);
+
+        if (runs >= 6) return true;
+        if (runs >= 5 && current_outs >= 9) return true;
+        if (runs >= 4 && current_outs >= 15) return true;
+        if (runs >= 3 && current_outs >= 18) return true;
+        if (is_stamina_empty) return true;
+        if (isStarter) return false;
+
+        if (["僅差", "中継ぎエース", "抑え"].includes(role) && current_outs >= 3) return true;
+        if ((p.force_continue_outs || 0) > 0 && current_outs < p.force_continue_outs) return false;
+
+        let priority = this.getRolePriority(inning, score_diff);
+        if (priority && role === priority[0]) return false;
+
+        if (current_outs >= 3) return true; // 中継ぎ基本1イニング
+
+        return false;
+    }
+
+    _selectBullpen(inning, score_diff) {
+        let priority = this.getRolePriority(inning, score_diff);
+        let available = [];
+        let all_bullpen = [...this.bullpen];
+        if (this.closer) all_bullpen.push(this.closer);
+
+        for (let p of all_bullpen) {
+            if (this.used_bullpen.includes(p)) continue;
+            if (p.stats.games_pitched_in_row >= 3) continue; // 3連投回避
+            available.push(p);
+        }
+
+        let fresh = available.filter(p => p.stats.games_pitched_in_row < 2);
+
+        let pick = (pool, prio_list) => {
+            for (let r of prio_list) {
+                let mappedR = r;
+                if (r === "僅差" || r === "リード") mappedR = "中継ぎ"; // UIとの対応
+                
+                let candidates = pool.filter(p => this.getRole(p) === r || this.getRole(p) === mappedR || p.role === mappedR);
+                if (candidates.length > 0) {
+                    candidates.sort((a,b) => (parseInt(b["スタミナ"])||50) - (parseInt(a["スタミナ"])||50));
+                    return candidates[0];
+                }
+            }
+            return null;
+        };
+
+        let selected = pick(fresh, priority) || pick(available, priority);
+        if (!selected) {
+            let emergency = all_bullpen.filter(p => !this.used_bullpen.includes(p));
+            if (emergency.length > 0) {
+                emergency.sort((a,b) => (parseInt(b["スタミナ"])||50) - (parseInt(a["スタミナ"])||50));
+                selected = emergency[0];
+            }
+        }
+
+        if (selected) {
+            let role = this.getRole(selected);
+            if (role === "中継ぎ" && priority[0] === "リード" && score_diff >= 4) {
+                if (Math.random() < 0.5) selected.force_continue_outs = 6;
+            } else if (role === "敗戦処理" && priority[0] === "敗戦処理") {
+                selected.force_continue_outs = Math.random() < 0.4 ? 9 : 6;
+            }
+        }
+        return selected;
+    }
+
+    replace(inning, score_diff, defScore, offScore) {
+        let old = this.current;
+        if (!old) return null;
+        let newP = this._selectBullpen(inning, score_diff);
+        if (!newP || newP === old) return old;
+
+        let oldRec = this.pitchersUsedRecord[this.pitchersUsedRecord.length - 1];
+        oldRec.exitScoreDef = defScore;
+        oldRec.exitScoreOff = offScore;
+
+        if (newP !== this.closer && !this.used_bullpen.includes(newP)) {
+            this.used_bullpen.push(newP);
+        }
+        this._initPitcher(newP, defScore, offScore);
+        return newP;
+    }
+
+    addOut() {
+        this.current_start_outs++;
+        this.current.stats.outs++;
+        this.pitchersUsedRecord[this.pitchersUsedRecord.length - 1].outs++;
+    }
+
+    addRun() {
+        let r = (this.pitcher_runs.get(this.current) || 0) + 1;
+        this.pitcher_runs.set(this.current, r);
+        this.current.stats.runs++;
+        this.current.stats.er++; // 簡易的に全て自責とする
+        this.pitchersUsedRecord[this.pitchersUsedRecord.length - 1].er++;
+    }
+
+    finishGame(defScore, offScore) {
+        let last = this.pitchersUsedRecord[this.pitchersUsedRecord.length - 1];
+        if (last) { last.exitScoreDef = defScore; last.exitScoreOff = offScore; }
+    }
+}
+
+
 function startPennant() {
     showScreen('screen-result');
     let league = [myTeam, ...createCPUTeams()];
     
-    // 全選手の成績箱を初期化（ホールド(holds)を追加）
+    // 全選手の成績箱と連投状態の初期化
     league.forEach(team => {
         team.wins = 0; team.losses = 0; team.rotationIdx = 0;
         team.fielders.forEach(p => p.stats = { pa: 0, ab: 0, hit: 0, hr: 0, rbi: 0, bb: 0, so: 0 });
-        team.pitchers.forEach(p => p.stats = { games: 0, outs: 0, runs: 0, er: 0, wins: 0, losses: 0, saves: 0, holds: 0, so: 0 });
+        team.pitchers.forEach(p => p.stats = { games: 0, outs: 0, runs: 0, er: 0, wins: 0, losses: 0, saves: 0, holds: 0, so: 0, games_pitched_in_row: 0, pitched_today: false, pitches_today: 0 });
     });
 
     const schedulePattern = [ [[0,1],[2,5],[3,4]], [[0,2],[1,3],[4,5]], [[0,3],[2,4],[1,5]], [[0,4],[3,5],[1,2]], [[0,5],[1,4],[2,3]] ];
     
     for (let day = 0; day < 143; day++) {
+        // 試合前のリセット
+        league.forEach(t => t.pitchers.forEach(p => { p.stats.pitched_today = false; p.stats.pitches_today = 0; p.force_continue_outs = 0; }));
+
         let matches = schedulePattern[day % 5];
         matches.forEach(match => { playGame(league[match[0]], league[match[1]]); });
-        league.forEach(t => t.rotationIdx = (t.rotationIdx + 1) % 6);
+        
+        // 試合後の疲労（連投）更新
+        league.forEach(t => {
+            t.rotationIdx = (t.rotationIdx + 1) % 6;
+            t.pitchers.forEach(p => {
+                if (p.stats.pitched_today) p.stats.games_pitched_in_row++;
+                else p.stats.games_pitched_in_row = 0;
+            });
+        });
     }
 
     // 順位表描画
@@ -389,7 +608,7 @@ function startPennant() {
     });
     document.getElementById('tab-standings').innerHTML = tableHtml + `</table>`;
 
-    // マイチーム野手成績
+    // マイチーム成績描画
     let statFHtml = `<table><tr><th>打順</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th></tr>`;
     myTeam.fielders.forEach(p => {
         let avg = p.stats.ab > 0 ? (p.stats.hit / p.stats.ab).toFixed(3).replace(/^0\./, '.') : '.000';
@@ -397,7 +616,6 @@ function startPennant() {
     });
     document.getElementById('tab-fielders').innerHTML = statFHtml + `</table>`;
 
-    // マイチーム投手成績 (HP: ホールド追加)
     let statPHtml = `<table><tr><th>役割</th><th>選手名</th><th>登板</th><th>投球回</th><th>防御率</th><th>勝</th><th>敗</th><th>セ</th><th>HP</th></tr>`;
     myTeam.pitchers.forEach(p => {
         let era = p.stats.outs > 0 ? ((p.stats.er * 27) / p.stats.outs).toFixed(2) : '0.00';
@@ -408,81 +626,63 @@ function startPennant() {
 }
 
 function playGame(teamAway, teamHome) {
+    let awayPitching = new PitchingState(teamAway, teamAway.rotationIdx);
+    let homePitching = new PitchingState(teamHome, teamHome.rotationIdx);
+    
     let state = {
-        away: { team: teamAway, score: 0, batIdx: 0, pitchersUsed: [] },
-        home: { team: teamHome, score: 0, batIdx: 0, pitchersUsed: [] }
+        away: { team: teamAway, score: 0, batIdx: 0, pState: awayPitching },
+        home: { team: teamHome, score: 0, batIdx: 0, pState: homePitching }
     };
 
-    let awayStarters = teamAway.pitchers.filter(p => p.role === '先発');
-    let homeStarters = teamHome.pitchers.filter(p => p.role === '先発');
-    let aStarter = awayStarters[teamAway.rotationIdx % 6] || teamAway.pitchers[0];
-    let hStarter = homeStarters[teamHome.rotationIdx % 6] || teamHome.pitchers[0];
-    
-    aStarter.stats.games++; hStarter.stats.games++;
-    state.away.pitchersUsed.push({ p: aStarter, outs: 0, er: 0, entryScoreDef: 0, entryScoreOff: 0, exitScoreDef: 0, exitScoreOff: 0 });
-    state.home.pitchersUsed.push({ p: hStarter, outs: 0, er: 0, entryScoreDef: 0, entryScoreOff: 0, exitScoreDef: 0, exitScoreOff: 0 });
-
     for (let inning = 1; inning <= 9; inning++) {
-        playHalfInning(state.away, state.home, inning, false);
+        playHalfInning(state.away, state.home, inning);
         if (inning === 9 && state.home.score > state.away.score) break; 
-        playHalfInning(state.home, state.away, inning, true);
+        playHalfInning(state.home, state.away, inning);
     }
 
-    // 試合終了時の最終スコアを記録
-    state.away.pitchersUsed[state.away.pitchersUsed.length - 1].exitScoreDef = state.away.score;
-    state.away.pitchersUsed[state.away.pitchersUsed.length - 1].exitScoreOff = state.home.score;
-    state.home.pitchersUsed[state.home.pitchersUsed.length - 1].exitScoreDef = state.home.score;
-    state.home.pitchersUsed[state.home.pitchersUsed.length - 1].exitScoreOff = state.away.score;
+    awayPitching.finishGame(state.away.score, state.home.score);
+    homePitching.finishGame(state.home.score, state.away.score);
 
     if (state.away.score > state.home.score) {
         teamAway.wins++; teamHome.losses++;
-        assignPitcherRecords(state.away, state.home);
+        assignPitcherRecords(awayPitching, homePitching);
     } else if (state.home.score > state.away.score) {
         teamHome.wins++; teamAway.losses++;
-        assignPitcherRecords(state.home, state.away);
+        assignPitcherRecords(homePitching, awayPitching);
     }
 }
 
-function playHalfInning(offense, defense, inning, isBottom) {
+function playHalfInning(offense, defense, inning) {
     let outs = 0; let bases = [null, null, null];
-    let pRecord = defense.pitchersUsed[defense.pitchersUsed.length - 1];
-    let pitcher = pRecord.p;
+    let defState = defense.pState;
 
-    // 交代判定
-    let needsSwap = false;
-    if (pitcher.role === '先発') {
-        if (pRecord.outs >= (parseInt(pitcher["スタミナ"])||50) * 0.4 || pRecord.er >= 4) needsSwap = true;
-    } else {
-        if (pRecord.outs >= 3 || pRecord.er >= 2) needsSwap = true;
-    }
-    // 9回リード時の抑え登板（セーブシチュエーション）
-    if (inning === 9 && defense.score > offense.score && defense.score - offense.score <= 3) {
-        let closers = defense.team.pitchers.filter(p => p.role === '抑え');
-        if (closers.length > 0 && pitcher !== closers[0]) { needsSwap = true; pitcher = closers[0]; }
-    }
-
-    if (needsSwap) {
-        pRecord.exitScoreDef = defense.score;
-        pRecord.exitScoreOff = offense.score;
-
-        if (pitcher.role !== '抑え') {
-            let relievers = defense.team.pitchers.filter(p => p.role !== '先発' && p.role !== '抑え' && !defense.pitchersUsed.some(u => u.p === p));
-            if (relievers.length === 0) relievers = defense.team.pitchers;
-            pitcher = relievers[Math.floor(Math.random() * relievers.length)];
-        }
-        pitcher.stats.games++;
-        defense.pitchersUsed.push({ p: pitcher, outs: 0, er: 0, entryScoreDef: defense.score, entryScoreOff: offense.score, exitScoreDef: defense.score, exitScoreOff: offense.score });
-        pRecord = defense.pitchersUsed[defense.pitchersUsed.length - 1];
+    // イニング開始前の交代判定
+    let scoreDiff = defense.score - offense.score;
+    if (defState.shouldReplace(scoreDiff, inning)) {
+        defState.replace(inning, scoreDiff, defense.score, offense.score);
     }
 
     while (outs < 3) {
+        // 打者ごとの交代判定
+        scoreDiff = defense.score - offense.score;
+        if (defState.shouldReplace(scoreDiff, inning)) {
+            defState.replace(inning, scoreDiff, defense.score, offense.score);
+        }
+
         let batter = offense.team.fielders[offense.batIdx % 9];
+        let pitcher = defState.current;
         batter.stats.pa++;
         
-        let result = simulateAtBatOutcome(batter, pitcher, pRecord.outs);
+        let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs);
         
-        if (result === "so") { batter.stats.ab++; batter.stats.so++; pitcher.stats.so++; outs++; pRecord.outs++; pitcher.stats.outs++; } 
-        else if (result === "out" || result === "error") { batter.stats.ab++; outs++; pRecord.outs++; pitcher.stats.outs++; }
+        // 簡易球数計算
+        let pitchesThrown = Math.floor(Math.random() * 4) + 3;
+        if (result === 'walk') pitchesThrown += 2;
+        if (result === 'so') pitchesThrown += 1;
+        pitcher.stats.pitches_today += pitchesThrown;
+
+        if (result === "so") { batter.stats.ab++; batter.stats.so++; pitcher.stats.so++; outs++; defState.addOut(); } 
+        else if (result === "out" || result === "error") { batter.stats.ab++; outs++; defState.addOut(); }
         else if (result === "walk") { batter.stats.bb++; } 
         else { batter.stats.ab++; batter.stats.hit++; if (result === "hr") batter.stats.hr++; }
 
@@ -491,7 +691,7 @@ function playHalfInning(offense, defense, inning, isBottom) {
             bases = adv.newBases;
             if (adv.runs > 0) {
                 offense.score += adv.runs; batter.stats.rbi += adv.runs;
-                pitcher.stats.runs += adv.runs; pitcher.stats.er += adv.runs; pRecord.er += adv.runs;
+                for (let r=0; r<adv.runs; r++) defState.addRun();
             }
         }
         offense.batIdx++;
@@ -499,23 +699,20 @@ function playHalfInning(offense, defense, inning, isBottom) {
 }
 
 // ★ 公式ルール完全準拠の投手記録割り当て (勝利・敗戦・セーブ・ホールド)
-function assignPitcherRecords(winData, loseData) {
-    let winUsed = winData.pitchersUsed;
-    let loseUsed = loseData.pitchersUsed;
+function assignPitcherRecords(winPState, losePState) {
+    let winUsed = winPState.pitchersUsedRecord;
+    let loseUsed = losePState.pitchersUsedRecord;
     
     // --- 1. WP (勝利投手) ---
     let wp = null;
     let tookLeadIndex = 0;
-    // 最後に勝ち越し点が入った時に投げていた投手を探す
     for (let i = winUsed.length - 1; i >= 0; i--) {
-        if (winUsed[i].entryScoreDef <= winUsed[i].entryScoreOff) {
-            tookLeadIndex = i; break;
-        }
+        if (winUsed[i].entryScoreDef <= winUsed[i].entryScoreOff) { tookLeadIndex = i; break; }
     }
     let candidateWP = winUsed[tookLeadIndex];
 
     if (tookLeadIndex === 0) {
-        // 先発投手が候補の場合：公式ルール通り「5回(15アウト)以上」投げたか判定
+        // 先発投手が5回(15アウト)以上投げたか判定
         if (candidateWP.outs >= 15) {
             wp = candidateWP.p;
         } else {
@@ -524,23 +721,15 @@ function assignPitcherRecords(winData, loseData) {
             if (relievers.length > 0) {
                 relievers.sort((a, b) => (b.outs - b.er*3) - (a.outs - a.er*3));
                 wp = relievers[0].p;
-            } else {
-                wp = candidateWP.p; // フェイルセーフ
-            }
+            } else { wp = candidateWP.p; }
         }
-    } else {
-        // 同点やビハインドで登板し、味方が逆転して勝利した場合はその投手に勝ちがつく
-        wp = candidateWP.p;
-    }
+    } else { wp = candidateWP.p; } // 逆転勝利時はその投手に勝ちがつく
     if (wp) wp.stats.wins++;
 
     // --- 2. LP (敗戦投手) ---
     let lp = null;
-    // 勝ち越し点(決勝点)を許した投手
-    for (let i = loseUsed.length - 1; i >= 0; i--) {
-         if (loseUsed[i].entryScoreDef >= loseUsed[i].entryScoreOff && loseUsed[i].exitScoreDef < loseUsed[i].exitScoreOff) {
-             lp = loseUsed[i].p; break;
-         }
+    for (let i = loseUsed.length - 1; i >= 0; i--) { // 勝ち越し点(決勝点)を許した投手
+         if (loseUsed[i].entryScoreDef >= loseUsed[i].entryScoreOff && loseUsed[i].exitScoreDef < loseUsed[i].exitScoreOff) { lp = loseUsed[i].p; break; }
     }
     if (!lp) {
         let sorted = [...loseUsed].sort((a,b) => b.er - a.er);
@@ -551,10 +740,9 @@ function assignPitcherRecords(winData, loseData) {
     // --- 3. SV (セーブ) ---
     let lastWinRecord = winUsed[winUsed.length - 1];
     let savePitcher = null;
-    if (lastWinRecord.p !== wp && winUsed.length > 1) { // 勝利投手ではなく、2番手以降
-        if (lastWinRecord.outs >= 1) { // 1/3イニング以上投球
+    if (lastWinRecord.p !== wp && winUsed.length > 1) { 
+        if (lastWinRecord.outs >= 1) { 
             let leadWhenEntered = lastWinRecord.entryScoreDef - lastWinRecord.entryScoreOff;
-            // 登板時に3点差以内、または3イニング(9アウト)以上投げきった
             if ((leadWhenEntered > 0 && leadWhenEntered <= 3) || lastWinRecord.outs >= 9) {
                 savePitcher = lastWinRecord.p;
                 savePitcher.stats.saves++;
@@ -563,19 +751,15 @@ function assignPitcherRecords(winData, loseData) {
     }
 
     // --- 4. HLD (ホールド) ---
-    for (let i = 1; i < winUsed.length; i++) { // 先発(i=0)は除外
+    for (let i = 1; i < winUsed.length; i++) {
         let hldRecord = winUsed[i];
-        if (hldRecord.p === wp || hldRecord.p === savePitcher) continue; // 勝ち投手・セーブ投手にはつかない
-        if (i === winUsed.length - 1 && hldRecord.outs === 0) continue; // 試合完了していない
+        if (hldRecord.p === wp || hldRecord.p === savePitcher) continue; 
+        if (i === winUsed.length - 1 && hldRecord.outs === 0) continue; 
         
-        if (hldRecord.outs >= 1) { // 1アウト以上奪う
+        if (hldRecord.outs >= 1) { 
             let entryLead = hldRecord.entryScoreDef - hldRecord.entryScoreOff;
             let exitLead = hldRecord.exitScoreDef - hldRecord.exitScoreOff;
-            
-            // リードまたは同点で登板し、リードまたは同点を保って降板した
-            if (entryLead >= 0 && exitLead >= 0) {
-                hldRecord.p.stats.holds++;
-            }
+            if (entryLead >= 0 && exitLead >= 0) hldRecord.p.stats.holds++;
         }
     }
 }
