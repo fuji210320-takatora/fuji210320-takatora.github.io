@@ -13,7 +13,7 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        const res = await fetch('baseball_data.xlsx');
+        const res = await fetch('./baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
