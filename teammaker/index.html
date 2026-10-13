@@ -77,7 +77,7 @@
         <!-- 3. 起用設定 -->
         <div id="screen-setup" class="screen">
             <h2 style="text-align:center; margin-bottom:5px;">起用設定</h2>
-            <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">打順や守備位置の変更が可能です</p>
+            <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">打順や守備位置を変更すると自動で入れ替わります</p>
             <h3 style="border-bottom: 2px solid #00796B; color: #00796B; padding-bottom:5px;">スタメン・打順</h3>
             <div id="setup-fielders"></div>
             <h3 style="border-bottom: 2px solid #E53935; color: #E53935; margin-top:30px; padding-bottom:5px;">投手ローテーション</h3>
@@ -225,7 +225,7 @@ function renderCard(player, type) {
 }
 
 // ==========================================
-// 3. 写真風・起用設定画面（打順・守備位置の自動設定機能追加）
+// 3. 起用設定画面 (打順・守備の入れ替え連動＋投手起用完全一致)
 // ==========================================
 function initSetupScreen() {
     showScreen('screen-setup');
@@ -236,40 +236,35 @@ function initSetupScreen() {
         
         // 1番: ミート + 走力
         unassigned.sort((a, b) => ((parseInt(b["ミート"])||50)+(parseInt(b["走力"])||50)) - ((parseInt(a["ミート"])||50)+(parseInt(a["走力"])||50)));
-        unassigned[0].order = 1;
-        unassigned.shift();
+        unassigned[0].order = 1; unassigned.shift();
 
         // 4番: ミート + パワー
         unassigned.sort((a, b) => ((parseInt(b["ミート"])||50)+(parseInt(b["パワー"])||50)) - ((parseInt(a["ミート"])||50)+(parseInt(a["パワー"])||50)));
-        unassigned[0].order = 4;
-        unassigned.shift();
+        unassigned[0].order = 4; unassigned.shift();
 
         // 2番: ミート単体
         unassigned.sort((a, b) => (parseInt(b["ミート"])||50) - (parseInt(a["ミート"])||50));
-        unassigned[0].order = 2;
-        unassigned.shift();
+        unassigned[0].order = 2; unassigned.shift();
 
         // 3番: パワー + 走力
         unassigned.sort((a, b) => ((parseInt(b["パワー"])||50)+(parseInt(b["走力"])||50)) - ((parseInt(a["パワー"])||50)+(parseInt(a["走力"])||50)));
-        unassigned[0].order = 3;
-        unassigned.shift();
+        unassigned[0].order = 3; unassigned.shift();
 
         // 5～9番: 残りをパワー順に
         unassigned.sort((a, b) => (parseInt(b["パワー"])||50) - (parseInt(a["パワー"])||50));
         let nextOrders = [5, 6, 7, 8, 9];
         unassigned.forEach((p, i) => { p.order = nextOrders[i]; });
 
-        // ▼ 守備位置を被らないように割り当て（本職優先・適性順）
+        // ▼ 守備位置を被らないように割り当て
         let positions = ['指名打者', '捕手', '一塁手', '二塁手', '三塁手', '遊撃手', '左翼手', '中堅手', '右翼手'];
         let pairs = [];
         myTeam.fielders.forEach(f => {
             let rawDef = 'DH';
             if (typeof f["守備力"] === 'string' && f["守備力"].includes(':')) rawDef = f["守備力"].split('/')[0].split(':')[0].trim();
             let mainPos = parsePositionName(rawDef);
-
             positions.forEach(pos => {
                 let apt = getPositionAptitude(f, pos);
-                if (pos === mainPos) apt += 100; // 本職を最優先するためのボーナス
+                if (pos === mainPos) apt += 100; // 本職を最優先
                 pairs.push({ player: f, pos: pos, apt: apt });
             });
         });
@@ -297,7 +292,6 @@ function renderSetupTables() {
         let orderOptions = '';
         for(let i=1; i<=myTeam.fielders.length; i++) orderOptions += `<option value="${i}" ${p.order === i ? 'selected' : ''}>${i}</option>`;
         
-        // 本職表示用
         let rawDef = 'DH';
         if (typeof p["守備力"] === 'string' && p["守備力"].includes(':')) rawDef = p["守備力"].split('/')[0].split(':')[0].trim();
 
@@ -315,26 +309,46 @@ function renderSetupTables() {
     document.getElementById('setup-fielders').innerHTML = fHtml;
 
     let pHtml = '';
-    const defaultPitcherRoles = ['先発','先発','先発','先発','先発','先発','中継ぎエース','中継ぎ','中継ぎ','中継ぎ','中継ぎ','中継ぎ','敗戦処理','抑え','抑え'];
+    // Pythonエンジンのロジックに合わせた初期ロール
+    const defaultPitcherRoles = ['先発','先発','先発','先発','先発','先発','中継ぎエース','僅差','リード','ビハインド','敗戦処理','抑え','抑え'];
     myTeam.pitchers.forEach((p, index) => {
-        if (!p.role) p.role = defaultPitcherRoles[index] || '中継ぎ';
+        if (!p.role) p.role = defaultPitcherRoles[index] || '僅差';
+        
+        // ▼ 追加：投手起用オプションをPython版のエンジンと完全に一致させる
         let roleOptions = '';
-        ['先発', '中継ぎエース', '中継ぎ', 'ビハインド', '敗戦処理', '抑え'].forEach(r => { roleOptions += `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`; });
+        ['先発', '中継ぎエース', '僅差', 'リード', 'ビハインド', '敗戦処理', '抑え'].forEach(r => { roleOptions += `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`; });
+        
         let rankInfo = getRankInfo(parseInt(p["スタミナ"])||50); 
         pHtml += `<div class="setup-card"><div class="setup-order-box" style="background:#f9f9f9;"><div class="setup-order-select" style="cursor:default;">${index + 1}</div><div class="setup-order-label">番手</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">球威:${parseInt(p["球威"])||50} 制球:${parseInt(p["制球"])||50} スタミナ:${parseInt(p["スタミナ"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePitcherRole(${index}, this.value)">${roleOptions}</select><span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border: 1px solid ${rankInfo.color};">ｽﾀﾐﾅ${rankInfo.rank}</span></div></div></div>`;
     });
     document.getElementById('setup-pitchers').innerHTML = pHtml;
 }
 
+// ★ 打順の自動入れ替え
 function swapOrder(type, currentIndex, newValue) {
-    const targetOrder = parseInt(newValue, 10); const teamArray = type === 'fielder' ? myTeam.fielders : myTeam.pitchers;
+    const targetOrder = parseInt(newValue, 10); 
+    const teamArray = type === 'fielder' ? myTeam.fielders : myTeam.pitchers;
     const currentOrder = teamArray[currentIndex].order;
     const swapTarget = teamArray.find(p => p.order === targetOrder && p !== teamArray[currentIndex]);
     if (swapTarget) swapTarget.order = currentOrder;
-    teamArray[currentIndex].order = targetOrder; renderSetupTables();
+    teamArray[currentIndex].order = targetOrder; 
+    renderSetupTables();
 }
-function updatePos(index, newPos) { myTeam.fielders[index].pos = newPos; renderSetupTables(); }
+
+// ★ 守備位置の自動入れ替え（追加実装）
+function updatePos(index, newPos) { 
+    const teamArray = myTeam.fielders;
+    const currentPos = teamArray[index].pos;
+    const swapTarget = teamArray.find((p, i) => i !== index && p.pos === newPos);
+    if (swapTarget) {
+        swapTarget.pos = currentPos; // すでにそのポジションだった選手を、現在のポジションに自動入れ替え
+    }
+    teamArray[index].pos = newPos; 
+    renderSetupTables(); 
+}
+
 function updatePitcherRole(index, newRole) { myTeam.pitchers[index].role = newRole; }
+
 function switchTab(tabId) {
     document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -342,7 +356,7 @@ function switchTab(tabId) {
 }
 
 // ==========================================
-// 4. ペナントエンジン
+// 4. 新・完全ペナントエンジン (PitchingState・公式記録連動版)
 // ==========================================
 
 function preparePennant() {
@@ -403,7 +417,7 @@ function advanceBases(bases, batter, result) {
     return {newBases: bases, runs};
 }
 
-// CPUチーム自動生成
+// CPUチーム自動生成 (CPUの投手起用も細分化)
 function createCPUTeams() {
     const cpuNames = ["タイガース", "スワローズ", "ジャイアンツ", "ベイスターズ", "カープ"];
     const baseStr = [55, 52, 50, 48, 45];
@@ -412,9 +426,10 @@ function createCPUTeams() {
         let t = { name: cpuNames[i], fielders: [], pitchers: [], isCPU: true };
         for(let f=1; f<=9; f++) t.fielders.push({ "選手名": "野手"+f, "ミート": baseStr[i]+Math.random()*10, "パワー": baseStr[i]+Math.random()*10, stats: {} });
         for(let p=1; p<=6; p++) t.pitchers.push({ "選手名": "先発"+p, role: '先発', "球威": baseStr[i]+5, "制球": baseStr[i]+5, "スタミナ": 70, stats: {} });
+        
+        let cpuRoles = ['中継ぎエース', '僅差', 'リード', 'ビハインド', '敗戦処理'];
         for(let p=1; p<=5; p++) {
-            let role = p === 1 ? '中継ぎエース' : '中継ぎ';
-            t.pitchers.push({ "選手名": "中継"+p, role: role, "球威": baseStr[i], "制球": baseStr[i], "スタミナ": 40, stats: {} });
+            t.pitchers.push({ "選手名": "中継"+p, role: cpuRoles[p-1], "球威": baseStr[i], "制球": baseStr[i], "スタミナ": 40, stats: {} });
         }
         t.pitchers.push({ "選手名": "抑え", role: '抑え', "球威": baseStr[i]+10, "制球": baseStr[i], "スタミナ": 30, stats: {} });
         teams.push(t);
@@ -422,7 +437,7 @@ function createCPUTeams() {
     return teams;
 }
 
-// 投手交代ロジックエンジン
+// ★ 投手交代ロジックエンジン (Python版からの完全移植)
 class PitchingState {
     constructor(team, rotationIdx) {
         this.team = team;
@@ -444,18 +459,16 @@ class PitchingState {
     getRole(p) {
         if (this.starters.includes(p)) return "先発";
         if (p === this.closer) return "抑え";
-        let r = p.role;
-        if (r === '中継ぎエース' || r === '敗戦処理' || r === 'ビハインド') return r;
-        return "僅差"; 
+        return p.role || "僅差"; 
     }
 
     getRolePriority(inning, score_diff) {
-        if (inning >= 9 && score_diff >= 1 && score_diff <= 4) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        if (inning >= 9 && inning <= 12 && score_diff >= 1 && score_diff <= 4) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
         if (inning === 12 && score_diff === 0) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
         if (inning >= 6 && inning <= 8 && score_diff >= 1 && score_diff <= 3) return ["中継ぎエース", "僅差", "リード", "抑え", "ビハインド", "敗戦処理"];
         if (inning >= 1 && inning <= 8 && score_diff >= 4) return ["リード", "僅差", "中継ぎエース", "ビハインド", "抑え", "敗戦処理"];
-        if (inning >= 9 && score_diff >= 4) return ["リード", "抑え", "中継ぎエース", "僅差", "ビハインド", "敗戦処理"];
-        if (inning >= 1 && inning <= 9 && score_diff <= -1 && score_diff >= -3) return ["ビハインド", "敗戦処理", "リード", "僅差", "中継ぎエース", "抑え"];
+        if (inning >= 9 && inning <= 12 && score_diff >= 4) return ["リード", "抑え", "中継ぎエース", "僅差", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 9 && score_diff >= -3 && score_diff <= -1) return ["ビハインド", "敗戦処理", "リード", "僅差", "中継ぎエース", "抑え"];
         if (inning >= 1 && inning <= 9 && score_diff <= -4) return ["敗戦処理", "ビハインド", "リード", "僅差", "中継ぎエース", "抑え"];
         if (inning >= 6 && inning <= 8 && score_diff === 0) return ["僅差", "中継ぎエース", "リード", "抑え", "ビハインド", "敗戦処理"];
         if (inning >= 1 && inning <= 5 && score_diff >= 0) return ["リード", "僅差", "ビハインド", "中継ぎエース", "敗戦処理", "抑え"];
@@ -475,6 +488,7 @@ class PitchingState {
         p.stats.pitched_today = true;
         p.stats.pitches_today = 0;
         p.stats.games++;
+        p.force_continue_outs = 0;
         this.current = p;
         this.current_start_outs = 0;
         this.pitcher_runs.set(p, 0);
@@ -527,14 +541,13 @@ class PitchingState {
         if (is_stamina_empty) return true;
         if (isStarter) return false;
 
-        if (["僅差", "中継ぎエース", "抑え"].includes(role) && current_outs >= 3) return true;
+        if (["僅差", "中継ぎエース", "抑え"].includes(role) && current_outs > 0) return true;
         if ((p.force_continue_outs || 0) > 0 && current_outs < p.force_continue_outs) return false;
 
         let priority = this.getRolePriority(inning, score_diff);
         if (priority && role === priority[0]) return false;
-        if (current_outs >= 3) return true;
-
-        return false;
+        
+        return true;
     }
 
     _selectBullpen(inning, score_diff) {
@@ -553,10 +566,7 @@ class PitchingState {
 
         let pick = (pool, prio_list) => {
             for (let r of prio_list) {
-                let mappedR = r;
-                if (r === "僅差" || r === "リード") mappedR = "中継ぎ"; 
-                
-                let candidates = pool.filter(p => this.getRole(p) === r || this.getRole(p) === mappedR || p.role === mappedR);
+                let candidates = pool.filter(p => this.getRole(p) === r);
                 if (candidates.length > 0) {
                     candidates.sort((a,b) => (parseInt(b["スタミナ"])||50) - (parseInt(a["スタミナ"])||50));
                     return candidates[0];
@@ -576,7 +586,7 @@ class PitchingState {
 
         if (selected) {
             let role = this.getRole(selected);
-            if (role === "中継ぎ" && priority[0] === "リード" && score_diff >= 4) {
+            if (role === "リード" && priority[0] === "リード" && score_diff >= 4) {
                 if (Math.random() < 0.5) selected.force_continue_outs = 6;
             } else if (role === "敗戦処理" && priority[0] === "敗戦処理") {
                 selected.force_continue_outs = Math.random() < 0.4 ? 9 : 6;
