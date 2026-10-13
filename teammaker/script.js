@@ -13,8 +13,7 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // ★ 絶対URLで指定し、404エラーによる「Invalid HTML」を完全に回避します
-        const res = await fetch('https://fuji210320-takatora.github.io/baseball_data.xlsx');
+        const res = await fetch('baseball_data.xlsx');
         if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
         
         const buffer = await res.arrayBuffer();
