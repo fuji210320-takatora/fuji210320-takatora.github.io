@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>繝峨Λ繝輔ヨ繧ｷ繝溘Η繝ｬ繝ｼ繧ｿ繝ｼ</title>
+    <title>ドラフトシミュレーター</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f6f5f0; color: #333; margin: 0; padding: 20px; }
@@ -57,257 +57,257 @@
 </head>
 <body>
     <div class="container">
-        <!-- 1. 繝ｭ繝ｼ繝�ぅ繝ｳ繧ｰ -->
-        <div id="screen-loading" class="screen active"><div id="loading-text">驕ｸ謇九ョ繝ｼ繧ｿ繧定ｪｭ縺ｿ霎ｼ縺ｿ荳ｭ...</div></div>
+        <!-- 1. ローディング -->
+        <div id="screen-loading" class="screen active"><div id="loading-text">選手データを読み込み中...</div></div>
         
-        <!-- 2. 繝峨Λ繝輔ヨ -->
+        <!-- 2. ドラフト -->
         <div id="screen-draft" class="screen">
             <div class="header">
-                <div class="draft-info"><span id="draft-type-label">驥取焔繝峨Λ繝輔ヨ</span> <span id="draft-progress" style="margin-left:10px; color:#1976D2;">0 / 9</span></div>
-                <div id="draft-skips" style="font-size:14px; font-weight:bold; color:#757575;">隕矩√ｊ谿九ｊ��5蝗�</div>
+                <div class="draft-info"><span id="draft-type-label">野手ドラフト</span> <span id="draft-progress" style="margin-left:10px; color:#1976D2;">0 / 9</span></div>
+                <div id="draft-skips" style="font-size:14px; font-weight:bold; color:#757575;">見送り残り：5回</div>
             </div>
             <div id="draft-card"></div>
             <div class="btn-group">
-                <button class="btn-take" onclick="takePlayer()">迯ｲ蠕励☆繧�</button>
-                <button id="btn-skip" class="btn-skip" onclick="skipPlayer()">隕矩√ｋ</button>
+                <button class="btn-take" onclick="takePlayer()">獲得する</button>
+                <button id="btn-skip" class="btn-skip" onclick="skipPlayer()">見送る</button>
             </div>
         </div>
 
-        <!-- 3. 繝ｪ繝ｼ繧ｰ驕ｸ謚� -->
+        <!-- 3. リーグ選択 -->
         <div id="screen-league" class="screen">
-            <h2 style="text-align:center;">謇螻槭Μ繝ｼ繧ｰ繧帝∈謚�</h2>
-            <p style="text-align:center; color:#555;">驕ｸ謚槭＠縺溘Μ繝ｼ繧ｰ縺ｮ縺�★繧後°縺ｮ逅�屮縺ｨ蜈･繧梧崛繧上ｊ縺ｾ縺吶�<br>窶ｻ繧ｻ繝ｻ繝ｪ繝ｼ繧ｰ縺ｯ9莠ｺ逶ｮ縺後梧而縺茨ｼ�DH縺ｪ縺暦ｼ峨阪↓縺ｪ繧翫∪縺吶�</p>
+            <h2 style="text-align:center;">所属リーグを選択</h2>
+            <p style="text-align:center; color:#555;">選択したリーグのいずれかの球団と入れ替わります。<br>※セ・リーグは9人目が「控え（DHなし）」になります。</p>
             <div class="btn-group">
-                <button style="background-color:#0277BD; padding:30px; font-size:20px;" onclick="selectLeague('Central')">繧ｻ繝ｻ繝ｪ繝ｼ繧ｰ</button>
-                <button style="background-color:#2E7D32; padding:30px; font-size:20px;" onclick="selectLeague('Pacific')">繝代�繝ｪ繝ｼ繧ｰ</button>
+                <button style="background-color:#0277BD; padding:30px; font-size:20px;" onclick="selectLeague('Central')">セ・リーグ</button>
+                <button style="background-color:#2E7D32; padding:30px; font-size:20px;" onclick="selectLeague('Pacific')">パ・リーグ</button>
             </div>
         </div>
 
-        <!-- 4. 襍ｷ逕ｨ險ｭ螳� -->
+        <!-- 4. 起用設定 -->
         <div id="screen-setup" class="screen">
-            <h2 style="text-align:center; margin-bottom:5px;">襍ｷ逕ｨ險ｭ螳�</h2>
-            <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">繝昴ず繧ｷ繝ｧ繝ｳ繧�ｵｷ逕ｨ繧貞､画峩縺吶ｋ縺ｨ閾ｪ蜍輔〒蜈･繧梧崛繧上ｊ縺ｾ縺�</p>
-            <h3 style="border-bottom: 2px solid #00796B; color: #00796B; padding-bottom:5px;">繧ｹ繧ｿ繝｡繝ｳ繝ｻ謇馴��</h3>
+            <h2 style="text-align:center; margin-bottom:5px;">起用設定</h2>
+            <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">ポジションや起用を変更すると自動で入れ替わります</p>
+            <h3 style="border-bottom: 2px solid #00796B; color: #00796B; padding-bottom:5px;">スタメン・打順</h3>
             <div id="setup-fielders"></div>
-            <h3 style="border-bottom: 2px solid #E53935; color: #E53935; margin-top:30px; padding-bottom:5px;">謚墓焔繝ｭ繝ｼ繝��繧ｷ繝ｧ繝ｳ</h3>
+            <h3 style="border-bottom: 2px solid #E53935; color: #E53935; margin-top:30px; padding-bottom:5px;">投手ローテーション</h3>
             <div id="setup-pitchers"></div>
-            <button class="btn-primary" onclick="preparePennant()">繝壹リ繝ｳ繝医Ξ繝ｼ繧ｹ繧帝幕蟋具ｼ�</button>
+            <button class="btn-primary" onclick="preparePennant()">ペナントレースを開始！</button>
         </div>
 
-        <!-- 5. 邨先棡 -->
+        <!-- 5. 結果 -->
         <div id="screen-result" class="screen">
-            <h2 style="text-align:center;">繝壹リ繝ｳ繝医Ξ繝ｼ繧ｹ邨先棡</h2>
+            <h2 style="text-align:center;">ペナントレース結果</h2>
             <div id="final-rank" style="text-align:center; font-size:24px; font-weight:bold; margin-bottom:20px;"></div>
             <div class="tab-group">
-                <div class="tab active" onclick="switchTab('tab-standings', this)">鬆�ｽ崎｡ｨ</div>
-                <div class="tab" onclick="switchTab('tab-fielders', this)">驥取焔謌千ｸｾ</div>
-                <div class="tab" onclick="switchTab('tab-pitchers', this)">謚墓焔謌千ｸｾ</div>
+                <div class="tab active" onclick="switchTab('tab-standings', this)">順位表</div>
+                <div class="tab" onclick="switchTab('tab-fielders', this)">野手成績</div>
+                <div class="tab" onclick="switchTab('tab-pitchers', this)">投手成績</div>
             </div>
             <div id="tab-standings" class="tab-content active"></div>
             <div id="tab-fielders" class="tab-content"></div>
             <div id="tab-pitchers" class="tab-content"></div>
-            <button class="btn-primary" onclick="location.reload()" style="background-color:#757575; margin-top:30px;">譛蛻昴°繧峨ｄ繧顔峩縺�</button>
+            <button class="btn-primary" onclick="location.reload()" style="background-color:#757575; margin-top:30px;">最初からやり直す</button>
         </div>
     </div>
 
 <script>
-// --- 繝��繧ｿ & 螳壽焚 ---
+// --- データ & 定数 ---
 let fieldersData = []; let pitchersData = []; let draftPool = [];
-let myTeam = { name: "繝槭う繝√�繝�", symbol: "繝�", fielders: [], pitchers: [], isCentral: false };
+let myTeam = { name: "マイチーム", symbol: "マ", fielders: [], pitchers: [], isCentral: false };
 let currentDraftType = 'fielder'; let currentCandidate = null;
 let requiredCount = 9; let skipsLeft = 5;
 let allTeams = []; let scheduleMatches = [];
-const POSITIONS = ['謖�錐謇楢�', '謐墓焔', '荳蝪∵焔', '莠悟｡∵焔', '荳牙｡∵焔', '驕頑茶謇�', '蟾ｦ鄙ｼ謇�', '荳ｭ蝣�焔', '蜿ｳ鄙ｼ謇�'];
+const POSITIONS = ['指名打者', '捕手', '一塁手', '二塁手', '三塁手', '遊撃手', '左翼手', '中堅手', '右翼手'];
 
 const OPPONENT_PITCHERS = {
-    "髦ｪ逾�": { "蜈育匱": ["譚台ｸ企�梧ｨｹ", "鬮呎ｩ矩▼莠ｺ", "謇肴惠豬ｩ莠ｺ", "螟ｧ遶ｹ閠募､ｪ驛�", "隘ｿ蜍�ｼ�", "莨雁次髯ｵ莠ｺ"], "謚代∴": "繝峨Μ繧ｹ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "蟾･阯､豕ｰ謌�", "蜒�ｷｮ": ["譛ｨ荳矩㈹驛ｽ", "蟯ｩ蟠主━"], "繝ｪ繝ｼ繝�": ["蜿雁ｷ晞寉雋ｴ", "繧ｻ繝吶Μ繝ｼ繝�"], "繝薙ワ繧､繝ｳ繝�": ["貉ｯ豬�ｺｬ蟾ｱ", "逾槫ｮｮ蜒壻ｻ�"], "謨玲姶蜃ｦ逅�": ["譯先聞諡馴ｦｬ"] },
-    "DeNA": { "蜈育匱": ["譚ｱ蜈区ｨｹ", "遏ｳ逕ｰ陬募､ｪ驛�", "蟷ｳ濶ｯ諡ｳ螟ｪ驛�", "蟆ｾ蠖｢蟠�沫", "豺ｱ豐｢魑ｳ莉�", "迚�ｱｱ逧灘ｿ�"], "謚代∴": "繝ｬ繧､繝弱Ν繧ｺ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "荳ｭ蟾晁剋螟ｧ", "蜒�ｷｮ": ["莨雁兇螟ｧ螟｢", "豬懷慍逵滓ｾ�"], "繝ｪ繝ｼ繝�": ["繝ｫ繧､繝ｼ繧ｺ", "蟯ｩ逕ｰ蟆�ｲｴ"], "繝薙ワ繧､繝ｳ繝�": ["蜷蛾㍽蜈画ｨｹ", "螳ｮ蝓取ｻ晏､ｪ"], "謨玲姶蜃ｦ逅�": ["蝮よ悽陬募悼"] },
-    "蟾ｨ莠ｺ": { "蜈育匱": ["莠穂ｸ頑ｸｩ螟ｧ", "謌ｸ驛ｷ鄙泌ｾ�", "蟆冗ｬ�蜴滓�荵倶ｻ�", "繧ｦ繧｣繝�ヨ繝ｪ繝ｼ", "遶ｹ荳ｸ蜥悟ｹｸ", "逕ｰ荳ｭ蟆�､ｧ"], "謚代∴": "繝槭Ν繝�ぅ繝阪せ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "逕ｰ荳ｭ迹帶沫", "蜒�ｷｮ": ["螟ｧ蜍｢", "荳ｭ蟾晉囀螟ｪ"], "繝ｪ繝ｼ繝�": ["闊ｹ霑ｫ螟ｧ髮�", "蝣逕ｰ雉｢諷�"], "繝薙ワ繧､繝ｳ繝�": ["襍､譏溷━蠢�", "譽ｮ逕ｰ鬧ｿ蜩�"], "謨玲姶蜃ｦ逅�": ["逕ｰ蜥悟ｻ�"] },
-    "繝､繧ｯ繝ｫ繝�": { "蜈育匱": ["螻ｱ驥主､ｪ荳", "螂･蟾晄�莨ｸ", "鬮俶｢ｨ陬慕ｨ�", "譚ｾ譛ｬ蛛･蜷ｾ", "蜷画搗雋｢蜿ｸ驛�", "鬮俶ｩ句･惹ｺ�"], "謚代∴": "繧ｭ繝上ム", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "貂�ｰｴ譏�", "蜒�ｷｮ": ["譏溽衍蠑･", "繝ｪ繝ｩ繝ｳ繧ｽ"], "繝ｪ繝ｼ繝�": ["蟒｣貔､蜆ｪ", "荳ｸ螻ｱ鄙泌､ｧ"], "繝薙ワ繧､繝ｳ繝�": ["髦ｪ蜿｣逧謎ｺｮ", "遏ｳ蜴溷窮霈�"], "謨玲姶蜃ｦ逅�": ["闕伜昇螳丞､ｪ"] },
-    "荳ｭ譌･": { "蜈育匱": ["鬮呎ｩ句ｮ乗沫", "譟ｳ陬穂ｹ�", "螟ｧ驥朱寇螟ｧ", "驥台ｸｸ螟｢譁�", "繝槭Λ繝ｼ", "豸御ｺ慕ｧ遶�"], "謚代∴": "譚ｾ螻ｱ譎倶ｹ�", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "蜷臥伐閨門ｼ･", "蜒�ｷｮ": ["讖区悽萓第ｨｹ", "鮨玖陸邯ｱ險�"], "繝ｪ繝ｼ繝�": ["阯､蠍句▼莠ｺ", "譽ｮ蜊壻ｺｺ"], "繝薙ワ繧､繝ｳ繝�": ["繝｡繝偵い", "闕牙刈蜍�"], "謨玲姶蜃ｦ逅�": ["莨願陸闌牙､ｮ"] },
-    "蠎�ｳｶ": { "蜈育匱": ["譬玲棊濶ｯ蜷�", "蠎顔伐蟇帶ｨｹ", "譽ｮ荳区圓莉�", "譽ｮ鄙泌ｹｳ", "邇画搗譏�ぁ", "譁芽陸蜆ｪ豎ｰ"], "謚代∴": "譽ｮ豬ｦ螟ｧ霈�", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "繝上�繝ｳ", "蜒�ｷｮ": ["驕�阯､豺ｳ蠢�", "鬮吝､ｪ荳"], "繝ｪ繝ｼ繝�": ["蟯｡譛ｬ鬧ｿ", "荳ｭ�醍ｿ泌､ｪ"], "繝薙ワ繧､繝ｳ繝�": ["驤ｴ譛ｨ蛛･遏｢", "蝪ｹ豎滓沸蜩�"], "謨玲姶蜃ｦ逅�": ["霎ｻ螟ｧ髮�"] },
-    "譌･譛ｬ繝上Β": { "蜈育匱": ["蛹怜ｱｱ莠伜渕", "莨願陸螟ｧ豬ｷ", "驕泌ｭ晏､ｪ", "蜉�阯､雋ｴ荵�", "邏ｰ驥取匐蟶�", "譛牙次闊ｪ蟷ｳ"], "謚代∴": "譟ｳ蟾晏､ｧ譎�", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "蟲ｶ譛ｬ豬ｩ荵�", "蜒�ｷｮ": ["蝣迹櫁ｼ�", "逕ｰ荳ｭ豁｣鄒ｩ"], "繝ｪ繝ｼ繝�": ["遖丞ｳｶ闢ｮ", "荳雁次蛛･螟ｪ"], "繝薙ワ繧､繝ｳ繝�": ["蟄ｫ譏鍋｣�", "螻ｱ�醍ｦ丈ｹ�"], "謨玲姶蜃ｦ逅�": ["逕溽伐逶ｮ鄙ｼ"] },
-    "繧ｽ繝輔ヨ繝舌Φ繧ｯ": { "蜈育匱": ["蜑咲伐謔�莨�", "荳頑ｲ｢逶ｴ荵�", "螟ｧ豢･莠ｮ莉�", "譚ｾ譛ｬ譎ｴ", "繝｢繧､繝阪Ο", "繧ｹ繝√Η繝ｯ繝ｼ繝医�繧ｸ繝･繝九い"], "謚代∴": "譚牙ｱｱ荳讓ｹ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "譚ｾ譛ｬ陬墓ｨｹ", "蜒�ｷｮ": ["繧ｪ繧ｹ繝�", "豢･譽ｮ螳･邏"], "繝ｪ繝ｼ繝�": ["繝倥Ν繝翫Φ繝�せ", "荳願幻隹ｷ螟ｧ豐ｳ"], "繝薙ワ繧､繝ｳ繝�": ["譛ｨ譚大�", "驤ｴ譛ｨ雎ｪ螟ｪ"], "謨玲姶蜃ｦ逅�": ["莨願陸蜆ｪ霈�"] },
-    "繝ｭ繝�ユ": { "蜈育匱": ["繧ｸ繝｣繧ｯ繧ｽ繝ｳ", "蟆丞ｳｶ蜥悟悼", "逕ｰ荳ｭ譎ｴ荵�", "蟒｣豎�蠎ｷ蠢鈴ヮ", "豈帛茜豬ｷ螟ｧ", "繝ｫ繧ｱ繝ｼ繧ｷ繝ｼ"], "謚代∴": "讓ｪ螻ｱ髯ｸ莠ｺ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "驤ｴ譛ｨ譏ｭ豎ｰ", "蜒�ｷｮ": ["蜈ｫ譛ｨ蠖ｬ", "荳ｭ譽ｮ菫贋ｻ�"], "繝ｪ繝ｼ繝�": ["逶顔伐逶ｴ荵�", "鬮倬㍽閼ｩ豎ｰ"], "繝薙ワ繧､繝ｳ繝�": ["貔､逕ｰ蝨ｭ菴�", "蟆城㍽驛�"], "謨玲姶蜃ｦ逅�": ["蝮よ悽蜈牙｣ｫ驛�"] },
-    "繧ｪ繝ｪ繝�け繧ｹ": { "蜈育匱": ["繧ｨ繧ｹ繝斐ヮ繝ｼ繧ｶ", "荵晞㈹莠懆動", "繧ｸ繧ｧ繝ｪ繝ｼ", "譖ｽ隹ｷ鮴榊ｹｳ", "鬮吝ｳｶ豕ｰ驛ｽ", "逕ｰ蠍句､ｧ讓ｹ"], "謚代∴": "繝槭メ繝｣繝�", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "讀区惠闢ｮ", "蜒�ｷｮ": ["螻ｱ�鷹｢ｯ荳驛�", "蟇ｺ隘ｿ謌宣ｨ�"], "繝ｪ繝ｼ繝�": ["蜈･螻ｱ豬ｷ譁�", "蜷臥伐霈晄弌"], "繝薙ワ繧､繝ｳ繝�": ["蜊壼ｿ�", "迚�ｱｱ讌ｽ逕�"], "謨玲姶蜃ｦ逅�": ["蟯ｩ蠏懃ｿ�"] },
-    "讌ｽ螟ｩ": { "蜈育匱": ["譌ｩ蟾晞嚀荵�", "蜑咲伐蛛･螟ｪ", "蟯ｸ蟄昜ｹ�", "蜿､隰晄ｨｹ", "闕伜昇蠎ｷ隱�", "轢ｧ荳ｭ迸ｭ螟ｪ"], "謚代∴": "阯､蟷ｳ蟆夂悄", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "蜉�豐ｻ螻玖動", "蜒�ｷｮ": ["荵晁ｰｷ迹�", "驤ｴ譛ｨ鄙泌､ｩ"], "繝ｪ繝ｼ繝�": ["隘ｿ蝙｣髮�泙", "譟ｴ逕ｰ螟ｧ蝨ｰ"], "繝薙ワ繧､繝ｳ繝�": ["豕ｰ蜍晏茜", "逕ｰ荳ｭ蜊�匐"], "謨玲姶蜃ｦ逅�": ["豢･逡呻ｨ大､ｧ謌�"] },
-    "隘ｿ豁ｦ": { "蜈育匱": ["髫�伐遏･荳驛�", "蟷ｳ濶ｯ豬ｷ鬥ｬ", "鬮呎ｩ句�謌�", "豁ｦ蜀�､乗嚔", "貂｡驍牙窮螟ｪ譛�", "闖�ｺ穂ｿ｡荵�"], "謚代∴": "繧ｦ繧｣繝ｳ繧ｲ繝ｳ繧ｿ繝ｼ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ": "逕ｲ譁宣㍽螟ｮ", "蜒�ｷｮ": ["雎�伐豕ｰ蠢�", "蟯ｩ蝓朱｢ｯ遨ｺ"], "繝ｪ繝ｼ繝�": ["菴占陸髫ｼ霈�", "遽�蜴滄涸"], "繝薙ワ繧､繝ｳ繝�": ["譽ｮ閼�ｺｮ莉�", "鮟堤伐蟆�泙"], "謨玲姶蜃ｦ逅�": ["豬懷ｱ句ｰ�､ｪ"] }
+    "阪神": { "先発": ["村上頌樹", "髙橋遥人", "才木浩人", "大竹耕太郎", "西勇輝", "伊原陵人"], "抑え": "ドリス", "中継ぎエース": "工藤泰成", "僅差": ["木下里都", "岩崎優"], "リード": ["及川雅貴", "セベリーノ"], "ビハインド": ["湯浅京己", "神宮僚介"], "敗戦処理": ["桐敷拓馬"] },
+    "DeNA": { "先発": ["東克樹", "石田裕太郎", "平良拳太郎", "尾形崇斗", "深沢鳳介", "片山皓心"], "抑え": "レイノルズ", "中継ぎエース": "中川虎大", "僅差": ["伊勢大夢", "浜地真澄"], "リード": ["ルイーズ", "岩田将貴"], "ビハインド": ["吉野光樹", "宮城滝太"], "敗戦処理": ["坂本裕哉"] },
+    "巨人": { "先発": ["井上温大", "戸郷翔征", "小笠原慎之介", "ウィットリー", "竹丸和幸", "田中将大"], "抑え": "マルティネス", "中継ぎエース": "田中瑛斗", "僅差": ["大勢", "中川皓太"], "リード": ["船迫大雅", "堀田賢慎"], "ビハインド": ["赤星優志", "森田駿哉"], "敗戦処理": ["田和廉"] },
+    "ヤクルト": { "先発": ["山野太一", "奥川恭伸", "高梨裕稔", "松本健吾", "吉村貢司郎", "高橋奎二"], "抑え": "キハダ", "中継ぎエース": "清水昇", "僅差": ["星知弥", "リランソ"], "リード": ["廣澤優", "丸山翔大"], "ビハインド": ["阪口皓亮", "石原勇輝"], "敗戦処理": ["荘司宏太"] },
+    "中日": { "先発": ["髙橋宏斗", "柳裕也", "大野雄大", "金丸夢斗", "マラー", "涌井秀章"], "抑え": "松山晋也", "中継ぎエース": "吉田聖弥", "僅差": ["橋本侑樹", "齋藤綱記"], "リード": ["藤嶋健人", "森博人"], "ビハインド": ["メヒア", "草加勝"], "敗戦処理": ["伊藤茉央"] },
+    "広島": { "先発": ["栗林良吏", "床田寛樹", "森下暢仁", "森翔平", "玉村昇悟", "斉藤優汰"], "抑え": "森浦大輔", "中継ぎエース": "ハーン", "僅差": ["遠藤淳志", "髙太一"], "リード": ["岡本駿", "中﨑翔太"], "ビハインド": ["鈴木健矢", "塹江敦哉"], "敗戦処理": ["辻大雅"] },
+    "日本ハム": { "先発": ["北山亘基", "伊藤大海", "達孝太", "加藤貴之", "細野晴希", "有原航平"], "抑え": "柳川大晟", "中継ぎエース": "島本浩也", "僅差": ["堀瑞輝", "田中正義"], "リード": ["福島蓮", "上原健太"], "ビハインド": ["孫易磊", "山﨑福也"], "敗戦処理": ["生田目翼"] },
+    "ソフトバンク": { "先発": ["前田悠伍", "上沢直之", "大津亮介", "松本晴", "モイネロ", "スチュワート・ジュニア"], "抑え": "杉山一樹", "中継ぎエース": "松本裕樹", "僅差": ["オスナ", "津森宥紀"], "リード": ["ヘルナンデス", "上茶谷大河"], "ビハインド": ["木村光", "鈴木豪太"], "敗戦処理": ["伊藤優輔"] },
+    "ロッテ": { "先発": ["ジャクソン", "小島和哉", "田中晴也", "廣池康志郎", "毛利海大", "ルケーシー"], "抑え": "横山陸人", "中継ぎエース": "鈴木昭汰", "僅差": ["八木彬", "中森俊介"], "リード": ["益田直也", "高野脩汰"], "ビハインド": ["澤田圭佑", "小野郁"], "敗戦処理": ["坂本光士郎"] },
+    "オリックス": { "先発": ["エスピノーザ", "九里亜蓮", "ジェリー", "曽谷龍平", "髙島泰都", "田嶋大樹"], "抑え": "マチャド", "中継ぎエース": "椋木蓮", "僅差": ["山﨑颯一郎", "寺西成騎"], "リード": ["入山海斗", "吉田輝星"], "ビハインド": ["博志", "片山楽生"], "敗戦処理": ["岩嵜翔"] },
+    "楽天": { "先発": ["早川隆久", "前田健太", "岸孝之", "古謝樹", "荘司康誠", "瀧中瞭太"], "抑え": "藤平尚真", "中継ぎエース": "加治屋蓮", "僅差": ["九谷瑠", "鈴木翔天"], "リード": ["西垣雅矢", "柴田大地"], "ビハインド": ["泰勝利", "田中千晴"], "敗戦処理": ["津留﨑大成"] },
+    "西武": { "先発": ["隅田知一郎", "平良海馬", "髙橋光成", "武内夏暉", "渡邉勇太朗", "菅井信也"], "抑え": "ウィンゲンター", "中継ぎエース": "甲斐野央", "僅差": ["豆田泰志", "岩城颯空"], "リード": ["佐藤隼輔", "篠原響"], "ビハインド": ["森脇亮介", "黒田将矢"], "敗戦処理": ["浜屋将太"] }
 };
 
 const SCHEDULE_TEXT = `
-1	蟾ｨ 逾� �､ 繝､ 蠎� 荳ｭ 繝ｭ 隘ｿ 繧ｪ 讌ｽ 繧ｽ 譌･
-2	蟾ｨ 逾� �､ 繝､ 蠎� 荳ｭ 繝ｭ 隘ｿ 繧ｪ 讌ｽ 繧ｽ 譌･
-3	蟾ｨ 逾� �､ 繝､ 蠎� 荳ｭ 繝ｭ 隘ｿ 繧ｪ 讌ｽ 繧ｽ 譌･
-4	繝､ 蠎� 荳ｭ 蟾ｨ 逾� �､ 譌･ 繝ｭ 讌ｽ 繧ｽ 隘ｿ 繧ｪ
-5	繝､ 蠎� 荳ｭ 蟾ｨ 逾� �､ 譌･ 繝ｭ 讌ｽ 繧ｽ 隘ｿ 繧ｪ
-6	繝､ 蠎� 荳ｭ 蟾ｨ 逾� �､ 譌･ 繝ｭ 讌ｽ 繧ｽ 隘ｿ 繧ｪ
-7	蟾ｨ �､ 繝､ 荳ｭ 蠎� 逾� 譌･ 繧ｪ 隘ｿ 讌ｽ 繝ｭ 繧ｽ
-8	蟾ｨ �､ 繝､ 荳ｭ 蠎� 逾� 譌･ 繧ｪ 隘ｿ 讌ｽ 繝ｭ 繧ｽ
-9	蟾ｨ �､ 繝､ 荳ｭ 蠎� 逾� 譌･ 繧ｪ 隘ｿ 讌ｽ 繝ｭ 繧ｽ
-10	�､ 荳ｭ 逾� 繝､ 蠎� 蟾ｨ 讌ｽ 譌･ 繧ｪ 繝ｭ 繧ｽ 隘ｿ
-11	�､ 荳ｭ 逾� 繝､ 蠎� 蟾ｨ 讌ｽ 譌･ 繧ｪ 繝ｭ 繧ｽ 隘ｿ
-12	逾� 繝､ 蠎� 蟾ｨ 讌ｽ 譌･ 繧ｪ 繝ｭ 繧ｽ 隘ｿ
-13	蟾ｨ 繝､ �､ 蠎� 荳ｭ 逾� 讌ｽ 繧ｪ 隘ｿ 繝ｭ
-14	蟾ｨ 繝､ �､ 蠎� 荳ｭ 逾� 譌･ 繧ｽ 讌ｽ 繧ｪ 隘ｿ 繝ｭ
-15	蟾ｨ 繝､ �､ 蠎� 荳ｭ 逾� 譌･ 繧ｽ 讌ｽ 繧ｪ 隘ｿ 繝ｭ
-16	繝､ �､ 荳ｭ 蠎� 逾� 蟾ｨ 繝ｭ 譌･ 繧ｪ 隘ｿ 繧ｽ 讌ｽ
-17	荳ｭ 蠎� 逾� 蟾ｨ 繝ｭ 譌･ 繧ｪ 隘ｿ 繧ｽ 讌ｽ
-18	繝､ �､ 逾� 蟾ｨ 繝ｭ 譌･ 繧ｪ 隘ｿ 繧ｽ 讌ｽ
-19	繝､ 蟾ｨ 逾� 荳ｭ 蠎� �､ 譌･ 隘ｿ 讌ｽ 繝ｭ 繧ｽ 繧ｪ
-20	繝､ 蟾ｨ 逾� 荳ｭ 蠎� �､ 譌･ 隘ｿ 讌ｽ 繝ｭ 繧ｽ 繧ｪ
-21	繝､ 蟾ｨ 逾� 荳ｭ 蠎� �､ 譌･ 隘ｿ 讌ｽ 繝ｭ 繧ｽ 繧ｪ
-22	蟾ｨ 荳ｭ �､ 逾� 蠎� 繝､ 譌･ 讌ｽ 隘ｿ 繧ｽ 繝ｭ 繧ｪ
-23	蟾ｨ 荳ｭ �､ 逾� 蠎� 繝､ 譌･ 讌ｽ 隘ｿ 繧ｽ 繝ｭ 繧ｪ
-24	�､ 逾� 蠎� 繝､ 譌･ 讌ｽ 隘ｿ 繧ｽ 繝ｭ 繧ｪ
-25	�､ 蟾ｨ 荳ｭ 繝､ 繧ｪ 譌･
-26	�､ 蟾ｨ 荳ｭ 繝､ 逾� 蠎� 讌ｽ 隘ｿ 繧ｪ 譌･ 繧ｽ 繝ｭ
-27	�､ 蟾ｨ 荳ｭ 繝､ 逾� 蠎� 讌ｽ 隘ｿ 繧ｪ 譌･ 繧ｽ 繝ｭ
-28	蟾ｨ 蠎� 繝､ 逾� 荳ｭ �､ 隘ｿ 譌･ 繝ｭ 讌ｽ 繧ｪ 繧ｽ
-29	蟾ｨ 蠎� 繝､ 逾� 荳ｭ �､ 隘ｿ 譌･ 繝ｭ 讌ｽ 繧ｪ 繧ｽ
-30	蟾ｨ 蠎� 繝､ 逾� 荳ｭ �､ 隘ｿ 譌･
-31	繝､ �､ 逾� 蟾ｨ 蠎� 荳ｭ 譌･ 繧ｪ 繝ｭ 隘ｿ 繧ｽ 讌ｽ
-32	繝､ �､ 逾� 蟾ｨ 蠎� 荳ｭ 譌･ 繧ｪ 繝ｭ 隘ｿ 繧ｽ 讌ｽ
-33	繝､ �､ 逾� 蟾ｨ 蠎� 荳ｭ 譌･ 繧ｪ 繝ｭ 隘ｿ 繧ｽ 讌ｽ
-34	蟾ｨ 繝､ �､ 蠎� 荳ｭ 逾� 讌ｽ 譌･ 隘ｿ 繧ｽ 繧ｪ 繝ｭ
-35	蟾ｨ 繝､ �､ 蠎� 荳ｭ 逾� 讌ｽ 譌･ 隘ｿ 繧ｽ 繧ｪ 繝ｭ
-36	蟾ｨ 繝､ �､ 蠎� 荳ｭ 逾� 讌ｽ 譌･ 隘ｿ 繧ｽ 繧ｪ 繝ｭ
-37	荳ｭ 蟾ｨ 逾� �､ 蠎� 繝､ 隘ｿ 讌ｽ 繧ｪ 譌･ 繧ｽ 繝ｭ
-38	荳ｭ 蟾ｨ 逾� �､ 蠎� 繝､ 隘ｿ 讌ｽ 繧ｪ 譌･ 繧ｽ 繝ｭ
-39	荳ｭ 蟾ｨ 逾� �､ 蠎� 繝､ 隘ｿ 讌ｽ 繧ｪ 譌･ 繧ｽ 繝ｭ
-40	蟾ｨ 蠎� 繝､ 逾� �､ 荳ｭ 讌ｽ 繧ｪ 繝ｭ 譌･ 繧ｽ 隘ｿ
-41	蟾ｨ 蠎� 繝､ 逾� �､ 荳ｭ 繝ｭ 譌･ 繧ｽ 隘ｿ
-42	�､ 荳ｭ 讌ｽ 繧ｪ 繝ｭ 譌･
-43	蟾ｨ �､ 荳ｭ 繝､ 逾� 蠎� 譌･ 隘ｿ 讌ｽ 繧ｽ 繝ｭ 繧ｪ
-44	蟾ｨ �､ 荳ｭ 繝､ 逾� 蠎� 譌･ 隘ｿ 讌ｽ 繧ｽ 繝ｭ 繧ｪ
-45	蟾ｨ �､ 荳ｭ 繝､ 逾� 蠎� 譌･ 隘ｿ 讌ｽ 繧ｽ 繝ｭ 繧ｪ
-46	繝､ 蟾ｨ 逾� 荳ｭ 蠎� �､ 譌･ 讌ｽ 隘ｿ 繝ｭ 繧ｪ 繧ｽ
-47	繝､ 蟾ｨ 逾� 荳ｭ 蠎� �､ 譌･ 讌ｽ 隘ｿ 繝ｭ 繧ｪ 繧ｽ
-48	逾� 荳ｭ 蠎� �､
-49	蟾ｨ 逾� 荳ｭ 蠎� 讌ｽ 繝ｭ 隘ｿ 繧ｪ 繧ｽ 譌･
-50	蟾ｨ 逾� �､ 繝､ 荳ｭ 蠎� 讌ｽ 繝ｭ 隘ｿ 繧ｪ 繧ｽ 譌･
-51	蟾ｨ 逾� �､ 繝､ 荳ｭ 蠎� 讌ｽ 繝ｭ 隘ｿ 繧ｪ 繧ｽ 譌･
-52	蟾ｨ 繧ｽ 繝､ 隘ｿ �､ 繧ｪ 荳ｭ 讌ｽ 逾� 譌･ 蠎� 繝ｭ
-53	蟾ｨ 繧ｽ 繝､ 隘ｿ �､ 繧ｪ 荳ｭ 讌ｽ 逾� 譌･ 蠎� 繝ｭ
-54	蟾ｨ 繧ｽ 繝､ 隘ｿ �､ 繧ｪ 荳ｭ 讌ｽ 逾� 譌･ 蠎� 繝ｭ
-55	譌･ 蟾ｨ 讌ｽ 繝､ 隘ｿ �､ 繝ｭ 逾� 繧ｪ 荳ｭ 繧ｽ 蠎�
-56	譌･ 蟾ｨ 讌ｽ 繝､ 隘ｿ �､ 繝ｭ 逾� 繧ｪ 荳ｭ 繧ｽ 蠎�
-57	譌･ 蟾ｨ 讌ｽ 繝､ 隘ｿ �､ 繝ｭ 逾� 繧ｪ 荳ｭ 繧ｽ 蠎�
-58	蟾ｨ 繧ｪ 繝､ 繝ｭ �､ 讌ｽ 荳ｭ 繧ｽ 逾� 隘ｿ 蠎� 譌･
-59	蟾ｨ 繧ｪ 繝､ 繝ｭ �､ 讌ｽ 荳ｭ 繧ｽ 逾� 隘ｿ 蠎� 譌･
-60	蟾ｨ 繧ｪ 繝､ 繝ｭ �､ 讌ｽ 荳ｭ 繧ｽ 逾� 隘ｿ 蠎� 譌･
-61	蟾ｨ 繝ｭ 繝､ 譌･ �､ 繧ｽ 荳ｭ 隘ｿ 逾� 讌ｽ 蠎� 繧ｪ
-62	蟾ｨ 繝ｭ 繝､ 譌･ �､ 繧ｽ 荳ｭ 隘ｿ 逾� 讌ｽ 蠎� 繧ｪ
-63	蟾ｨ 繝ｭ 繝､ 譌･ �､ 繧ｽ 荳ｭ 隘ｿ 逾� 讌ｽ 蠎� 繧ｪ
-64	譌･ �､ 讌ｽ 蟾ｨ 隘ｿ 蠎� 繝ｭ 荳ｭ 繧ｪ 繝､ 繧ｽ 逾�
-65	譌･ �､ 讌ｽ 蟾ｨ 隘ｿ 蠎� 繝ｭ 荳ｭ 繧ｪ 繝､ 繧ｽ 逾�
-66	譌･ �､ 讌ｽ 蟾ｨ 隘ｿ 蠎� 繝ｭ 荳ｭ 繧ｪ 繝､ 繧ｽ 逾�
-67	譌･ 荳ｭ 讌ｽ 蠎� 隘ｿ 蟾ｨ 繝ｭ �､ 繧ｪ 逾� 繧ｽ 繝､
-68	譌･ 荳ｭ 讌ｽ 蠎� 隘ｿ 蟾ｨ 繝ｭ �､ 繧ｪ 逾� 繧ｽ 繝､
-69	譌･ 荳ｭ 讌ｽ 蠎� 隘ｿ 蟾ｨ 繝ｭ �､ 繧ｪ 逾� 繧ｽ 繝､
-70	蟾ｨ 荳ｭ 繝､ 蠎� �､ 逾� 譌･ 繧ｽ 繝ｭ 讌ｽ 繧ｪ 隘ｿ
-71	蟾ｨ 荳ｭ 繝､ 蠎� �､ 逾� 譌･ 繧ｽ 繝ｭ 讌ｽ 繧ｪ 隘ｿ
-72	蟾ｨ 荳ｭ 繝､ 蠎� �､ 逾� 譌･ 繧ｽ 繝ｭ 讌ｽ 繧ｪ 隘ｿ
-73	讌ｽ 隘ｿ
-74	荳ｭ �､ 逾� 繝､ 蠎� 蟾ｨ 譌･ 繝ｭ 讌ｽ 隘ｿ 繧ｽ 繧ｪ
-75	荳ｭ �､ 逾� 繝､ 蠎� 蟾ｨ 譌･ 繝ｭ 繧ｽ 繧ｪ
-76	荳ｭ �､ 逾� 繝､ 讌ｽ 隘ｿ 繧ｽ 繧ｪ
-77	繝､ 荳ｭ �､ 蟾ｨ 蠎� 逾� 隘ｿ 譌･ 繝ｭ 繧ｽ 繧ｪ 讌ｽ
-78	繝､ 荳ｭ �､ 蟾ｨ 蠎� 逾� 隘ｿ 譌･ 繝ｭ 繧ｽ 繧ｪ 讌ｽ
-79	繝､ 荳ｭ �､ 蟾ｨ 蠎� 逾� 隘ｿ 譌･ 繝ｭ 繧ｽ 繧ｪ 讌ｽ
-80	蟾ｨ 繝､ �､ 蠎� 逾� 荳ｭ 譌･ 繧ｪ 讌ｽ 繝ｭ 繧ｽ 隘ｿ
-81	蟾ｨ 繝､ 逾� 荳ｭ 譌･ 繧ｪ 讌ｽ 繝ｭ 繧ｽ 隘ｿ
-82	�､ 蠎� 逾� 荳ｭ 譌･ 繧ｪ 繧ｽ 隘ｿ
-83	繝､ �､ 荳ｭ 蟾ｨ 逾� 蠎� 讌ｽ 譌･ 繧ｪ 隘ｿ 繧ｽ 繝ｭ
-84	繝､ �､ 荳ｭ 蟾ｨ 逾� 蠎� 讌ｽ 譌･ 繧ｪ 隘ｿ 繧ｽ 繝ｭ
-85	繝､ �､ 荳ｭ 蟾ｨ 逾� 蠎� 讌ｽ 譌･ 繧ｪ 隘ｿ 繧ｽ 繝ｭ
-86	蟾ｨ 逾� �､ 荳ｭ 蠎� 繝､ 隘ｿ 讌ｽ 繝ｭ 譌･ 繧ｪ 繧ｽ
-87	蟾ｨ 逾� �､ 荳ｭ 蠎� 繝､ 隘ｿ 讌ｽ 繝ｭ 譌･ 繧ｪ 繧ｽ
-88	蟾ｨ 逾� �､ 荳ｭ 蠎� 繝､
-89	�､ 蟾ｨ 荳ｭ 蠎� 逾� 繝､ 譌･ 隘ｿ 繝ｭ 繧ｪ 繧ｽ 讌ｽ
-90	�､ 蟾ｨ 荳ｭ 蠎� 逾� 繝､ 譌･ 隘ｿ 繝ｭ 繧ｪ 繧ｽ 讌ｽ
-91	�､ 蟾ｨ 荳ｭ 蠎� 逾� 繝､ 譌･ 隘ｿ 繝ｭ 繧ｪ 繧ｽ 讌ｽ
-92	繝､ 蟾ｨ 荳ｭ 逾� 蠎� �､ 譌･ 繧ｽ 讌ｽ 繧ｪ 隘ｿ 繝ｭ
-93	繝､ 蟾ｨ 荳ｭ 逾� 蠎� �､ 譌･ 繧ｽ 讌ｽ 繧ｪ 隘ｿ 繝ｭ
-94	繝､ 蟾ｨ 荳ｭ 逾� 譌･ 繧ｽ 讌ｽ 繧ｪ 隘ｿ 繝ｭ
-95	蟾ｨ 荳ｭ �､ 繝､ 蠎� 逾�
-96	蟾ｨ 荳ｭ �､ 繝､ 蠎� 逾� 讌ｽ 隘ｿ 繝ｭ 繧ｽ 繧ｪ 譌･
-97	蟾ｨ 荳ｭ �､ 繝､ 蠎� 逾� 讌ｽ 隘ｿ 繝ｭ 繧ｽ 繧ｪ 譌･
-98	蟾ｨ 蠎� 繝､ 荳ｭ 逾� �､ 讌ｽ 隘ｿ 繝ｭ 繧ｽ 繧ｪ 譌･
-99	蟾ｨ 蠎� 繝､ 荳ｭ 逾� �､ 繧ｽ 繧ｪ
-100	蟾ｨ 蠎� 繝､ 荳ｭ 逾� �､ 隘ｿ 譌･ 繝ｭ 讌ｽ 繧ｽ 繧ｪ
-101	隘ｿ 譌･ 繝ｭ 讌ｽ 繧ｽ 繧ｪ
-102	繝､ 蠎� 荳ｭ �､ 逾� 蟾ｨ 隘ｿ 繧ｽ 繧ｪ 繝ｭ
-103	繝､ 蠎� 荳ｭ �､ 逾� 蟾ｨ 譌･ 讌ｽ 隘ｿ 繧ｽ 繧ｪ 繝ｭ
-104	繝､ 蠎� 荳ｭ �､ 逾� 蟾ｨ 譌･ 讌ｽ 隘ｿ 繧ｽ 繧ｪ 繝ｭ
-105	蟾ｨ �､ 繝､ 逾� 蠎� 荳ｭ 譌･ 繝ｭ 讌ｽ 繧ｽ 隘ｿ 繧ｪ
-106	蟾ｨ �､ 繝､ 逾� 蠎� 荳ｭ 譌･ 繝ｭ 讌ｽ 繧ｽ 隘ｿ 繧ｪ
-107	蟾ｨ �､ 繝､ 逾� 蠎� 荳ｭ 譌･ 繝ｭ 讌ｽ 繧ｽ 隘ｿ 繧ｪ
-108	繧ｪ 讌ｽ
-109	�､ 逾� 荳ｭ 繝､ 蠎� 蟾ｨ 繝ｭ 隘ｿ 繧ｽ 譌･
-110	�､ 逾� 荳ｭ 繝､ 蠎� 蟾ｨ 繝ｭ 隘ｿ 繧ｪ 讌ｽ 繧ｽ 譌･
-111	�､ 逾� 荳ｭ 繝､ 蠎� 蟾ｨ 繧ｪ 讌ｽ 繧ｽ 譌･
-112	蟾ｨ 繝､ �､ 蠎� 逾� 荳ｭ 譌･ 讌ｽ 隘ｿ 繧ｽ 繝ｭ 繧ｪ
-113	蟾ｨ 繝､ �､ 蠎� 逾� 荳ｭ 譌･ 讌ｽ 隘ｿ 繧ｽ 繝ｭ 繧ｪ
-114	蟾ｨ 繝､ �､ 蠎� 逾� 荳ｭ 譌･ 讌ｽ 隘ｿ 繧ｽ 繝ｭ 繧ｪ
-115	蟾ｨ 逾� 繝､ 蠎� 荳ｭ �､ 譌･ 隘ｿ 讌ｽ 繧ｪ 繧ｽ 繝ｭ
-116	蟾ｨ 逾� 繝､ 蠎� 荳ｭ �､ 譌･ 隘ｿ 讌ｽ 繧ｪ 繧ｽ 繝ｭ
-117	蟾ｨ 逾� 繝､ 蠎� 荳ｭ �､ 譌･ 隘ｿ 讌ｽ 繧ｪ 繧ｽ 繝ｭ
-118	繝､ �､ 荳ｭ 蟾ｨ 蠎� 逾� 隘ｿ 繝ｭ 繧ｪ 譌･ 繧ｽ 讌ｽ
-119	繝､ �､ 荳ｭ 蟾ｨ 蠎� 逾� 隘ｿ 繝ｭ 繧ｪ 譌･ 繧ｽ 讌ｽ
-120	繝､ �､ 荳ｭ 蟾ｨ 蠎� 逾� 隘ｿ 繝ｭ 繧ｪ 譌･ 繧ｽ 讌ｽ
-121	�､ 蟾ｨ 逾� 繝､ 蠎� 荳ｭ 譌･ 繧ｽ 讌ｽ 繝ｭ 隘ｿ 繧ｪ
-122	�､ 蟾ｨ 逾� 繝､ 蠎� 荳ｭ 譌･ 繧ｽ 讌ｽ 繝ｭ 隘ｿ 繧ｪ
-123	�､ 蟾ｨ 逾� 繝､ 蠎� 荳ｭ 譌･ 繧ｽ 讌ｽ 繝ｭ 隘ｿ 繧ｪ
-124	蟾ｨ 蠎� �､ 逾� 荳ｭ 繝､ 讌ｽ 隘ｿ 繝ｭ 譌･
-125	蟾ｨ 蠎� �､ 逾� 荳ｭ 繝､ 讌ｽ 隘ｿ 繝ｭ 譌･ 繧ｽ 繧ｪ
-126	蟾ｨ 蠎� �､ 逾� 荳ｭ 繝､ 讌ｽ 隘ｿ 繝ｭ 譌･ 繧ｽ 繧ｪ
-127	繝､ 蟾ｨ 荳ｭ 逾� 蠎� �､ 隘ｿ 譌･ 繝ｭ 繧ｽ 繧ｪ 讌ｽ
-128	繝､ 蟾ｨ 荳ｭ 逾� 蠎� �､ 隘ｿ 譌･ 繝ｭ 繧ｽ 繧ｪ 讌ｽ
-129	繝､ 蟾ｨ 荳ｭ 逾� 蠎� �､ 繝ｭ 繧ｽ 繧ｪ 讌ｽ
-130	�､ 荳ｭ 逾� 蟾ｨ 蠎� 繝､ 譌･ 繝ｭ 隘ｿ 讌ｽ 繧ｪ 繧ｽ
-131	�､ 荳ｭ 逾� 蟾ｨ 蠎� 繝､ 譌･ 繝ｭ 隘ｿ 讌ｽ 繧ｪ 繧ｽ
-132	�､ 荳ｭ 逾� 蟾ｨ 蠎� 繝､ 譌･ 繝ｭ 隘ｿ 讌ｽ 繧ｪ 繧ｽ
-133	蟾ｨ �､ 繝､ 逾� 荳ｭ 蠎� 譌･ 繧ｽ 讌ｽ 繧ｪ 繝ｭ 隘ｿ
-134	蟾ｨ �､ 繝､ 逾� 荳ｭ 蠎� 譌･ 繧ｽ 讌ｽ 繧ｪ
-135	繝､ 逾� 荳ｭ 蠎�
-136	繝､ 荳ｭ 蠎� 蟾ｨ 讌ｽ 譌･ 繧ｪ 繝ｭ 繧ｽ 隘ｿ
-137	繝､ 荳ｭ 逾� �､ 蠎� 蟾ｨ 讌ｽ 譌･ 繧ｪ 繝ｭ 繧ｽ 隘ｿ
-138	繝､ 荳ｭ 逾� �､ 蠎� 蟾ｨ 讌ｽ 譌･ 繧ｪ 繝ｭ 繧ｽ 隘ｿ
-139	蟾ｨ 荳ｭ �､ 繝､ 逾� 蠎� 繝ｭ 讌ｽ 繧ｪ 隘ｿ 繧ｽ 譌･
-140	蟾ｨ 荳ｭ �､ 繝､ 逾� 蠎� 繝ｭ 讌ｽ 繧ｪ 隘ｿ 繧ｽ 譌･
-141	蟾ｨ 荳ｭ �､ 繝､ 逾� 蠎� 繝ｭ 讌ｽ 繧ｪ 隘ｿ 繧ｽ 譌･
-142	蠎� �､
-143	蟾ｨ 逾� 荳ｭ 繝､ 蠎� �､ 隘ｿ 譌･ 繧ｪ 讌ｽ 繧ｽ 繝ｭ
-144	繝､ 蠎� �､ 蟾ｨ 逾� 荳ｭ 隘ｿ 譌･ 繧ｽ 繝ｭ
-145	譌･ 繝ｭ 讌ｽ 隘ｿ 繧ｪ 繧ｽ
-146	繝ｭ 讌ｽ 繧ｪ 繧ｽ
-147	譌･ 隘ｿ 繝ｭ 讌ｽ 繧ｪ 繧ｽ
-148	蟾ｨ 荳ｭ �､ 繝､ 逾� 蠎�
-149	蟾ｨ 荳ｭ �､ 繝､ 逾� 蠎� 譌･ 繧ｪ 讌ｽ 繧ｽ 繝ｭ 隘ｿ
-150	蟾ｨ 繝､ 荳ｭ 蠎� 逾� �､ 譌･ 繧ｪ 讌ｽ 繧ｽ 繝ｭ 隘ｿ
-151	繝､ 逾� 荳ｭ 蠎� 逾� �､ 譌･ 繧ｪ 讌ｽ 繧ｽ 繝ｭ 隘ｿ
-152	繝､ 逾� �､ 荳ｭ 蠎� 蟾ｨ 譌･ 讌ｽ 繧ｽ 隘ｿ
-153	�､ 荳ｭ 蠎� 蟾ｨ 譌･ 讌ｽ 繝ｭ 繧ｪ 繧ｽ 隘ｿ
-154	譌･ 讌ｽ
-155	隘ｿ 繝ｭ 繧ｪ 繧ｽ
-156	隘ｿ 繝ｭ 繧ｪ 譌･ 繧ｽ 讌ｽ
-157	隘ｿ 讌ｽ 繝ｭ 譌･ 繧ｽ 繧ｪ
-158	隘ｿ 讌ｽ 繝ｭ 譌･
-159	讌ｽ 繝ｭ 隘ｿ 繧ｪ
-160	讌ｽ 繝ｭ
+1	巨 神 Ｄ ヤ 広 中 ロ 西 オ 楽 ソ 日
+2	巨 神 Ｄ ヤ 広 中 ロ 西 オ 楽 ソ 日
+3	巨 神 Ｄ ヤ 広 中 ロ 西 オ 楽 ソ 日
+4	ヤ 広 中 巨 神 Ｄ 日 ロ 楽 ソ 西 オ
+5	ヤ 広 中 巨 神 Ｄ 日 ロ 楽 ソ 西 オ
+6	ヤ 広 中 巨 神 Ｄ 日 ロ 楽 ソ 西 オ
+7	巨 Ｄ ヤ 中 広 神 日 オ 西 楽 ロ ソ
+8	巨 Ｄ ヤ 中 広 神 日 オ 西 楽 ロ ソ
+9	巨 Ｄ ヤ 中 広 神 日 オ 西 楽 ロ ソ
+10	Ｄ 中 神 ヤ 広 巨 楽 日 オ ロ ソ 西
+11	Ｄ 中 神 ヤ 広 巨 楽 日 オ ロ ソ 西
+12	神 ヤ 広 巨 楽 日 オ ロ ソ 西
+13	巨 ヤ Ｄ 広 中 神 楽 オ 西 ロ
+14	巨 ヤ Ｄ 広 中 神 日 ソ 楽 オ 西 ロ
+15	巨 ヤ Ｄ 広 中 神 日 ソ 楽 オ 西 ロ
+16	ヤ Ｄ 中 広 神 巨 ロ 日 オ 西 ソ 楽
+17	中 広 神 巨 ロ 日 オ 西 ソ 楽
+18	ヤ Ｄ 神 巨 ロ 日 オ 西 ソ 楽
+19	ヤ 巨 神 中 広 Ｄ 日 西 楽 ロ ソ オ
+20	ヤ 巨 神 中 広 Ｄ 日 西 楽 ロ ソ オ
+21	ヤ 巨 神 中 広 Ｄ 日 西 楽 ロ ソ オ
+22	巨 中 Ｄ 神 広 ヤ 日 楽 西 ソ ロ オ
+23	巨 中 Ｄ 神 広 ヤ 日 楽 西 ソ ロ オ
+24	Ｄ 神 広 ヤ 日 楽 西 ソ ロ オ
+25	Ｄ 巨 中 ヤ オ 日
+26	Ｄ 巨 中 ヤ 神 広 楽 西 オ 日 ソ ロ
+27	Ｄ 巨 中 ヤ 神 広 楽 西 オ 日 ソ ロ
+28	巨 広 ヤ 神 中 Ｄ 西 日 ロ 楽 オ ソ
+29	巨 広 ヤ 神 中 Ｄ 西 日 ロ 楽 オ ソ
+30	巨 広 ヤ 神 中 Ｄ 西 日
+31	ヤ Ｄ 神 巨 広 中 日 オ ロ 西 ソ 楽
+32	ヤ Ｄ 神 巨 広 中 日 オ ロ 西 ソ 楽
+33	ヤ Ｄ 神 巨 広 中 日 オ ロ 西 ソ 楽
+34	巨 ヤ Ｄ 広 中 神 楽 日 西 ソ オ ロ
+35	巨 ヤ Ｄ 広 中 神 楽 日 西 ソ オ ロ
+36	巨 ヤ Ｄ 広 中 神 楽 日 西 ソ オ ロ
+37	中 巨 神 Ｄ 広 ヤ 西 楽 オ 日 ソ ロ
+38	中 巨 神 Ｄ 広 ヤ 西 楽 オ 日 ソ ロ
+39	中 巨 神 Ｄ 広 ヤ 西 楽 オ 日 ソ ロ
+40	巨 広 ヤ 神 Ｄ 中 楽 オ ロ 日 ソ 西
+41	巨 広 ヤ 神 Ｄ 中 ロ 日 ソ 西
+42	Ｄ 中 楽 オ ロ 日
+43	巨 Ｄ 中 ヤ 神 広 日 西 楽 ソ ロ オ
+44	巨 Ｄ 中 ヤ 神 広 日 西 楽 ソ ロ オ
+45	巨 Ｄ 中 ヤ 神 広 日 西 楽 ソ ロ オ
+46	ヤ 巨 神 中 広 Ｄ 日 楽 西 ロ オ ソ
+47	ヤ 巨 神 中 広 Ｄ 日 楽 西 ロ オ ソ
+48	神 中 広 Ｄ
+49	巨 神 中 広 楽 ロ 西 オ ソ 日
+50	巨 神 Ｄ ヤ 中 広 楽 ロ 西 オ ソ 日
+51	巨 神 Ｄ ヤ 中 広 楽 ロ 西 オ ソ 日
+52	巨 ソ ヤ 西 Ｄ オ 中 楽 神 日 広 ロ
+53	巨 ソ ヤ 西 Ｄ オ 中 楽 神 日 広 ロ
+54	巨 ソ ヤ 西 Ｄ オ 中 楽 神 日 広 ロ
+55	日 巨 楽 ヤ 西 Ｄ ロ 神 オ 中 ソ 広
+56	日 巨 楽 ヤ 西 Ｄ ロ 神 オ 中 ソ 広
+57	日 巨 楽 ヤ 西 Ｄ ロ 神 オ 中 ソ 広
+58	巨 オ ヤ ロ Ｄ 楽 中 ソ 神 西 広 日
+59	巨 オ ヤ ロ Ｄ 楽 中 ソ 神 西 広 日
+60	巨 オ ヤ ロ Ｄ 楽 中 ソ 神 西 広 日
+61	巨 ロ ヤ 日 Ｄ ソ 中 西 神 楽 広 オ
+62	巨 ロ ヤ 日 Ｄ ソ 中 西 神 楽 広 オ
+63	巨 ロ ヤ 日 Ｄ ソ 中 西 神 楽 広 オ
+64	日 Ｄ 楽 巨 西 広 ロ 中 オ ヤ ソ 神
+65	日 Ｄ 楽 巨 西 広 ロ 中 オ ヤ ソ 神
+66	日 Ｄ 楽 巨 西 広 ロ 中 オ ヤ ソ 神
+67	日 中 楽 広 西 巨 ロ Ｄ オ 神 ソ ヤ
+68	日 中 楽 広 西 巨 ロ Ｄ オ 神 ソ ヤ
+69	日 中 楽 広 西 巨 ロ Ｄ オ 神 ソ ヤ
+70	巨 中 ヤ 広 Ｄ 神 日 ソ ロ 楽 オ 西
+71	巨 中 ヤ 広 Ｄ 神 日 ソ ロ 楽 オ 西
+72	巨 中 ヤ 広 Ｄ 神 日 ソ ロ 楽 オ 西
+73	楽 西
+74	中 Ｄ 神 ヤ 広 巨 日 ロ 楽 西 ソ オ
+75	中 Ｄ 神 ヤ 広 巨 日 ロ ソ オ
+76	中 Ｄ 神 ヤ 楽 西 ソ オ
+77	ヤ 中 Ｄ 巨 広 神 西 日 ロ ソ オ 楽
+78	ヤ 中 Ｄ 巨 広 神 西 日 ロ ソ オ 楽
+79	ヤ 中 Ｄ 巨 広 神 西 日 ロ ソ オ 楽
+80	巨 ヤ Ｄ 広 神 中 日 オ 楽 ロ ソ 西
+81	巨 ヤ 神 中 日 オ 楽 ロ ソ 西
+82	Ｄ 広 神 中 日 オ ソ 西
+83	ヤ Ｄ 中 巨 神 広 楽 日 オ 西 ソ ロ
+84	ヤ Ｄ 中 巨 神 広 楽 日 オ 西 ソ ロ
+85	ヤ Ｄ 中 巨 神 広 楽 日 オ 西 ソ ロ
+86	巨 神 Ｄ 中 広 ヤ 西 楽 ロ 日 オ ソ
+87	巨 神 Ｄ 中 広 ヤ 西 楽 ロ 日 オ ソ
+88	巨 神 Ｄ 中 広 ヤ
+89	Ｄ 巨 中 広 神 ヤ 日 西 ロ オ ソ 楽
+90	Ｄ 巨 中 広 神 ヤ 日 西 ロ オ ソ 楽
+91	Ｄ 巨 中 広 神 ヤ 日 西 ロ オ ソ 楽
+92	ヤ 巨 中 神 広 Ｄ 日 ソ 楽 オ 西 ロ
+93	ヤ 巨 中 神 広 Ｄ 日 ソ 楽 オ 西 ロ
+94	ヤ 巨 中 神 日 ソ 楽 オ 西 ロ
+95	巨 中 Ｄ ヤ 広 神
+96	巨 中 Ｄ ヤ 広 神 楽 西 ロ ソ オ 日
+97	巨 中 Ｄ ヤ 広 神 楽 西 ロ ソ オ 日
+98	巨 広 ヤ 中 神 Ｄ 楽 西 ロ ソ オ 日
+99	巨 広 ヤ 中 神 Ｄ ソ オ
+100	巨 広 ヤ 中 神 Ｄ 西 日 ロ 楽 ソ オ
+101	西 日 ロ 楽 ソ オ
+102	ヤ 広 中 Ｄ 神 巨 西 ソ オ ロ
+103	ヤ 広 中 Ｄ 神 巨 日 楽 西 ソ オ ロ
+104	ヤ 広 中 Ｄ 神 巨 日 楽 西 ソ オ ロ
+105	巨 Ｄ ヤ 神 広 中 日 ロ 楽 ソ 西 オ
+106	巨 Ｄ ヤ 神 広 中 日 ロ 楽 ソ 西 オ
+107	巨 Ｄ ヤ 神 広 中 日 ロ 楽 ソ 西 オ
+108	オ 楽
+109	Ｄ 神 中 ヤ 広 巨 ロ 西 ソ 日
+110	Ｄ 神 中 ヤ 広 巨 ロ 西 オ 楽 ソ 日
+111	Ｄ 神 中 ヤ 広 巨 オ 楽 ソ 日
+112	巨 ヤ Ｄ 広 神 中 日 楽 西 ソ ロ オ
+113	巨 ヤ Ｄ 広 神 中 日 楽 西 ソ ロ オ
+114	巨 ヤ Ｄ 広 神 中 日 楽 西 ソ ロ オ
+115	巨 神 ヤ 広 中 Ｄ 日 西 楽 オ ソ ロ
+116	巨 神 ヤ 広 中 Ｄ 日 西 楽 オ ソ ロ
+117	巨 神 ヤ 広 中 Ｄ 日 西 楽 オ ソ ロ
+118	ヤ Ｄ 中 巨 広 神 西 ロ オ 日 ソ 楽
+119	ヤ Ｄ 中 巨 広 神 西 ロ オ 日 ソ 楽
+120	ヤ Ｄ 中 巨 広 神 西 ロ オ 日 ソ 楽
+121	Ｄ 巨 神 ヤ 広 中 日 ソ 楽 ロ 西 オ
+122	Ｄ 巨 神 ヤ 広 中 日 ソ 楽 ロ 西 オ
+123	Ｄ 巨 神 ヤ 広 中 日 ソ 楽 ロ 西 オ
+124	巨 広 Ｄ 神 中 ヤ 楽 西 ロ 日
+125	巨 広 Ｄ 神 中 ヤ 楽 西 ロ 日 ソ オ
+126	巨 広 Ｄ 神 中 ヤ 楽 西 ロ 日 ソ オ
+127	ヤ 巨 中 神 広 Ｄ 西 日 ロ ソ オ 楽
+128	ヤ 巨 中 神 広 Ｄ 西 日 ロ ソ オ 楽
+129	ヤ 巨 中 神 広 Ｄ ロ ソ オ 楽
+130	Ｄ 中 神 巨 広 ヤ 日 ロ 西 楽 オ ソ
+131	Ｄ 中 神 巨 広 ヤ 日 ロ 西 楽 オ ソ
+132	Ｄ 中 神 巨 広 ヤ 日 ロ 西 楽 オ ソ
+133	巨 Ｄ ヤ 神 中 広 日 ソ 楽 オ ロ 西
+134	巨 Ｄ ヤ 神 中 広 日 ソ 楽 オ
+135	ヤ 神 中 広
+136	ヤ 中 広 巨 楽 日 オ ロ ソ 西
+137	ヤ 中 神 Ｄ 広 巨 楽 日 オ ロ ソ 西
+138	ヤ 中 神 Ｄ 広 巨 楽 日 オ ロ ソ 西
+139	巨 中 Ｄ ヤ 神 広 ロ 楽 オ 西 ソ 日
+140	巨 中 Ｄ ヤ 神 広 ロ 楽 オ 西 ソ 日
+141	巨 中 Ｄ ヤ 神 広 ロ 楽 オ 西 ソ 日
+142	広 Ｄ
+143	巨 神 中 ヤ 広 Ｄ 西 日 オ 楽 ソ ロ
+144	ヤ 広 Ｄ 巨 神 中 西 日 ソ ロ
+145	日 ロ 楽 西 オ ソ
+146	ロ 楽 オ ソ
+147	日 西 ロ 楽 オ ソ
+148	巨 中 Ｄ ヤ 神 広
+149	巨 中 Ｄ ヤ 神 広 日 オ 楽 ソ ロ 西
+150	巨 ヤ 中 広 神 Ｄ 日 オ 楽 ソ ロ 西
+151	ヤ 神 中 広 神 Ｄ 日 オ 楽 ソ ロ 西
+152	ヤ 神 Ｄ 中 広 巨 日 楽 ソ 西
+153	Ｄ 中 広 巨 日 楽 ロ オ ソ 西
+154	日 楽
+155	西 ロ オ ソ
+156	西 ロ オ 日 ソ 楽
+157	西 楽 ロ 日 ソ オ
+158	西 楽 ロ 日
+159	楽 ロ 西 オ
+160	楽 ロ
 `;
 
-// --- UI / Util 髢｢謨ｰ ---
+// --- UI / Util 関数 ---
 window.addEventListener('DOMContentLoaded', async () => {
     try {
         const res = await fetch('./baseball_data.xlsx?v=' + new Date().getTime());
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
-        fieldersData = (XLSX.utils.sheet_to_json(workbook.Sheets['驥取焔閭ｽ蜉�']) || []).filter(p => p['驕ｸ謇句錐']);
-        pitchersData = (XLSX.utils.sheet_to_json(workbook.Sheets['謚墓焔閭ｽ蜉�']) || []).filter(p => p['驕ｸ謇句錐']);
+        fieldersData = (XLSX.utils.sheet_to_json(workbook.Sheets['野手能力']) || []).filter(p => p['選手名']);
+        pitchersData = (XLSX.utils.sheet_to_json(workbook.Sheets['投手能力']) || []).filter(p => p['選手名']);
         document.getElementById('screen-loading').classList.remove('active');
         startDraft('fielder');
-    } catch (e) { document.getElementById('loading-text').innerText = "繧ｨ繝ｩ繝ｼ縲ゅヵ繧｡繧､繝ｫ繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞縲�"; }
+    } catch (e) { document.getElementById('loading-text').innerText = "エラー。ファイルを確認してください。"; }
 });
 
 function getRankInfo(num) {
@@ -322,15 +322,15 @@ function getRankInfo(num) {
     return { rank: 'G', color: '#9E9E9E' }; 
 }
 function parsePositionName(shortPos) {
-    const map = { '謐�':'謐墓焔','荳':'荳蝪∵焔','莠�':'莠悟｡∵焔','荳�':'荳牙｡∵焔','驕�':'驕頑茶謇�','蟾ｦ':'蟾ｦ鄙ｼ謇�','荳ｭ':'荳ｭ蝣�焔','蜿ｳ':'蜿ｳ鄙ｼ謇�','DH':'謖�錐謇楢�', 'C':'謐墓焔','1B':'荳蝪∵焔','2B':'莠悟｡∵焔','3B':'荳牙｡∵焔','SS':'驕頑茶謇�','LF':'蟾ｦ鄙ｼ謇�','CF':'荳ｭ蝣�焔','RF':'蜿ｳ鄙ｼ謇�' };
+    const map = { '捕':'捕手','一':'一塁手','二':'二塁手','三':'三塁手','遊':'遊撃手','左':'左翼手','中':'中堅手','右':'右翼手','DH':'指名打者', 'C':'捕手','1B':'一塁手','2B':'二塁手','3B':'三塁手','SS':'遊撃手','LF':'左翼手','CF':'中堅手','RF':'右翼手' };
     return map[shortPos.trim().toUpperCase()] || shortPos.trim();
 }
 function getPositionAptitude(player, targetPos) {
-    if (targetPos === '謖�錐謇楢�') return 90;
-    if (!player["螳亥ｙ蜉�"]) return 20; 
-    if (typeof player["螳亥ｙ蜉�"] === 'number') return player["螳亥ｙ蜉�"];
+    if (targetPos === '指名打者') return 90;
+    if (!player["守備力"]) return 20; 
+    if (typeof player["守備力"] === 'number') return player["守備力"];
     let apt = 10;
-    player["螳亥ｙ蜉�"].toString().split('/').forEach(p => {
+    player["守備力"].toString().split('/').forEach(p => {
         let splitData = p.split(':');
         if (splitData.length >= 2 && parsePositionName(splitData[0].trim()) === targetPos) { const parsed = parseInt(splitData[1], 10); if (!Number.isNaN(parsed)) apt = parsed; }
     });
@@ -343,7 +343,7 @@ function switchTab(tabId, tabElement) {
     if (tabElement) tabElement.classList.add('active'); document.getElementById(tabId).classList.add('active');
 }
 
-// --- 繝峨Λ繝輔ヨ ---
+// --- ドラフト ---
 function startDraft(type) {
     currentDraftType = type; requiredCount = type === 'fielder' ? 9 : 15; skipsLeft = 5;
     draftPool = type === 'fielder' ? [...fieldersData] : [...pitchersData];
@@ -354,15 +354,15 @@ function nextCandidate() {
         if (currentDraftType === 'fielder') startDraft('pitcher'); else showScreen('screen-league');
         return;
     }
-    if (!draftPool.length) { document.getElementById('draft-card').innerHTML = '<div class="card">蛟呵｣憺∈謇九′荳崎ｶｳ縺励※縺�∪縺吶�Excel縺ｮ驕ｸ謇九ョ繝ｼ繧ｿ繧堤｢ｺ隱阪＠縺ｦ縺上□縺輔＞縲�</div>'; return; }
+    if (!draftPool.length) { document.getElementById('draft-card').innerHTML = '<div class="card">候補選手が不足しています。Excelの選手データを確認してください。</div>'; return; }
     const randIdx = Math.floor(Math.random() * draftPool.length);
     currentCandidate = draftPool[randIdx];
     
-    document.getElementById('draft-type-label').innerText = currentDraftType === 'fielder' ? "驥取焔繝峨Λ繝輔ヨ" : "謚墓焔繝峨Λ繝輔ヨ";
+    document.getElementById('draft-type-label').innerText = currentDraftType === 'fielder' ? "野手ドラフト" : "投手ドラフト";
     document.getElementById('draft-progress').innerText = `${currentDraftType === 'fielder' ? myTeam.fielders.length : myTeam.pitchers.length} / ${requiredCount}`;
     const skipBtn = document.getElementById('btn-skip');
-    if (skipsLeft > 0) { document.getElementById('draft-skips').innerText = `隕矩√ｊ谿九ｊ��${skipsLeft}蝗杼; skipBtn.classList.remove('btn-disabled'); skipBtn.disabled = false; }
-    else { document.getElementById('draft-skips').innerText = `隕矩√ｊ荳榊庄`; skipBtn.classList.add('btn-disabled'); skipBtn.disabled = true; }
+    if (skipsLeft > 0) { document.getElementById('draft-skips').innerText = `見送り残り：${skipsLeft}回`; skipBtn.classList.remove('btn-disabled'); skipBtn.disabled = false; }
+    else { document.getElementById('draft-skips').innerText = `見送り不可`; skipBtn.classList.add('btn-disabled'); skipBtn.disabled = true; }
 
     renderCard(currentCandidate, currentDraftType);
 }
@@ -375,29 +375,29 @@ function renderCard(player, type) {
     }
     if (type === 'fielder') {
         let defenseMax = 0; let posTags = [];
-        if (typeof player["螳亥ｙ蜉�"] === 'string' && player["螳亥ｙ蜉�"].includes(':')) {
-            player["螳亥ｙ蜉�"].split('/').forEach(p => {
+        if (typeof player["守備力"] === 'string' && player["守備力"].includes(':')) {
+            player["守備力"].split('/').forEach(p => {
                 const arr = p.split(':');
                 if (arr.length >= 2) {
                     const rating = parseInt(arr[1], 10);
                     if (!isNaN(rating)) { if (rating > defenseMax) defenseMax = rating; posTags.push({ pos: parsePositionName(arr[0].trim()), val: rating }); }
                 }
             });
-        } else defenseMax = parseInt(player["螳亥ｙ蜉�"], 10) || 0;
+        } else defenseMax = parseInt(player["守備力"], 10) || 0;
 
-        let posHtml = posTags.length > 0 ? `<div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;"><div style="font-size: 13px; color: #555; font-weight: bold;">螳医ｌ繧区園</div><div class="defense-positions">${posTags.map(t => { const r = getRankInfo(t.val); return `<span class="pos-tag">${t.pos} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`; }).join('')}</div></div>` : '';
-        htmlContainer.innerHTML = `<div class="card"><div class="p-tag">驥取焔</div><div class="p-name">${player["驕ｸ謇句錐"]||"荳肴�"}</div><div class="p-meta">${player["繝√�繝�"]||"繝輔Μ繝ｼ"}</div><div class="stats-box grid-4">${createStatCard('繝溘�繝�', player["繝溘�繝�"])}${createStatCard('繝代Ρ繝ｼ', player["繝代Ρ繝ｼ"])}${createStatCard('襍ｰ蜉�', player["襍ｰ蜉�"])}${createStatCard('螳亥ｙ蜉�', defenseMax)}</div>${posHtml}</div>`;
+        let posHtml = posTags.length > 0 ? `<div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;"><div style="font-size: 13px; color: #555; font-weight: bold;">守れる所</div><div class="defense-positions">${posTags.map(t => { const r = getRankInfo(t.val); return `<span class="pos-tag">${t.pos} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`; }).join('')}</div></div>` : '';
+        htmlContainer.innerHTML = `<div class="card"><div class="p-tag">野手</div><div class="p-name">${player["選手名"]||"不明"}</div><div class="p-meta">${player["チーム"]||"フリー"}</div><div class="stats-box grid-4">${createStatCard('ミート', player["ミート"])}${createStatCard('パワー', player["パワー"])}${createStatCard('走力', player["走力"])}${createStatCard('守備力', defenseMax)}</div>${posHtml}</div>`;
     } else {
         let pitchTags = '';
         Object.keys(player).forEach(key => {
-            if (key.startsWith('逅�ｨｮ_') && player[key]) {
+            if (key.startsWith('球種_') && player[key]) {
                 const pitchVal = parseInt(player[key], 10);
-                if(!isNaN(pitchVal)) { const r = getRankInfo(pitchVal); pitchTags += `<span class="pitch-tag">${key.replace('逅�ｨｮ_', '')} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`; }
-                else { pitchTags += `<span class="pitch-tag">${key.replace('逅�ｨｮ_', '')} ${player[key]}</span>`; }
+                if(!isNaN(pitchVal)) { const r = getRankInfo(pitchVal); pitchTags += `<span class="pitch-tag">${key.replace('球種_', '')} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`; }
+                else { pitchTags += `<span class="pitch-tag">${key.replace('球種_', '')} ${player[key]}</span>`; }
             }
         });
-        let pitchHtml = pitchTags ? `<div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;"><div style="font-size: 13px; color: #555; font-weight: bold;">逅�ｨｮ</div><div class="pitch-types">${pitchTags}</div></div>` : '';
-        htmlContainer.innerHTML = `<div class="card"><div class="p-tag" style="background-color:#E53935;">謚墓焔</div><div class="p-name">${player["驕ｸ謇句錐"]||"荳肴�"}</div><div class="p-meta">${player["繝√�繝�"]||"繝輔Μ繝ｼ"}</div><div class="stats-box grid-3">${createStatCard('逅�ｨ�', player["逅�ｨ�"])}${createStatCard('蛻ｶ逅�', player["蛻ｶ逅�"])}${createStatCard('繧ｹ繧ｿ繝溘リ', player["繧ｹ繧ｿ繝溘リ"])}</div>${pitchHtml}</div>`;
+        let pitchHtml = pitchTags ? `<div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;"><div style="font-size: 13px; color: #555; font-weight: bold;">球種</div><div class="pitch-types">${pitchTags}</div></div>` : '';
+        htmlContainer.innerHTML = `<div class="card"><div class="p-tag" style="background-color:#E53935;">投手</div><div class="p-name">${player["選手名"]||"不明"}</div><div class="p-meta">${player["チーム"]||"フリー"}</div><div class="stats-box grid-3">${createStatCard('球威', player["球威"])}${createStatCard('制球', player["制球"])}${createStatCard('スタミナ', player["スタミナ"])}</div>${pitchHtml}</div>`;
     }
 }
 
@@ -405,44 +405,44 @@ function renderCard(player, type) {
 function takePlayer() { if (currentDraftType === 'fielder') myTeam.fielders.push(currentCandidate); else myTeam.pitchers.push(currentCandidate); draftPool = draftPool.filter(p => p !== currentCandidate); nextCandidate(); }
 function skipPlayer() { if (skipsLeft > 0) { skipsLeft--; draftPool = draftPool.filter(p => p !== currentCandidate); nextCandidate(); } }
 
-// --- 繝ｪ繝ｼ繧ｰ驕ｸ謚槭�CPU繝√�繝�逕滓� ---
+// --- リーグ選択・CPUチーム生成 ---
 function selectLeague(leagueStr) {
     myTeam.isCentral = (leagueStr === 'Central');
-    const centralSyms = ['逾�','蟾ｨ','�､','繝､','蠎�','荳ｭ'];
-    const pacificSyms = ['繧ｽ','繝ｭ','譌･','讌ｽ','繧ｪ','隘ｿ'];
-    const symbolsMap = { '逾�':'髦ｪ逾�', '�､':'DeNA', '蟾ｨ':'蟾ｨ莠ｺ', '繝､':'繝､繧ｯ繝ｫ繝�', '荳ｭ':'荳ｭ譌･', '蠎�':'蠎�ｳｶ', '譌･':'譌･譛ｬ繝上Β', '繧ｽ':'繧ｽ繝輔ヨ繝舌Φ繧ｯ', '繝ｭ':'繝ｭ繝�ユ', '繧ｪ':'繧ｪ繝ｪ繝�け繧ｹ', '讌ｽ':'讌ｽ螟ｩ', '隘ｿ':'隘ｿ豁ｦ' };
+    const centralSyms = ['神','巨','Ｄ','ヤ','広','中'];
+    const pacificSyms = ['ソ','ロ','日','楽','オ','西'];
+    const symbolsMap = { '神':'阪神', 'Ｄ':'DeNA', '巨':'巨人', 'ヤ':'ヤクルト', '中':'中日', '広':'広島', '日':'日本ハム', 'ソ':'ソフトバンク', 'ロ':'ロッテ', 'オ':'オリックス', '楽':'楽天', '西':'西武' };
     
-    // CPU蜈ｨ繝√�繝�逕滓�
+    // CPU全チーム生成
     allTeams = [];
     Object.keys(symbolsMap).forEach(sym => {
         let tName = symbolsMap[sym];
         let t = { name: tName, symbol: sym, fielders: [], pitchers: [], isCentral: centralSyms.includes(sym), wins:0, losses:0 };
-        // 驥取焔逕滓� (DH蟇ｾ蠢懊�縺溘ａ9莠ｺ)
-        for(let f=1; f<=9; f++) t.fielders.push({ "驕ｸ謇句錐": "驥取焔"+f, "繝溘�繝�": 50+Math.random()*10, "繝代Ρ繝ｼ": 50+Math.random()*10, stats: makeBattingStats(), fieldStats: makeFieldingStats() });
+        // 野手生成 (DH対応のため9人)
+        for(let f=1; f<=9; f++) t.fielders.push({ "選手名": "野手"+f, "ミート": 50+Math.random()*10, "パワー": 50+Math.random()*10, stats: makeBattingStats(), fieldStats: makeFieldingStats() });
         
-        // 謚墓焔逕滓� (OPPONENT_PITCHERS縺九ｉ)
+        // 投手生成 (OPPONENT_PITCHERSから)
         let pData = OPPONENT_PITCHERS[tName];
-        pData["蜈育匱"].forEach(n => t.pitchers.push({ "驕ｸ謇句錐": n, role: '蜈育匱', "逅�ｨ�": 55, "蛻ｶ逅�": 55, "繧ｹ繧ｿ繝溘リ": 70, stats: makePitchingStats(), battingStats: makeBattingStats() }));
-        t.pitchers.push({ "驕ｸ謇句錐": pData["謚代∴"], role: '謚代∴', "逅�ｨ�": 65, "蛻ｶ逅�": 50, "繧ｹ繧ｿ繝溘リ": 30, stats: {} });
-        t.pitchers.push({ "驕ｸ謇句錐": pData["荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ"], role: '荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ', "逅�ｨ�": 55, "蛻ｶ逅�": 55, "繧ｹ繧ｿ繝溘リ": 40, stats: {} });
-        pData["蜒�ｷｮ"].forEach(n => t.pitchers.push({ "驕ｸ謇句錐": n, role: '蜒�ｷｮ', "逅�ｨ�": 50, "蛻ｶ逅�": 50, "繧ｹ繧ｿ繝溘リ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
-        pData["繝ｪ繝ｼ繝�"].forEach(n => t.pitchers.push({ "驕ｸ謇句錐": n, role: '繝ｪ繝ｼ繝�', "逅�ｨ�": 50, "蛻ｶ逅�": 50, "繧ｹ繧ｿ繝溘リ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
-        pData["繝薙ワ繧､繝ｳ繝�"].forEach(n => t.pitchers.push({ "驕ｸ謇句錐": n, role: '繝薙ワ繧､繝ｳ繝�', "逅�ｨ�": 45, "蛻ｶ逅�": 45, "繧ｹ繧ｿ繝溘リ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
-        pData["謨玲姶蜃ｦ逅�"].forEach(n => t.pitchers.push({ "驕ｸ謇句錐": n, role: '謨玲姶蜃ｦ逅�', "逅�ｨ�": 40, "蛻ｶ逅�": 40, "繧ｹ繧ｿ繝溘リ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
+        pData["先発"].forEach(n => t.pitchers.push({ "選手名": n, role: '先発', "球威": 55, "制球": 55, "スタミナ": 70, stats: makePitchingStats(), battingStats: makeBattingStats() }));
+        t.pitchers.push({ "選手名": pData["抑え"], role: '抑え', "球威": 65, "制球": 50, "スタミナ": 30, stats: {} });
+        t.pitchers.push({ "選手名": pData["中継ぎエース"], role: '中継ぎエース', "球威": 55, "制球": 55, "スタミナ": 40, stats: {} });
+        pData["僅差"].forEach(n => t.pitchers.push({ "選手名": n, role: '僅差', "球威": 50, "制球": 50, "スタミナ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
+        pData["リード"].forEach(n => t.pitchers.push({ "選手名": n, role: 'リード', "球威": 50, "制球": 50, "スタミナ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
+        pData["ビハインド"].forEach(n => t.pitchers.push({ "選手名": n, role: 'ビハインド', "球威": 45, "制球": 45, "スタミナ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
+        pData["敗戦処理"].forEach(n => t.pitchers.push({ "選手名": n, role: '敗戦処理', "球威": 40, "制球": 40, "スタミナ": 40, stats: makePitchingStats(), battingStats: makeBattingStats() }));
         allTeams.push(t);
     });
 
-    // 蜈･繧梧崛縺�
+    // 入れ替え
     let targetSyms = myTeam.isCentral ? centralSyms : pacificSyms;
     let replacedSym = targetSyms[Math.floor(Math.random() * targetSyms.length)];
-    myTeam.symbol = replacedSym; // 繧ｹ繧ｱ繧ｸ繝･繝ｼ繝ｫ荳翫�險伜捷繧貞ｼ輔″邯吶＄
+    myTeam.symbol = replacedSym; // スケジュール上の記号を引き継ぐ
     allTeams = allTeams.filter(t => t.symbol !== replacedSym);
     allTeams.push(myTeam);
 
-    // 繧ｹ繧ｱ繧ｸ繝･繝ｼ繝ｫ繝代�繧ｹ
+    // スケジュールパース
     scheduleMatches = [];
     SCHEDULE_TEXT.trim().split('\n').forEach(line => {
-        let parts = line.trim().split(/\s+/).slice(1); // 蜈磯�ｭ縺ｮ逡ｪ蜿ｷ繧貞炎髯､
+        let parts = line.trim().split(/\s+/).slice(1); // 先頭の番号を削除
         let dayMatches = [];
         for(let i=0; i<parts.length; i+=2) {
             if(parts[i+1]) {
@@ -457,22 +457,22 @@ function selectLeague(leagueStr) {
     initSetupScreen();
 }
 
-// --- 襍ｷ逕ｨ閾ｪ蜍戊ｨｭ螳� & 謠冗判 ---
+// --- 起用自動設定 & 描画 ---
 function initSetupScreen() {
     showScreen('screen-setup');
     if (!myTeam.fielders[0].order) {
-        // --- 驥取焔閾ｪ蜍戊ｨｭ螳� ---
+        // --- 野手自動設定 ---
         let u = [...myTeam.fielders];
-        u.sort((a,b)=>((parseInt(b["繝溘�繝�"])||0)+(parseInt(b["襍ｰ蜉�"])||0))-((parseInt(a["繝溘�繝�"])||0)+(parseInt(a["襍ｰ蜉�"])||0))); u[0].order = 1; u.shift();
-        u.sort((a,b)=>((parseInt(b["繝溘�繝�"])||0)+(parseInt(b["繝代Ρ繝ｼ"])||0))-((parseInt(a["繝溘�繝�"])||0)+(parseInt(a["繝代Ρ繝ｼ"])||0))); u[0].order = 4; u.shift();
-        u.sort((a,b)=>(parseInt(b["繝溘�繝�"])||0)-(parseInt(a["繝溘�繝�"])||0)); u[0].order = 2; u.shift();
-        u.sort((a,b)=>((parseInt(b["繝代Ρ繝ｼ"])||0)+(parseInt(b["襍ｰ蜉�"])||0))-((parseInt(a["繝代Ρ繝ｼ"])||0)+(parseInt(a["襍ｰ蜉�"])||0))); u[0].order = 3; u.shift();
-        u.sort((a,b)=>(parseInt(b["繝代Ρ繝ｼ"])||0)-(parseInt(a["繝代Ρ繝ｼ"])||0));
+        u.sort((a,b)=>((parseInt(b["ミート"])||0)+(parseInt(b["走力"])||0))-((parseInt(a["ミート"])||0)+(parseInt(a["走力"])||0))); u[0].order = 1; u.shift();
+        u.sort((a,b)=>((parseInt(b["ミート"])||0)+(parseInt(b["パワー"])||0))-((parseInt(a["ミート"])||0)+(parseInt(a["パワー"])||0))); u[0].order = 4; u.shift();
+        u.sort((a,b)=>(parseInt(b["ミート"])||0)-(parseInt(a["ミート"])||0)); u[0].order = 2; u.shift();
+        u.sort((a,b)=>((parseInt(b["パワー"])||0)+(parseInt(b["走力"])||0))-((parseInt(a["パワー"])||0)+(parseInt(a["走力"])||0))); u[0].order = 3; u.shift();
+        u.sort((a,b)=>(parseInt(b["パワー"])||0)-(parseInt(a["パワー"])||0));
         
         if (myTeam.isCentral) {
             let nxt = [5, 6, 7, 8];
             for(let i=0; i<4; i++) u[i].order = nxt[i];
-            u[4].order = '謗ｧ縺�'; // 9莠ｺ逶ｮ縺ｯ謗ｧ縺�
+            u[4].order = '控え'; // 9人目は控え
         } else {
             let nxt = [5, 6, 7, 8, 9];
             u.forEach((p, i) => { p.order = nxt[i]; });
@@ -480,7 +480,7 @@ function initSetupScreen() {
 
         let pairs = [];
         myTeam.fielders.forEach(f => {
-            let rawDef = (typeof f["螳亥ｙ蜉�"] === 'string' && f["螳亥ｙ蜉�"].includes(':')) ? f["螳亥ｙ蜉�"].split('/')[0].split(':')[0].trim() : 'DH';
+            let rawDef = (typeof f["守備力"] === 'string' && f["守備力"].includes(':')) ? f["守備力"].split('/')[0].split(':')[0].trim() : 'DH';
             let mainPos = parsePositionName(rawDef);
             POSITIONS.forEach(pos => { let apt = getPositionAptitude(f, pos); if (pos === mainPos) apt += 100; pairs.push({ p: f, pos: pos, apt: apt }); });
         });
@@ -490,44 +490,44 @@ function initSetupScreen() {
             if (!assignedP.has(pair.p) && !assignedPos.has(pair.pos)) { pair.p.pos = pair.pos; assignedP.add(pair.p); assignedPos.add(pair.pos); }
         }
 
-        // --- 謚墓焔閾ｪ蜍戊ｨｭ螳� ---
-        let pSort = [...myTeam.pitchers].sort((a, b) => (parseInt(b["繧ｹ繧ｿ繝溘リ"])||0) - (parseInt(a["繧ｹ繧ｿ繝溘リ"])||0));
-        pSort.slice(0, 6).forEach(p => p.role = '蜈育匱');
-        let relievers = pSort.slice(6).sort((a, b) => (parseInt(b["逅�ｨ�"])||0) - (parseInt(a["逅�ｨ�"])||0));
-        const rRoles = ['謚代∴', '荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ', '蜒�ｷｮ', '蜒�ｷｮ', '繝ｪ繝ｼ繝�', '繝ｪ繝ｼ繝�', '繝薙ワ繧､繝ｳ繝�', '繝薙ワ繧､繝ｳ繝�', '謨玲姶蜃ｦ逅�'];
+        // --- 投手自動設定 ---
+        let pSort = [...myTeam.pitchers].sort((a, b) => (parseInt(b["スタミナ"])||0) - (parseInt(a["スタミナ"])||0));
+        pSort.slice(0, 6).forEach(p => p.role = '先発');
+        let relievers = pSort.slice(6).sort((a, b) => (parseInt(b["球威"])||0) - (parseInt(a["球威"])||0));
+        const rRoles = ['抑え', '中継ぎエース', '僅差', '僅差', 'リード', 'リード', 'ビハインド', 'ビハインド', '敗戦処理'];
         relievers.forEach((p, i) => p.role = rRoles[i]);
     }
     renderSetupTables();
 }
 
 function renderSetupTables() {
-    myTeam.fielders.sort((a, b) => (a.order==='謗ｧ縺�'?99:a.order) - (b.order==='謗ｧ縺�'?99:b.order));
+    myTeam.fielders.sort((a, b) => (a.order==='控え'?99:a.order) - (b.order==='控え'?99:b.order));
     let fHtml = '';
     myTeam.fielders.forEach((p, index) => {
         let orderOptions = '';
         for(let i=1; i<=(myTeam.isCentral?8:9); i++) orderOptions += `<option value="${i}" ${p.order === i ? 'selected' : ''}>${i}</option>`;
-        if(myTeam.isCentral) orderOptions += `<option value="謗ｧ縺�" ${p.order === '謗ｧ縺�' ? 'selected' : ''}>謗ｧ縺�</option>`;
+        if(myTeam.isCentral) orderOptions += `<option value="控え" ${p.order === '控え' ? 'selected' : ''}>控え</option>`;
         
-        let posOptions = ''; POSITIONS.forEach(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}�磯←諤ｧ${ri.rank}��</option>`; });
-        let rawDef = typeof p["螳亥ｙ蜉�"] === 'string' && p["螳亥ｙ蜉�"].includes(':') ? p["螳亥ｙ蜉�"].split('/')[0].split(':')[0].trim() : 'DH';
-        let aptitudeHtml = POSITIONS.filter(pos => pos !== '謖�錐謇楢�').map(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); return `<span class="pos-tag">${pos.replace('謇�','')} <b style="color:${ri.color}">${ri.rank}</b></span>`; }).join('');
-        fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">謇馴��</div></div><div class="setup-details"><div class="setup-name">${p["驕ｸ謇句錐"]}</div><div class="setup-meta">繝溘�繝�:${parseInt(p["繝溘�繝�"])||50} 繝代Ρ繝ｼ:${parseInt(p["繝代Ρ繝ｼ"])||50} 襍ｰ蜉�:${parseInt(p["襍ｰ蜉�"])||50} 譛ｬ閨ｷ:${parsePositionName(rawDef)}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="defense-positions" style="margin-top:8px">${aptitudeHtml}</div></div></div>`;
+        let posOptions = ''; POSITIONS.forEach(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}（適性${ri.rank}）</option>`; });
+        let rawDef = typeof p["守備力"] === 'string' && p["守備力"].includes(':') ? p["守備力"].split('/')[0].split(':')[0].trim() : 'DH';
+        let aptitudeHtml = POSITIONS.filter(pos => pos !== '指名打者').map(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); return `<span class="pos-tag">${pos.replace('手','')} <b style="color:${ri.color}">${ri.rank}</b></span>`; }).join('');
+        fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">打順</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50} 本職:${parsePositionName(rawDef)}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="defense-positions" style="margin-top:8px">${aptitudeHtml}</div></div></div>`;
     });
     document.getElementById('setup-fielders').innerHTML = fHtml;
 
     let pHtml = '';
     myTeam.pitchers.forEach((p, index) => {
         let roleOptions = '';
-        ['蜈育匱', '荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ', '蜒�ｷｮ', '繝ｪ繝ｼ繝�', '繝薙ワ繧､繝ｳ繝�', '謨玲姶蜃ｦ逅�', '謚代∴'].forEach(r => roleOptions += `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`);
-        let rankInfo = getRankInfo(parseInt(p["繧ｹ繧ｿ繝溘リ"])||50);
-        let pitchTags = Object.keys(p).filter(key => key.startsWith('逅�ｨｮ_') && p[key] !== '' && p[key] != null).map(key => { let n = parseInt(p[key],10); let val = Number.isNaN(n) ? p[key] : getRankInfo(n).rank; return `<span class="pitch-tag">${key.replace('逅�ｨｮ_', '')} <b>${val}</b></span>`; }).join('');
-        pHtml += `<div class="setup-card"><div class="setup-order-box" style="background:#f9f9f9;"><div class="setup-order-select" style="cursor:default;">${index + 1}</div><div class="setup-order-label">謚墓焔</div></div><div class="setup-details"><div class="setup-name">${p["驕ｸ謇句錐"]}</div><div class="setup-meta">逅�ｨ�:${parseInt(p["逅�ｨ�"])||50} 蛻ｶ逅�:${parseInt(p["蛻ｶ逅�"])||50} 繧ｹ繧ｿ繝溘リ:${parseInt(p["繧ｹ繧ｿ繝溘リ"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePitcherRole(${index}, this.value)">${roleOptions}</select><span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border:1px solid ${rankInfo.color};">繧ｹ繧ｿ繝溘リ${rankInfo.rank}</span></div>${pitchTags ? `<div class="pitch-types" style="margin-top:8px">${pitchTags}</div>` : '<div class="setup-meta" style="margin-top:8px">螟牙喧逅�ョ繝ｼ繧ｿ縺ｪ縺�</div>'}</div></div>`;
+        ['先発', '中継ぎエース', '僅差', 'リード', 'ビハインド', '敗戦処理', '抑え'].forEach(r => roleOptions += `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`);
+        let rankInfo = getRankInfo(parseInt(p["スタミナ"])||50);
+        let pitchTags = Object.keys(p).filter(key => key.startsWith('球種_') && p[key] !== '' && p[key] != null).map(key => { let n = parseInt(p[key],10); let val = Number.isNaN(n) ? p[key] : getRankInfo(n).rank; return `<span class="pitch-tag">${key.replace('球種_', '')} <b>${val}</b></span>`; }).join('');
+        pHtml += `<div class="setup-card"><div class="setup-order-box" style="background:#f9f9f9;"><div class="setup-order-select" style="cursor:default;">${index + 1}</div><div class="setup-order-label">投手</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">球威:${parseInt(p["球威"])||50} 制球:${parseInt(p["制球"])||50} スタミナ:${parseInt(p["スタミナ"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePitcherRole(${index}, this.value)">${roleOptions}</select><span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border:1px solid ${rankInfo.color};">スタミナ${rankInfo.rank}</span></div>${pitchTags ? `<div class="pitch-types" style="margin-top:8px">${pitchTags}</div>` : '<div class="setup-meta" style="margin-top:8px">変化球データなし</div>'}</div></div>`;
     });
     document.getElementById('setup-pitchers').innerHTML = pHtml;
 }
 
 function swapOrder(type, currentIndex, newValue) {
-    const targetOrder = newValue === '謗ｧ縺�' ? '謗ｧ縺�' : parseInt(newValue, 10); 
+    const targetOrder = newValue === '控え' ? '控え' : parseInt(newValue, 10); 
     const currentOrder = myTeam.fielders[currentIndex].order;
     const swapTarget = myTeam.fielders.find(p => p.order === targetOrder && p !== myTeam.fielders[currentIndex]);
     if (swapTarget) swapTarget.order = currentOrder;
@@ -544,7 +544,7 @@ function updatePos(index, newPos) {
 function updatePitcherRole(index, newRole) {
     const currentRole = myTeam.pitchers[index].role;
     const count = myTeam.pitchers.filter(p => p.role === newRole).length;
-    const maxAllowed = { '蜈育匱':6, '謚代∴':1, '荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ':1, '蜒�ｷｮ':2, '繝ｪ繝ｼ繝�':2, '繝薙ワ繧､繝ｳ繝�':2, '謨玲姶蜃ｦ逅�':1 };
+    const maxAllowed = { '先発':6, '抑え':1, '中継ぎエース':1, '僅差':2, 'リード':2, 'ビハインド':2, '敗戦処理':1 };
     if (count >= maxAllowed[newRole]) {
         const swapTarget = myTeam.pitchers.find(p => p.role === newRole);
         if (swapTarget) swapTarget.role = currentRole;
@@ -553,14 +553,14 @@ function updatePitcherRole(index, newRole) {
     renderSetupTables();
 }
 
-// --- 繝壹リ繝ｳ繝医お繝ｳ繧ｸ繝ｳ ---
+// --- ペナントエンジン ---
 function preparePennant() { startPennant(); }
 
 function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
 function fatigueFactor(stamina, gameOuts) { let innings = gameOuts / 3.0; if (innings <= 4) return 1.0; return clamp(1.0 - ((innings - 4) * Math.max(0.0, (80.0 - stamina)) * 0.0015), 0.82, 1.0); }
 function atBatProbabilities(batter, pitcher, gameOuts) {
-    let bCon = parseInt(batter["繝溘�繝�"])||50; let bPow = parseInt(batter["繝代Ρ繝ｼ"])||50;
-    let pPow = parseInt(pitcher["逅�ｨ�"])||50; let pCtrl = parseInt(pitcher["蛻ｶ逅�"])||50; let pStamina = parseInt(pitcher["繧ｹ繧ｿ繝溘リ"])||50;
+    let bCon = parseInt(batter["ミート"])||50; let bPow = parseInt(batter["パワー"])||50;
+    let pPow = parseInt(pitcher["球威"])||50; let pCtrl = parseInt(pitcher["制球"])||50; let pStamina = parseInt(pitcher["スタミナ"])||50;
     let soQuality = 25.0 + (pPow * 0.4) + (pCtrl * 0.2); let bbQuality = (pCtrl * 0.8) + 15.0;
     let fatigue = fatigueFactor(pStamina, gameOuts);
     let walk = 0.095 - ((bbQuality - 50.0) * 0.0015) + (bPow>50?(bPow-50)*0.0012:0);
@@ -570,8 +570,8 @@ function atBatProbabilities(batter, pitcher, gameOuts) {
     return [{ result: "walk", prob: walk }, { result: "so", prob: so }, { result: "in_play", prob: Math.max(0.20, 1.0 - (walk + so)) }];
 }
 function resolveStatcastInPlay(batter, pitcher) {
-    let bCon = parseInt(batter["繝溘�繝�"])||50; let bPow = parseInt(batter["繝代Ρ繝ｼ"])||50;
-    let pPow = parseInt(pitcher["逅�ｨ�"])||50; let pCtrl = parseInt(pitcher["蛻ｶ逅�"])||50;
+    let bCon = parseInt(batter["ミート"])||50; let bPow = parseInt(batter["パワー"])||50;
+    let pPow = parseInt(pitcher["球威"])||50; let pCtrl = parseInt(pitcher["制球"])||50;
     let gbProb = 0.45 - (bPow-50)*0.0015 + (pCtrl-50)*0.0020;
     let fbProb = 0.25 + (bPow-50)*0.0015 - (pPow-50)*0.0020;
     let r = Math.random() * (gbProb + fbProb + 0.30);
@@ -616,9 +616,9 @@ function advanceBases(bases, batter, result) {
 class PitchingState {
     constructor(team, rotationIdx) {
         this.team = team;
-        this.starters = team.pitchers.filter(p => p.role === '蜈育匱');
-        this.bullpen = team.pitchers.filter(p => p.role !== '蜈育匱' && p.role !== '謚代∴');
-        let closers = team.pitchers.filter(p => p.role === '謚代∴');
+        this.starters = team.pitchers.filter(p => p.role === '先発');
+        this.bullpen = team.pitchers.filter(p => p.role !== '先発' && p.role !== '抑え');
+        let closers = team.pitchers.filter(p => p.role === '抑え');
         this.closer = closers.length > 0 ? closers[0] : null;
 
         this.current = null;
@@ -632,24 +632,24 @@ class PitchingState {
     }
 
     getRole(p) {
-        if (this.starters.includes(p)) return "蜈育匱";
-        if (p === this.closer) return "謚代∴";
-        return p.role || "蜒�ｷｮ"; 
+        if (this.starters.includes(p)) return "先発";
+        if (p === this.closer) return "抑え";
+        return p.role || "僅差"; 
     }
 
     getRolePriority(inning, score_diff) {
-        if (inning >= 9 && inning <= 12 && score_diff >= 1 && score_diff <= 4) return ["謚代∴", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "蜒�ｷｮ", "繝ｪ繝ｼ繝�", "繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�"];
-        if (inning === 12 && score_diff === 0) return ["謚代∴", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "蜒�ｷｮ", "繝ｪ繝ｼ繝�", "繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�"];
-        if (inning >= 6 && inning <= 8 && score_diff >= 1 && score_diff <= 3) return ["荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "蜒�ｷｮ", "繝ｪ繝ｼ繝�", "謚代∴", "繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�"];
-        if (inning >= 1 && inning <= 8 && score_diff >= 4) return ["繝ｪ繝ｼ繝�", "蜒�ｷｮ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "繝薙ワ繧､繝ｳ繝�", "謚代∴", "謨玲姶蜃ｦ逅�"];
-        if (inning >= 9 && inning <= 12 && score_diff >= 4) return ["繝ｪ繝ｼ繝�", "謚代∴", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "蜒�ｷｮ", "繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�"];
-        if (inning >= 1 && inning <= 9 && score_diff >= -3 && score_diff <= -1) return ["繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�", "繝ｪ繝ｼ繝�", "蜒�ｷｮ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "謚代∴"];
-        if (inning >= 1 && inning <= 9 && score_diff <= -4) return ["謨玲姶蜃ｦ逅�", "繝薙ワ繧､繝ｳ繝�", "繝ｪ繝ｼ繝�", "蜒�ｷｮ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "謚代∴"];
-        if (inning >= 6 && inning <= 8 && score_diff === 0) return ["蜒�ｷｮ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "繝ｪ繝ｼ繝�", "謚代∴", "繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�"];
-        if (inning >= 1 && inning <= 5 && score_diff >= 0) return ["繝ｪ繝ｼ繝�", "蜒�ｷｮ", "繝薙ワ繧､繝ｳ繝�", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "謨玲姶蜃ｦ逅�", "謚代∴"];
-        if (inning >= 10 && score_diff < 0) return ["繝薙ワ繧､繝ｳ繝�", "蜒�ｷｮ", "繝ｪ繝ｼ繝�", "謨玲姶蜃ｦ逅�", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "謚代∴"];
-        if (inning >= 9 && score_diff === 0) return ["謚代∴", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "蜒�ｷｮ", "繝ｪ繝ｼ繝�", "繝薙ワ繧､繝ｳ繝�", "謨玲姶蜃ｦ逅�"];
-        return ["蜒�ｷｮ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "繝薙ワ繧､繝ｳ繝�", "繝ｪ繝ｼ繝�", "謨玲姶蜃ｦ逅�", "謚代∴"];
+        if (inning >= 9 && inning <= 12 && score_diff >= 1 && score_diff <= 4) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        if (inning === 12 && score_diff === 0) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        if (inning >= 6 && inning <= 8 && score_diff >= 1 && score_diff <= 3) return ["中継ぎエース", "僅差", "リード", "抑え", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 8 && score_diff >= 4) return ["リード", "僅差", "中継ぎエース", "ビハインド", "抑え", "敗戦処理"];
+        if (inning >= 9 && inning <= 12 && score_diff >= 4) return ["リード", "抑え", "中継ぎエース", "僅差", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 9 && score_diff >= -3 && score_diff <= -1) return ["ビハインド", "敗戦処理", "リード", "僅差", "中継ぎエース", "抑え"];
+        if (inning >= 1 && inning <= 9 && score_diff <= -4) return ["敗戦処理", "ビハインド", "リード", "僅差", "中継ぎエース", "抑え"];
+        if (inning >= 6 && inning <= 8 && score_diff === 0) return ["僅差", "中継ぎエース", "リード", "抑え", "ビハインド", "敗戦処理"];
+        if (inning >= 1 && inning <= 5 && score_diff >= 0) return ["リード", "僅差", "ビハインド", "中継ぎエース", "敗戦処理", "抑え"];
+        if (inning >= 10 && score_diff < 0) return ["ビハインド", "僅差", "リード", "敗戦処理", "中継ぎエース", "抑え"];
+        if (inning >= 9 && score_diff === 0) return ["抑え", "中継ぎエース", "僅差", "リード", "ビハインド", "敗戦処理"];
+        return ["僅差", "中継ぎエース", "ビハインド", "リード", "敗戦処理", "抑え"];
     }
 
     chooseStarter(rotationIdx) {
@@ -693,7 +693,7 @@ class PitchingState {
 
         let pitches = p.stats.pitches_today;
         if (!this.max_pitches.has(p)) {
-            let stamina = parseInt(p["繧ｹ繧ｿ繝溘リ"]) || 50;
+            let stamina = parseInt(p["スタミナ"]) || 50;
             let limit = 0;
             if (isStarter && stamina <= 53) {
                 limit = stamina * (0.8 + Math.random() * 0.3) + 20;
@@ -716,7 +716,7 @@ class PitchingState {
         if (is_stamina_empty) return true;
         if (isStarter) return false;
 
-        if (["蜒�ｷｮ", "荳ｭ邯吶℃繧ｨ繝ｼ繧ｹ", "謚代∴"].includes(role) && current_outs > 0) return true;
+        if (["僅差", "中継ぎエース", "抑え"].includes(role) && current_outs > 0) return true;
         if ((p.force_continue_outs || 0) > 0 && current_outs < p.force_continue_outs) return false;
 
         let priority = this.getRolePriority(inning, score_diff);
@@ -743,7 +743,7 @@ class PitchingState {
             for (let r of prio_list) {
                 let candidates = pool.filter(p => this.getRole(p) === r);
                 if (candidates.length > 0) {
-                    candidates.sort((a,b) => (parseInt(b["繧ｹ繧ｿ繝溘リ"])||50) - (parseInt(a["繧ｹ繧ｿ繝溘リ"])||50));
+                    candidates.sort((a,b) => (parseInt(b["スタミナ"])||50) - (parseInt(a["スタミナ"])||50));
                     return candidates[0];
                 }
             }
@@ -754,16 +754,16 @@ class PitchingState {
         if (!selected) {
             let emergency = all_bullpen.filter(p => !this.used_bullpen.includes(p));
             if (emergency.length > 0) {
-                emergency.sort((a,b) => (parseInt(b["繧ｹ繧ｿ繝溘リ"])||50) - (parseInt(a["繧ｹ繧ｿ繝溘リ"])||50));
+                emergency.sort((a,b) => (parseInt(b["スタミナ"])||50) - (parseInt(a["スタミナ"])||50));
                 selected = emergency[0];
             }
         }
 
         if (selected) {
             let role = this.getRole(selected);
-            if (role === "繝ｪ繝ｼ繝�" && priority[0] === "繝ｪ繝ｼ繝�" && score_diff >= 4) {
+            if (role === "リード" && priority[0] === "リード" && score_diff >= 4) {
                 if (Math.random() < 0.5) selected.force_continue_outs = 6;
-            } else if (role === "謨玲姶蜃ｦ逅�" && priority[0] === "謨玲姶蜃ｦ逅�") {
+            } else if (role === "敗戦処理" && priority[0] === "敗戦処理") {
                 selected.force_continue_outs = Math.random() < 0.4 ? 9 : 6;
             }
         }
@@ -820,7 +820,7 @@ function startPennant() {
         t.pitchers.forEach(p => { p.stats = makePitchingStats(); p.battingStats = makeBattingStats(); });
     });
 
-    // 隗｣譫舌＠縺�160譌･髢薙�繧ｹ繧ｱ繧ｸ繝･繝ｼ繝ｫ繧貞ｮ溯｡�
+    // 解析した160日間のスケジュールを実行
     scheduleMatches.forEach(dayMatches => {
         allTeams.forEach(t => t.pitchers.forEach(p => { p.stats.pitched_today = false; p.stats.pitches_today = 0; }));
         let teamsPlayed = new Set();
@@ -833,9 +833,9 @@ function startPennant() {
 
     let rankList = [...allTeams].sort((a,b)=>b.wins-a.wins);
     let myRank = rankList.findIndex(t=>t===myTeam) + 1;
-    document.getElementById('final-rank').innerHTML = `12逅�屮荳ｭ <span style="color:#c62828; font-size:40px;">${myRank}菴�</span>`;
+    document.getElementById('final-rank').innerHTML = `12球団中 <span style="color:#c62828; font-size:40px;">${myRank}位</span>`;
     
-    let tableHtml = `<table><tr><th>鬆�ｽ�</th><th>繝√�繝�蜷�</th><th>蜍�</th><th>謨�</th><th>蜍晉紫</th></tr>`;
+    let tableHtml = `<table><tr><th>順位</th><th>チーム名</th><th>勝</th><th>敗</th><th>勝率</th></tr>`;
     rankList.forEach((t, i) => {
         let wp = (t.wins / (t.wins + t.losses)).toFixed(3).replace(/^0\./, '.');
         let bg = t === myTeam ? 'style="background-color:#fff9c4; font-weight:bold;"' : '';
@@ -843,20 +843,20 @@ function startPennant() {
     });
     document.getElementById('tab-standings').innerHTML = tableHtml + `</table>`;
 
-    let statFHtml = `<table><tr><th>謇馴��</th><th>螳亥ｙ菴咲ｽｮ</th><th>驕ｸ謇句錐</th><th>謇鍋紫</th><th>譛ｬ蝪∵遠</th><th>謇鍋せ</th><th>逶怜｡�</th><th>螟ｱ遲�</th></tr>`;
-    myTeam.fielders.filter(p=>p.order !== '謗ｧ縺�').forEach(p => {
+    let statFHtml = `<table><tr><th>打順</th><th>守備位置</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th><th>盗塁</th><th>失策</th></tr>`;
+    myTeam.fielders.filter(p=>p.order !== '控え').forEach(p => {
         const s = p.stats || makeBattingStats(); const fs = p.fieldStats || makeFieldingStats();
         let avg = s.ab > 0 ? (s.hit / s.ab).toFixed(3).replace(/^0\./, '.') : '.000';
-        statFHtml += `<tr><td>${p.order ?? '-'}</td><td>${p.pos || '-'}</td><td style="font-weight:bold;">${p["驕ｸ謇句錐"] || '荳肴�'}</td><td>${avg}</td><td>${s.hr||0}</td><td>${s.rbi||0}</td><td>${s.sb||0}</td><td>${fs.errors||0}</td></tr>`;
+        statFHtml += `<tr><td>${p.order ?? '-'}</td><td>${p.pos || '-'}</td><td style="font-weight:bold;">${p["選手名"] || '不明'}</td><td>${avg}</td><td>${s.hr||0}</td><td>${s.rbi||0}</td><td>${s.sb||0}</td><td>${fs.errors||0}</td></tr>`;
     });
     document.getElementById('tab-fielders').innerHTML = statFHtml + `</table>`;
 
-    let statPHtml = `<table><tr><th>蠖ｹ蜑ｲ</th><th>驕ｸ謇句錐</th><th>逋ｻ譚ｿ</th><th>謚慕帥蝗�</th><th>閾ｪ雋ｬ轤ｹ</th><th>髦ｲ蠕｡邇�</th><th>螂ｪ荳画険</th><th>蜍�</th><th>謨�</th><th>繧ｻ</th><th>HP</th></tr>`;
+    let statPHtml = `<table><tr><th>役割</th><th>選手名</th><th>登板</th><th>投球回</th><th>自責点</th><th>防御率</th><th>奪三振</th><th>勝</th><th>敗</th><th>セ</th><th>HP</th></tr>`;
     myTeam.pitchers.forEach(p => {
         const s = p.stats || makePitchingStats();
         let era = s.outs > 0 ? ((s.er * 27) / s.outs).toFixed(2) : '0.00';
         let innings = Math.floor((s.outs||0) / 3) + "." + ((s.outs||0) % 3);
-        statPHtml += `<tr><td>${p.role || '-'}</td><td style="font-weight:bold;">${p["驕ｸ謇句錐"] || '荳肴�'}</td><td>${s.games||0}</td><td>${innings}</td><td>${s.er||0}</td><td>${era}</td><td>${s.so||0}</td><td>${s.wins||0}</td><td>${s.losses||0}</td><td>${s.saves||0}</td><td>${s.holds||0}</td></tr>`;
+        statPHtml += `<tr><td>${p.role || '-'}</td><td style="font-weight:bold;">${p["選手名"] || '不明'}</td><td>${s.games||0}</td><td>${innings}</td><td>${s.er||0}</td><td>${era}</td><td>${s.so||0}</td><td>${s.wins||0}</td><td>${s.losses||0}</td><td>${s.saves||0}</td><td>${s.holds||0}</td></tr>`;
     });
     document.getElementById('tab-pitchers').innerHTML = statPHtml + `</table>`;
 }
@@ -889,7 +889,7 @@ function playHalfInning(offense, defense, inning) {
         let batter = pitcherBatting ? offense.pState.current : (offense.team.fielders.find(f => f.order === batOrder + 1) || offense.team.fielders[batOrder]);
         if (!batter) { offense.batIdx++; continue; }
         let batStats = pitcherBatting ? (batter.battingStats || (batter.battingStats = makeBattingStats())) : (batter.stats || (batter.stats = makeBattingStats()));
-        if (pitcherBatting) { batter["繝溘�繝�"] = 15; batter["繝代Ρ繝ｼ"] = 15; }
+        if (pitcherBatting) { batter["ミート"] = 15; batter["パワー"] = 15; }
         let pitcher = defState.current;
         batStats.pa++;
         let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs);
@@ -898,9 +898,9 @@ function playHalfInning(offense, defense, inning) {
         if (result === 'so') { batStats.ab++; batStats.so++; pitcher.stats.so++; outs++; defState.addOut(); }
         else if (result === 'out') { batStats.ab++; outs++; defState.addOut(); }
         else if (result === 'error') {
-            // 謇楢��蜃ｺ蝪√＠縲√い繧ｦ繝域焚縺ｯ蠅励∴縺ｪ縺�らｰ｡譏薙Δ繝�Ν縺ｨ縺励※螟ｱ遲悶ｒ1縺､險倬鹸縲�
+            // 打者は出塁し、アウト数は増えない。簡易モデルとして失策を1つ記録。
             batStats.ab++;
-            const fielders = defense.team.fielders.filter(f => f.order !== '謗ｧ縺�');
+            const fielders = defense.team.fielders.filter(f => f.order !== '控え');
             if (fielders.length) { const f = fielders[Math.floor(Math.random()*fielders.length)]; f.fieldStats ||= makeFieldingStats(); f.fieldStats.chances++; f.fieldStats.errors++; }
             bases[0] = batter;
         } else if (result === 'walk') { batStats.bb++; }
@@ -916,13 +916,13 @@ function playHalfInning(offense, defense, inning) {
                 for (let r=0; r<adv.runs; r++) { defState.addRun(); }
             }
         } else if (result === 'error') {
-            // 繧ｨ繝ｩ繝ｼ蜃ｺ蝪√�蝪∫憾豕√�邁｡譏灘�逅��縺ｿ陦後≧縲�
+            // エラー出塁は塁状況の簡易処理のみ行う。
         }
 
-        // 荳蝪∬ｵｰ閠��逶怜｡√ｒ邁｡譏灘愛螳夲ｼ郁ｵｰ蜉帙′鬮倥＞縺ｻ縺ｩ謌仙粥縺励ｄ縺吶＞�峨�
-        if (bases[0] && !bases[1] && outs < 2 && Math.random() < 0.10 + (clamp(parseInt(bases[0]["襍ｰ蜉�"])||50, 1, 100) * 0.002)) {
+        // 一塁走者の盗塁を簡易判定（走力が高いほど成功しやすい）。
+        if (bases[0] && !bases[1] && outs < 2 && Math.random() < 0.10 + (clamp(parseInt(bases[0]["走力"])||50, 1, 100) * 0.002)) {
             const runner = bases[0];
-            const successChance = clamp(0.55 + ((parseInt(runner["襍ｰ蜉�"])||50)-50)*0.006, 0.25, 0.90);
+            const successChance = clamp(0.55 + ((parseInt(runner["走力"])||50)-50)*0.006, 0.25, 0.90);
             if (Math.random() < successChance) { bases[1] = runner; bases[0] = null; const rs = runner.battingStats || runner.stats || (runner.battingStats = makeBattingStats()); rs.sb = (rs.sb||0)+1; }
             else { bases[0] = null; outs++; defState.addOut(); }
         }
