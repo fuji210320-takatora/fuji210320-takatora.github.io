@@ -14,54 +14,75 @@ let skipsLeft = 5;
 window.addEventListener('DOMContentLoaded', async () => {
     try {
         const res = await fetch('./baseball_data.xlsx');
-        if (!res.ok) throw new Error(`HTTPエラー ステータス: ${res.status}`);
+        if (!res.ok) throw new Error("Fetch Error");
         
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         
-        // 「野手能力」「投手能力」タブを確実に指定
         const sheetF = workbook.Sheets['野手能力'];
         const sheetP = workbook.Sheets['投手能力'];
         
-        if (!sheetF || !sheetP) {
-            throw new Error(`タブが見つかりません。現在のタブ一覧: [ ${workbook.SheetNames.join(', ')} ]`);
-        }
-
         const rawFielders = XLSX.utils.sheet_to_json(sheetF) || [];
         const rawPitchers = XLSX.utils.sheet_to_json(sheetP) || [];
         
-        // 「選手名」の列を基準にデータを取得
         fieldersData = rawFielders.filter(p => p['選手名']);
         pitchersData = rawPitchers.filter(p => p['選手名']);
         
-        // ★原因特定用の調査コード
-        if (fieldersData.length === 0 || pitchersData.length === 0) {
-            let fKeys = rawFielders.length > 0 ? Object.keys(rawFielders[0]).join(', ') : '野手データ空っぽ';
-            let pKeys = rawPitchers.length > 0 ? Object.keys(rawPitchers[0]).join(', ') : '投手データ空っぽ';
-            throw new Error(`エラー詳細：野手${fieldersData.length}件(認識項目: ${fKeys}) / 投手${pitchersData.length}件(認識項目: ${pKeys})`);
-        }
-
-        // 読み込みが成功したらドラフト開始
-        const loadingScreen = document.getElementById('screen-loading');
-        if (loadingScreen) loadingScreen.classList.remove('active');
+        // 読み込み完了したらローディング画面を隠す
+        document.getElementById('screen-loading').classList.remove('active');
         startDraft('fielder');
         
     } catch (e) {
-        const loadingText = document.getElementById('loading-text') || document.getElementById('statusMessage');
-        if (loadingText) {
-            loadingText.innerHTML = `<span style="color:#c62828; font-weight:bold;">${e.message}</span>`;
-        }
-        console.error(e);
+        // エラーが出ても表には出さず、コンソールにだけ残す
+        console.error("データの読み込みに失敗しました:", e);
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText) loadingText.innerText = "データの読み込みに失敗しました。再読み込みしてください。";
     }
 });
 
 // ==========================================
-// 2. 画面切り替え・UI更新
+// 2. 能力値のランクと色を判定する関数 (パワプロ風)
+// ==========================================
+function getRankData(val) {
+    const num = parseInt(val, 10);
+    // 数字以外（例: 守備位置のテキストなど）や空欄の場合はそのまま返す
+    if (isNaN(num)) return { rank: '-', color: '#999', text: val || '-' };
+
+    let rank = 'G';
+    let color = '#9E9E9E'; // グレー (1~19)
+
+    if (num >= 90) { rank = 'S'; color = '#D4AF37'; }      // 金
+    else if (num >= 80) { rank = 'A'; color = '#F06292'; } // ピンク
+    else if (num >= 70) { rank = 'B'; color = '#E53935'; } // 赤
+    else if (num >= 60) { rank = 'C'; color = '#FF9800'; } // オレンジ
+    else if (num >= 50) { rank = 'D'; color = '#FBC02D'; } // 黄色 (少し濃いめに調整)
+    else if (num >= 40) { rank = 'E'; color = '#7CB342'; } // 黄緑
+    else if (num >= 20) { rank = 'F'; color = '#03A9F4'; } // 水色
+
+    return { rank: rank, color: color, text: num };
+}
+
+// ランク用のHTMLを生成するヘルパー関数
+function createStatCard(label, value) {
+    const data = getRankData(value);
+    // ランクがない（数字じゃない）場合はランク部分をハイフンにする
+    const displayRank = data.rank === '-' ? '' : `<div class="stat-rank" style="color: ${data.color};">${data.rank}</div>`;
+    
+    return `
+        <div class="stat-card">
+            <div class="stat-label">${label}</div>
+            ${displayRank}
+            <div class="stat-val">${data.text}</div>
+        </div>
+    `;
+}
+
+// ==========================================
+// 3. UI更新・ドラフト進行
 // ==========================================
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-    const targetScreen = document.getElementById(id);
-    if (targetScreen) targetScreen.classList.add('active');
+    document.getElementById(id).classList.add('active');
 }
 
 function updateDraftHeader() {
@@ -83,9 +104,6 @@ function updateDraftHeader() {
     }
 }
 
-// ==========================================
-// 3. ドラフト進行ロジック
-// ==========================================
 function startDraft(type) {
     currentDraftType = type;
     requiredCount = type === 'fielder' ? 9 : 15;
@@ -145,28 +163,30 @@ function renderCard(player, type) {
     const htmlContainer = document.getElementById('draft-card');
     
     if (type === 'fielder') {
-        const contact = player["ミート"] !== undefined ? player["ミート"] : "-";
-        const power = player["パワー"] !== undefined ? player["パワー"] : "-";
-        const speed = player["走力"] !== undefined ? player["走力"] : "-";
-        const defense = player["守備力"] !== undefined ? player["守備力"] : "-";
-
         htmlContainer.innerHTML = `
             <div class="card">
-                <div class="p-tag">野手</div>
+                <div class="p-tag" style="background-color: #00796B;">野手</div>
                 <div class="p-name">${name}</div>
                 <div class="p-meta">${team}</div>
                 <div class="stats-box">
-                    <div class="stat-item"><div class="stat-label">ミート</div><div class="stat-val">${contact}</div></div>
-                    <div class="stat-item"><div class="stat-label">パワー</div><div class="stat-val">${power}</div></div>
-                    <div class="stat-item"><div class="stat-label">走力</div><div class="stat-val">${speed}</div></div>
-                    <div class="stat-item"><div class="stat-label">守備力</div><div class="stat-val">${defense}</div></div>
+                    ${createStatCard('ミート', player["ミート"])}
+                    ${createStatCard('パワー', player["パワー"])}
+                    ${createStatCard('走力', player["走力"])}
+                    ${createStatCard('守備力', player["守備力"])}
                 </div>
             </div>
         `;
     } else {
-        const pitchPower = player["球威"] !== undefined ? player["球威"] : "-";
-        const control = player["制球"] !== undefined ? player["制球"] : "-";
-        const stamina = player["スタミナ"] !== undefined ? player["スタミナ"] : "-";
+        // ★ 球種を自動取得する処理
+        let pitchTags = '';
+        Object.keys(player).forEach(key => {
+            if (key.startsWith('球種_') && player[key]) {
+                const pitchName = key.replace('球種_', '');
+                pitchTags += `<span class="pitch-tag">${pitchName} ${player[key]}</span>`;
+            }
+        });
+
+        const pitchHtml = pitchTags ? `<div class="pitch-types">${pitchTags}</div>` : '';
 
         htmlContainer.innerHTML = `
             <div class="card">
@@ -174,10 +194,11 @@ function renderCard(player, type) {
                 <div class="p-name">${name}</div>
                 <div class="p-meta">${team}</div>
                 <div class="stats-box">
-                    <div class="stat-item"><div class="stat-label">球威</div><div class="stat-val">${pitchPower}</div></div>
-                    <div class="stat-item"><div class="stat-label">制球</div><div class="stat-val">${control}</div></div>
-                    <div class="stat-item"><div class="stat-label">スタミナ</div><div class="stat-val">${stamina}</div></div>
+                    ${createStatCard('球威', player["球威"])}
+                    ${createStatCard('制球', player["制球"])}
+                    ${createStatCard('スタミナ', player["スタミナ"])}
                 </div>
+                ${pitchHtml}
             </div>
         `;
     }
@@ -188,18 +209,14 @@ function renderCard(player, type) {
 // ==========================================
 function initSetupScreen() {
     showScreen('screen-setup');
-    
     const fList = myTeam.fielders.map(p => p["選手名"]).join("、");
     document.getElementById('my-fielders-list').innerText = fList;
-    
     const pList = myTeam.pitchers.map(p => p["選手名"]).join("、");
     document.getElementById('my-pitchers-list').innerText = pList;
 }
 
 function startPennant() {
     showScreen('screen-result');
-    
-    // 架空のペナントシミュレーション（UI確認用）
     let teams = [
         { name: "あなたのオリジナルチーム", wins: 0, losses: 0 },
         { name: "ライバル球団A", wins: 0, losses: 0 },
@@ -210,11 +227,9 @@ function startPennant() {
     ];
 
     let baseStrength = 0.45 + (Math.random() * 0.15); 
-
     for(let i=0; i<143; i++) {
         if(Math.random() < baseStrength) teams[0].wins++;
         else teams[0].losses++;
-        
         for(let j=1; j<6; j++) {
             if(Math.random() < 0.5) teams[j].wins++;
             else teams[j].losses++;
@@ -222,7 +237,6 @@ function startPennant() {
     }
 
     teams.sort((a, b) => b.wins - a.wins);
-
     let myRank = teams.findIndex(t => t.name === "あなたのオリジナルチーム") + 1;
     document.getElementById('final-rank').innerHTML = `6チーム中 <span style="color:#c62828; font-size:40px;">${myRank}位</span>`;
 
@@ -233,6 +247,5 @@ function startPennant() {
         tableHtml += `<tr ${isMyTeam}><td>${index+1}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.losses}</td><td>${wp}</td></tr>`;
     });
     tableHtml += `</table>`;
-
     document.getElementById('result-standings').innerHTML = tableHtml;
 }
