@@ -60,34 +60,37 @@
             background: #00796B; color: white; font-size: 12px; font-weight: bold;
             margin-bottom: 10px;
         }
-        .p-name { font-size: 28px; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px;}
+        .p-name { font-size: 26px; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px;}
         .p-meta { font-size: 14px; color: #666; margin-bottom: 15px; }
 
-        /* パワプロ風 能力値スタイル */
+        /* ★ パワプロ風 能力値スタイル（絶対に改行させないGridレイアウト） */
         .stats-box {
-            display: flex; gap: 8px; flex-wrap: wrap;
+            display: grid;
+            gap: 8px;
             margin-top: 15px; margin-bottom: 15px;
         }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); } /* 野手用（4列） */
+        .grid-3 { grid-template-columns: repeat(3, 1fr); } /* 投手用（3列） */
+
         .stat-card {
             background-color: #f2efe9; border: 1px solid #dcd9d2; border-radius: 6px;
-            min-width: 65px; display: flex; flex-direction: column; align-items: center;
-            padding: 12px 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .stat-label { font-size: 12px; color: #555; font-weight: bold; margin-bottom: 6px; }
+        .stat-label { font-size: 11px; color: #555; font-weight: bold; margin-bottom: 4px; }
         .stat-rank {
-            font-size: 32px; font-weight: 900; line-height: 1; margin-bottom: 6px;
+            font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px;
             font-family: "Arial Black", "Impact", sans-serif;
             -webkit-text-stroke: 0.5px rgba(0,0,0,0.1);
         }
-        .stat-val { font-size: 12px; color: #666; font-weight: bold; text-align: center; }
+        .stat-val { font-size: 13px; color: #666; font-weight: bold; text-align: center; }
 
-        /* 投手の球種タグ */
-        .pitch-types {
+        /* 投手の球種タグ・野手の守備位置タグ */
+        .pitch-types, .defense-positions {
             display: flex; flex-wrap: wrap; gap: 6px;
-            margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc;
         }
-        .pitch-tag {
-            background-color: #e8f5e9; color: #2e7d32; padding: 6px 10px;
+        .pos-tag, .pitch-tag {
+            background-color: #e8f5e9; color: #1b5e20; padding: 4px 8px;
             border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid #c8e6c9;
         }
         
@@ -97,7 +100,6 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <!-- 1. ローディング画面 -->
         <div id="screen-loading" class="screen active">
@@ -129,7 +131,6 @@
             <div id="my-fielders-list" style="line-height:1.6;"></div>
             <h3>投手（15名）</h3>
             <div id="my-pitchers-list" style="line-height:1.6;"></div>
-            
             <button class="btn-primary" onclick="startPennant()">ペナントレースを開始する</button>
         </div>
 
@@ -142,7 +143,7 @@
         </div>
     </div>
 
-    <!-- ★強制キャッシュクリア用のパラメーター付き -->
-    <script src="script.js?v=20261013_1"></script>
+    <!-- ★強制キャッシュクリア用 -->
+    <script src="script.js?v=20261013_perfect"></script>
 </body>
 </html>
