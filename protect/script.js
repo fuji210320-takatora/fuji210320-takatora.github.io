@@ -44,7 +44,7 @@ function normalizeName(name) {
 
 window.addEventListener('DOMContentLoaded', () => {
     
-    fetch('./baseball_data.xlsx')
+    fetch('/baseball_data.xlsx')
         .then(response => {
             if (!response.ok) throw new Error(`HTTPエラー ステータス: ${response.status}`);
             return response.arrayBuffer();
