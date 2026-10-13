@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ペナントシミュレーター（修正版v2）</title>
+    <title>ペナントシミュレーター（打撃・個人成績表示改良版）</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f6f5f0; color: #333; margin: 0; padding: 20px; }
@@ -59,6 +59,24 @@
         .standings-note { font-size:12px; color:#666; margin-top:12px; }
         @media (max-width:560px) { .league-standings-grid { grid-template-columns:1fr; } }
 
+        .team-stats-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:8px 0 16px; }
+        .team-stats-toolbar label { font-size:13px; font-weight:bold; color:#666; }
+        .team-stats-toolbar select { flex:1; min-width:160px; padding:10px; border:1px solid #ddd; border-radius:7px; background:#fff; font-size:15px; }
+        .player-stat-card { padding:20px 16px; border-bottom:1px solid #ddd; background:#faf9f7; }
+        .player-stat-head { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+        .player-stat-order { width:24px; color:#888; font-size:20px; font-weight:900; text-align:center; }
+        .player-stat-position { width:54px; height:54px; flex:0 0 54px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#777; color:#fff; font-weight:900; font-size:18px; }
+        .player-stat-name { font-size:22px; font-weight:900; color:#222; }
+        .player-stat-subtitle { color:#888; font-size:14px; margin-top:3px; }
+        .player-stat-main { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; align-items:baseline; margin:18px 0; }
+        .player-stat-main-item { white-space:nowrap; text-align:center; }
+        .player-stat-main-label { font-size:11px; color:#888; font-weight:bold; margin-right:4px; }
+        .player-stat-main-value { font-size:25px; color:#111; font-weight:900; }
+        .player-stat-secondary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; background:#f0f0f0; border-radius:8px; padding:13px 7px; }
+        .player-stat-secondary-item { text-align:center; color:#555; font-size:12px; white-space:nowrap; }
+        .player-stat-secondary-item b { color:#222; font-size:14px; margin-left:3px; }
+        .player-stats-empty { padding:20px; color:#777; text-align:center; }
+        @media(max-width:560px) { .player-stat-card { padding:18px 8px; } .player-stat-name {font-size:19px;} .player-stat-main {gap:2px;} .player-stat-main-label {display:block; font-size:10px;} .player-stat-main-value {font-size:21px;} .player-stat-secondary {grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:10px;} }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
         th { background: #eee; }
@@ -350,6 +368,25 @@ function getPositionAptitude(player, targetPos) {
     });
     return apt;
 }
+// Excelの守備力欄に明記されている守備位置だけを起用候補にする。
+// DHは守備適性を必要としないため、打撃起用枠として全野手に許可する。
+function getAvailablePositions(player) {
+    const positions = ['指名打者'];
+    const raw = player && player['守備力'];
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        // 数値のみの旧形式は全守備位置に同じ適性があるものとして扱う
+        return [...POSITIONS];
+    }
+    if (raw != null && String(raw).includes(':')) {
+        String(raw).split('/').forEach(part => {
+            const pair = part.split(':');
+            if (pair.length < 2 || !Number.isFinite(parseFloat(pair[1]))) return;
+            const pos = parsePositionName(pair[0]);
+            if (POSITIONS.includes(pos) && pos !== '指名打者' && !positions.includes(pos)) positions.push(pos);
+        });
+    }
+    return positions;
+}
 function showScreen(id) { document.querySelectorAll('.screen').forEach(el => el.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function switchTab(tabId, tabElement) {
     document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
@@ -494,9 +531,10 @@ function initSetupScreen() {
 
         let pairs = [];
         myTeam.fielders.forEach(f => {
-            let rawDef = (typeof f["守備力"] === 'string' && f["守備力"].includes(':')) ? f["守備力"].split('/')[0].split(':')[0].trim() : 'DH';
-            let mainPos = parsePositionName(rawDef);
-            POSITIONS.forEach(pos => { let apt = getPositionAptitude(f, pos); if (pos === mainPos) apt += 100; pairs.push({ p: f, pos: pos, apt: apt }); });
+            getAvailablePositions(f).forEach(pos => {
+                const apt = pos === '指名打者' ? 50 : getPositionAptitude(f, pos);
+                pairs.push({ p: f, pos: pos, apt: apt });
+            });
         });
         pairs.sort((a, b) => b.apt - a.apt);
         let assignedP = new Set(), assignedPos = new Set();
@@ -522,7 +560,10 @@ function renderSetupTables() {
         for(let i=1; i<=(myTeam.isCentral?8:9); i++) orderOptions += `<option value="${i}" ${p.order === i ? 'selected' : ''}>${i}</option>`;
         if(myTeam.isCentral) orderOptions += `<option value="控え" ${p.order === '控え' ? 'selected' : ''}>控え</option>`;
         
-        let posOptions = ''; POSITIONS.forEach(pos => { posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}</option>`; });
+        const availablePositions = getAvailablePositions(p);
+        // 既に設定されている守備位置が適性外なら、描画時に最初の適性位置へ戻す
+        if (!availablePositions.includes(p.pos)) p.pos = availablePositions[0] || '指名打者';
+        let posOptions = ''; availablePositions.forEach(pos => { posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}</option>`; });
         const shortPos = { '捕手':'捕', '一塁手':'一', '二塁手':'二', '三塁手':'三', '遊撃手':'遊', '左翼手':'左', '中堅手':'中', '右翼手':'右' };
         let aptitudeHtml = POSITIONS.filter(pos => pos !== '指名打者').map(pos => { const ri = getRankInfo(getPositionAptitude(p, pos)); return `<span class="pos-tag compact-pos-tag" title="${pos}適性">${shortPos[pos]} <b style="color:${ri.color}">${ri.rank}</b></span>`; }).join('');
         fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">打順</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select></div><div class="setup-aptitude-row"><span class="setup-aptitude-label">適性</span>${aptitudeHtml}</div></div></div>`;
@@ -570,39 +611,128 @@ function updatePitcherRole(index, newRole) {
 function preparePennant() { startPennant(); }
 
 function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
-function fatigueFactor(stamina, gameOuts) { let innings = gameOuts / 3.0; if (innings <= 4) return 1.0; return clamp(1.0 - ((innings - 4) * Math.max(0.0, (80.0 - stamina)) * 0.0015), 0.82, 1.0); }
+function fatigueFactor(stamina, gameOuts) {
+    const innings = gameOuts / 3.0;
+    if (innings <= 4) return 1.0;
+    const penalty = (innings - 4) * Math.max(0, 80 - stamina) * 0.0015;
+    return clamp(1.0 - penalty, 0.82, 1.0);
+}
+function choosePitch(pitcher) {
+    const pitches = Object.entries(pitcher || {})
+        .filter(([key, value]) => key.startsWith('球種_') && value !== null && value !== '' && Number.isFinite(Number(value)))
+        .map(([key, value]) => ({ name: key.slice(3), quality: Number(value) }))
+        .filter(p => p.quality > 0);
+    if (!pitches.length) return { name: null, quality: 50 };
+    return weightedChoice(pitches.map(p => [p, Math.max(1, p.quality)]));
+}
 function atBatProbabilities(batter, pitcher, gameOuts) {
-    let bCon = parseInt(batter["ミート"])||50; let bPow = parseInt(batter["パワー"])||50;
-    let pPow = parseInt(pitcher["球威"])||50; let pCtrl = parseInt(pitcher["制球"])||50; let pStamina = parseInt(pitcher["スタミナ"])||50;
-    let soQuality = 25.0 + (pPow * 0.4) + (pCtrl * 0.2); let bbQuality = (pCtrl * 0.8) + 15.0;
-    let fatigue = fatigueFactor(pStamina, gameOuts);
-    let walk = 0.095 - ((bbQuality - 50.0) * 0.0015) + (bPow>50?(bPow-50)*0.0012:0);
-    let so = 0.155 - ((bCon - soQuality) * 0.0008) + (soQuality - 60.0) * 0.0055;
-    if (fatigue < 1.0) { walk += (1.0 - fatigue) * 0.02; so -= (1.0 - fatigue) * 0.03; }
-    walk = clamp(walk, 0.010, 0.20); so = clamp(so, 0.05, 0.45);
-    return [{ result: "walk", prob: walk }, { result: "so", prob: so }, { result: "in_play", prob: Math.max(0.20, 1.0 - (walk + so)) }];
+    const bCon = parseInt(batter['ミート']) || 50;
+    const bPow = parseInt(batter['パワー']) || 50;
+    const pPow = parseInt(pitcher['球威']) || 50;
+    const pCtrl = parseInt(pitcher['制球']) || 50;
+    const pStamina = parseInt(pitcher['スタミナ']) || 50;
+    // 投手能力シートの「球種_○○」列から、所持球種を球種能力に応じて抽選する。
+    const selectedPitch = choosePitch(pitcher);
+    const pitchQuality = selectedPitch.quality;
+    const soQuality = (pitchQuality * 0.4) + (pPow * 0.4) + (pCtrl * 0.2) + 5.0;
+    const bbQuality = (pCtrl * 0.8) + (pitchQuality * 0.2) + 5.0;
+    const rawContactDiff = bCon - soQuality;
+    let contactPenalty = 0;
+    if (bCon < 45) { const d = 45 - bCon; contactPenalty = d * 0.4 + d * d * 0.01; }
+    let powerPenalty = 0;
+    if (bPow < 60) { const d = 60 - bPow; powerPenalty = d * 0.4 + d * d * 0.01; }
+    const pitchVariety = Object.keys(pitcher || {}).filter(key => key.startsWith('球種_') && pitcher[key] !== null && pitcher[key] !== '' && Number.isFinite(Number(pitcher[key])) && Number(pitcher[key]) > 0).length;
+    const varietyDebuff = Math.max(0, pitchVariety - 2) * 0.0015;
+    let walkBonus = 0;
+    if (bPow > 50) walkBonus += (bPow - 50) * 0.0012;
+    if (bCon > 50) walkBonus += (bCon - 50) * 0.0006;
+    if (bPow >= 80) walkBonus += (bPow - 80) * 0.0015;
+    let walk = 0.095 - ((bbQuality - 50) * 0.0015) + walkBonus;
+    let so = 0.155 - (rawContactDiff * 0.0008) + (contactPenalty * 0.0015) + (powerPenalty * 0.0008) + varietyDebuff + ((soQuality - 60) * 0.0055);
+    const fatigue = fatigueFactor(pStamina, gameOuts);
+    if (fatigue < 1) { walk += (1 - fatigue) * 0.02; so -= (1 - fatigue) * 0.03; }
+    walk = clamp(walk, 0.010, 0.20);
+    so = clamp(so, 0.05, 0.45);
+    const inPlay = Math.max(0.20, 1 - (walk + so));
+    const total = walk + so + inPlay;
+    return [{result:'walk', prob:walk/total}, {result:'so', prob:so/total}, {result:'in_play', prob:inPlay/total}];
 }
-function resolveStatcastInPlay(batter, pitcher) {
-    let bCon = parseInt(batter["ミート"])||50; let bPow = parseInt(batter["パワー"])||50;
-    let pPow = parseInt(pitcher["球威"])||50; let pCtrl = parseInt(pitcher["制球"])||50;
-    let gbProb = 0.45 - (bPow-50)*0.0015 + (pCtrl-50)*0.0020;
-    let fbProb = 0.25 + (bPow-50)*0.0015 - (pPow-50)*0.0020;
-    let r = Math.random() * (gbProb + fbProb + 0.30);
-    let bType = r < gbProb ? "GB" : (r < gbProb + fbProb ? "FB" : "LD");
-    
-    if (bType === "GB") return Math.random() > 0.72 ? (Math.random() < 0.10 ? "double" : "single") : (Math.random() < 0.02 ? "error" : "out");
-    if (bType === "FB") {
-        let hrProb = clamp(0.030 + (bPow - 50) * 0.0040, 0.0, 0.40);
-        if (Math.random() < hrProb) return "hr";
-        return Math.random() > 0.82 ? (Math.random() < 0.65 ? "single" : "double") : "out";
+function resolveStatcastInPlay(batter, pitcher, defense) {
+    const bCon = parseInt(batter['ミート']) || 50;
+    const bPow = parseInt(batter['パワー']) || 50;
+    const pPow = parseInt(pitcher['球威']) || 50;
+    const pCtrl = parseInt(pitcher['制球']) || 50;
+    let gbProb = 0.45, fbProb = 0.25, ldProb = 0.20, puProb = 0.10;
+    const powDiff = bPow - 50;
+    if (powDiff > 0) { fbProb += powDiff * 0.0015; gbProb -= powDiff * 0.0015; }
+    const conDiff = bCon - 50;
+    if (conDiff > 0) { ldProb += conDiff * 0.0025; puProb -= conDiff * 0.0025; }
+    const ctrlDiff = pCtrl - 50;
+    gbProb += ctrlDiff * 0.0020; ldProb -= ctrlDiff * 0.0020;
+    const pitchPowDiff = pPow - 50;
+    puProb += pitchPowDiff * 0.0020; fbProb -= pitchPowDiff * 0.0020;
+    gbProb = Math.max(0.05, gbProb); fbProb = Math.max(0.05, fbProb);
+    ldProb = Math.max(0.05, ldProb); puProb = Math.max(0.01, puProb);
+    const battedType = weightedChoice([['GB',gbProb],['FB',fbProb],['LD',ldProb],['PU',puProb]]);
+    let pos;
+    if (battedType === 'PU') pos = weightedChoice([['C',.2],['1B',.2],['2B',.2],['3B',.2],['SS',.2]]);
+    else if (battedType === 'GB') pos = weightedChoice([['1B',.15],['2B',.35],['3B',.15],['SS',.35]]);
+    else if (battedType === 'FB') pos = weightedChoice([['LF',.33],['CF',.34],['RF',.33]]);
+    else pos = weightedChoice([['1B',.05],['2B',.10],['3B',.05],['SS',.10],['LF',.20],['CF',.30],['RF',.20]]);
+    const posMap = {'C':'捕手','1B':'一塁手','2B':'二塁手','3B':'三塁手','SS':'遊撃手','LF':'左翼手','CF':'中堅手','RF':'右翼手'};
+    const posName = posMap[pos];
+    const fielders = defense && defense.team && defense.team.fielders ? defense.team.fielders.filter(f => f.order !== '控え') : [];
+    const defender = fielders.find(f => f.pos === posName || f.pos === pos || (f['守備位置'] === posName)) || null;
+    let ability = defender ? getPositionAptitude(defender, posName) : 30;
+    if (!Number.isFinite(ability)) ability = 30;
+    const posBaseError = {'3B':.045,'SS':.030,'2B':.020,'1B':.010,'LF':.005,'CF':.005,'RF':.005,'C':.003};
+    const baseErr = posBaseError[pos] || .02;
+    let outcome = 'out';
+    if (battedType === 'GB') {
+        const reachProb = ability === 0 ? .35 : clamp(.72 + (ability - 55)*.006, .40, .95);
+        if (Math.random() > reachProb) outcome = (['1B','3B'].includes(pos) && Math.random() < .10) ? 'double' : 'single';
+        else { const errProb = ability === 0 ? .20 : clamp(baseErr * (1 + (55 - ability)/40), baseErr*.2, baseErr*3); outcome = Math.random() < errProb ? 'error' : 'out'; }
+    } else if (battedType === 'FB') {
+        let hrProb;
+        if (bPow < 50) hrProb = Math.max(0,(bPow-30)*.002);
+        else if (bPow < 60) hrProb = .030 + (bPow-50)*.0040;
+        else if (bPow < 65) hrProb = .070 + (bPow-60)*.0050;
+        else if (bPow < 70) hrProb = .095 + (bPow-65)*.0060;
+        else if (bPow < 75) hrProb = .125 + (bPow-70)*.0080;
+        else if (bPow < 77) hrProb = .165 + (bPow-75)*.0125;
+        else if (bPow < 80) hrProb = .190 + (bPow-77)*.0100;
+        else if (bPow < 85) hrProb = .220 + (bPow-80)*.0080;
+        else if (bPow < 90) hrProb = .260 + (bPow-85)*.0080;
+        else hrProb = .300 + (bPow-90)*.0050;
+        hrProb = clamp(hrProb,0,.40);
+        if (Math.random() < hrProb) outcome = 'hr';
+        else {
+            const reachProb = ability === 0 ? .30 : clamp(.82 + (ability-55)*.005,.40,.99);
+            if (Math.random() > reachProb) outcome = weightedChoice([['single',.65],['double',.30],['triple',.05]]);
+            else { const errProb = ability === 0 ? .10 : clamp(baseErr*(1+(55-ability)/40),baseErr*.2,baseErr*3); outcome = Math.random()<errProb?'error':'out'; }
+        }
+    } else if (battedType === 'LD') {
+        const reachProb = ability === 0 ? .10 : clamp(.30 + (ability-55)*.005,.10,.60);
+        if (Math.random() > reachProb) outcome = weightedChoice([['single',.70],['double',.25],['triple',.05]]);
+        else { const errProb = ability === 0 ? .15 : clamp(baseErr*(1+(55-ability)/40),baseErr*.2,baseErr*3); outcome = Math.random()<errProb?'error':'out'; }
+    } else {
+        const reachProb = ability === 0 ? .60 : clamp(.98 + (ability-55)*.002,.60,1.0);
+        if (Math.random() > reachProb) outcome = 'single';
+        else { const errProb = ability === 0 ? .15 : clamp(baseErr*(1+(55-ability)/40),baseErr*.2,baseErr*3); outcome = Math.random()<errProb?'error':'out'; }
     }
-    return Math.random() > 0.30 ? "single" : "out";
+    return outcome;
 }
-function simulateAtBatOutcome(batter, pitcher, gameOuts) {
-    let probs = atBatProbabilities(batter, pitcher, gameOuts);
-    let r1 = Math.random(); let cum = 0.0;
-    for (let p of probs) { cum += p.prob; if (r1 <= cum) { if (p.result !== "in_play") return p.result; break; } }
-    return resolveStatcastInPlay(batter, pitcher);
+function weightedChoice(items) {
+    const total = items.reduce((sum, item) => sum + Math.max(0, item[1]), 0);
+    let r = Math.random() * total;
+    for (const item of items) { r -= Math.max(0,item[1]); if (r <= 0) return item[0]; }
+    return items[items.length - 1][0];
+}
+function simulateAtBatOutcome(batter, pitcher, gameOuts, defense) {
+    const probs = atBatProbabilities(batter, pitcher, gameOuts);
+    const r1 = Math.random(); let cumulative = 0;
+    for (const p of probs) { cumulative += p.prob; if (r1 <= cumulative) { if (p.result !== 'in_play') return p.result; break; } }
+    return resolveStatcastInPlay(batter, pitcher, defense);
 }
 
 function advanceBases(bases, batter, result) {
@@ -867,22 +997,50 @@ function startPennant() {
     }
     document.getElementById('tab-standings').innerHTML = `<div class="league-standings-grid"><section class="league-standings-panel central-panel"><div class="league-panel-title">セ・リーグ <span>${centralTeams.length}球団</span></div>${makeStandingsTable('', centralTeams)}</section><section class="league-standings-panel pacific-panel"><div class="league-panel-title">パ・リーグ <span>${pacificTeams.length}球団</span></div>${makeStandingsTable('', pacificTeams)}</section></div><p class="standings-note">※順位はリーグ別に表示。交流戦の勝敗も各球団のシーズン勝敗に含まれます。対戦カードは元の日程表を使用しています。</p>`;
 
-    let statFHtml = `<table><tr><th>打順</th><th>守備位置</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th><th>盗塁</th><th>失策</th></tr>`;
-    myTeam.fielders.filter(p=>p.order !== '控え').forEach(p => {
-        const s = p.stats || makeBattingStats(); const fs = p.fieldStats || makeFieldingStats();
-        let avg = s.ab > 0 ? (s.hit / s.ab).toFixed(3).replace(/^0\./, '.') : '.000';
-        statFHtml += `<tr><td>${p.order ?? '-'}</td><td>${p.pos || '-'}</td><td style="font-weight:bold;">${p["選手名"] || '不明'}</td><td>${avg}</td><td>${s.hr||0}</td><td>${s.rbi||0}</td><td>${s.sb||0}</td><td>${fs.errors||0}</td></tr>`;
+    // 個人成績は自チームだけでなく、全12球団を切り替えて閲覧できる。
+    document.getElementById('tab-fielders').innerHTML = `<div class="team-stats-toolbar"><label for="fielder-team-select">球団</label><select id="fielder-team-select" onchange="renderPlayerStats('fielder', this.value)"></select></div><div id="fielder-player-cards"></div>`;
+    document.getElementById('tab-pitchers').innerHTML = `<div class="team-stats-toolbar"><label for="pitcher-team-select">球団</label><select id="pitcher-team-select" onchange="renderPlayerStats('pitcher', this.value)"></select></div><div id="pitcher-player-cards"></div>`;
+    ['fielder','pitcher'].forEach(type => {
+        const select = document.getElementById(type === 'fielder' ? 'fielder-team-select' : 'pitcher-team-select');
+        select.innerHTML = allTeams.map((t,i) => `<option value="${i}" ${t === myTeam ? 'selected' : ''}>${t.name}${t === myTeam ? '（自チーム）' : ''}</option>`).join('');
     });
-    document.getElementById('tab-fielders').innerHTML = statFHtml + `</table>`;
+    renderPlayerStats('fielder', allTeams.indexOf(myTeam));
+    renderPlayerStats('pitcher', allTeams.indexOf(myTeam));
+}
 
-    let statPHtml = `<table><tr><th>役割</th><th>選手名</th><th>登板</th><th>投球回</th><th>自責点</th><th>防御率</th><th>奪三振</th><th>勝</th><th>敗</th><th>セ</th><th>HP</th></tr>`;
-    myTeam.pitchers.forEach(p => {
-        const s = p.stats || makePitchingStats();
-        let era = s.outs > 0 ? ((s.er * 27) / s.outs).toFixed(2) : '0.00';
-        let innings = Math.floor((s.outs||0) / 3) + "." + ((s.outs||0) % 3);
-        statPHtml += `<tr><td>${p.role || '-'}</td><td style="font-weight:bold;">${p["選手名"] || '不明'}</td><td>${s.games||0}</td><td>${innings}</td><td>${s.er||0}</td><td>${era}</td><td>${s.so||0}</td><td>${s.wins||0}</td><td>${s.losses||0}</td><td>${s.saves||0}</td><td>${s.holds||0}</td></tr>`;
-    });
-    document.getElementById('tab-pitchers').innerHTML = statPHtml + `</table>`;
+
+function renderPlayerStats(type, teamIndex) {
+    const team = allTeams[Number(teamIndex)];
+    if (!team) return;
+    const target = document.getElementById(type === 'fielder' ? 'fielder-player-cards' : 'pitcher-player-cards');
+    if (!target) return;
+    const positionShort = {'指名打者':'DH','捕手':'捕','一塁手':'一','二塁手':'二','三塁手':'三','遊撃手':'遊','左翼手':'左','中堅手':'中','右翼手':'右'};
+    const pct = n => Number(n || 0).toFixed(3).replace(/^0\./,'.');
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    if (type === 'fielder') {
+        const players = [...(team.fielders || [])].filter(p => p.order !== '控え').sort((a,b) => (Number(a.order)||99)-(Number(b.order)||99));
+        target.innerHTML = players.map((p,i) => {
+            const s = p.stats || makeBattingStats(), fs = p.fieldStats || makeFieldingStats();
+            const avg = s.ab ? pct(s.hit/s.ab) : '.000';
+            const obp = (s.ab+s.bb) ? pct((s.hit+s.bb)/(s.ab+s.bb)) : '.000';
+            const slg = s.ab ? pct(((s.hit-(s.hr||0)) + (s.hr||0)*4)/s.ab) : '.000';
+            const ops = (Number(obp)+Number(slg)).toFixed(3).replace(/^0\./,'.');
+            const main = [['打率',avg],['本塁打',s.hr||0],['打点',s.rbi||0],['盗塁',s.sb||0],['OPS',ops]];
+            const sub = [['打席',s.pa||0],['打数',s.ab||0],['安打',s.hit||0],['四球',s.bb||0],['失策',fs.errors||0]];
+            const color = {'DH':'#777','捕':'#03a9f4','一':'#f9a825','二':'#43a047','三':'#fb8c00','遊':'#8e24aa','左':'#43a047','中':'#03a9f4','右':'#ef5350'}[positionShort[p.pos]||''] || '#777';
+            return `<article class="player-stat-card"><div class="player-stat-head"><div class="player-stat-order">${esc(p.order ?? i+1)}</div><div class="player-stat-position" style="background:${color}">${esc(positionShort[p.pos]||p.pos||'—')}</div><div><div class="player-stat-name">${esc(p['選手名']||'不明')}</div><div class="player-stat-subtitle">${esc(p.pos||'守備位置未設定')}</div></div></div><div class="player-stat-main">${main.map(([l,v])=>`<div class="player-stat-main-item"><span class="player-stat-main-label">${l}</span><span class="player-stat-main-value">${v}</span></div>`).join('')}</div><div class="player-stat-secondary">${sub.map(([l,v])=>`<div class="player-stat-secondary-item">${l}<b>${v}</b></div>`).join('')}</div></article>`;
+        }).join('') || '<div class="player-stats-empty">野手データがありません。</div>';
+    } else {
+        const players = [...(team.pitchers || [])];
+        target.innerHTML = players.map(p => {
+            const s = p.stats || makePitchingStats();
+            const era = s.outs > 0 ? ((s.er*27)/s.outs).toFixed(2) : '0.00';
+            const innings = Math.floor((s.outs||0)/3)+'.'+((s.outs||0)%3);
+            const main = [['防御率',era],['勝利',s.wins||0],['奪三振',s.so||0],['セーブ',s.saves||0],['ホールド',s.holds||0]];
+            const sub = [['登板',s.games||0],['投球回',innings],['自責点',s.er||0],['敗戦',s.losses||0],['被得点',s.runs||0]];
+            return `<article class="player-stat-card"><div class="player-stat-head"><div class="player-stat-order">●</div><div class="player-stat-position" style="background:#e53935">投</div><div><div class="player-stat-name">${esc(p['選手名']||'不明')}</div><div class="player-stat-subtitle">${esc(p.role||'投手')}</div></div></div><div class="player-stat-main">${main.map(([l,v])=>`<div class="player-stat-main-item"><span class="player-stat-main-label">${l}</span><span class="player-stat-main-value">${v}</span></div>`).join('')}</div><div class="player-stat-secondary">${sub.map(([l,v])=>`<div class="player-stat-secondary-item">${l}<b>${v}</b></div>`).join('')}</div></article>`;
+        }).join('') || '<div class="player-stats-empty">投手データがありません。</div>';
+    }
 }
 
 function playGame(teamAway, teamHome) {
@@ -916,7 +1074,7 @@ function playHalfInning(offense, defense, inning) {
         if (pitcherBatting) { batter["ミート"] = 15; batter["パワー"] = 15; }
         let pitcher = defState.current;
         batStats.pa++;
-        let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs);
+        let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs, defense);
         pitcher.stats.pitches_today += result === 'walk' ? 5 + Math.floor(Math.random()*2) : (result === 'so' ? 4 + Math.floor(Math.random()*3) : 3 + Math.floor(Math.random()*4));
 
         if (result === 'so') { batStats.ab++; batStats.so++; pitcher.stats.so++; outs++; defState.addOut(); }
