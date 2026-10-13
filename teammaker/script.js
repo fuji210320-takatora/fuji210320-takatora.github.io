@@ -13,7 +13,8 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        const res = await fetch('./baseball_data.xlsx');
+        // Excelファイル読み込み（キャッシュ対策付き）
+        const res = await fetch('./baseball_data.xlsx?v=' + new Date().getTime());
         if (!res.ok) throw new Error("Fetch Error");
         
         const buffer = await res.arrayBuffer();
@@ -28,12 +29,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         fieldersData = rawFielders.filter(p => p['選手名']);
         pitchersData = rawPitchers.filter(p => p['選手名']);
         
-        // 読み込み完了したらローディング画面を隠す
         document.getElementById('screen-loading').classList.remove('active');
         startDraft('fielder');
         
     } catch (e) {
-        // エラーが出ても表には出さず、コンソールにだけ残す
         console.error("データの読み込みに失敗しました:", e);
         const loadingText = document.getElementById('loading-text');
         if (loadingText) loadingText.innerText = "データの読み込みに失敗しました。再読み込みしてください。";
@@ -44,28 +43,30 @@ window.addEventListener('DOMContentLoaded', async () => {
 // 2. 能力値のランクと色を判定する関数 (パワプロ風)
 // ==========================================
 function getRankData(val) {
-    const num = parseInt(val, 10);
-    // 数字以外（例: 守備位置のテキストなど）や空欄の場合はそのまま返す
-    if (isNaN(num)) return { rank: '-', color: '#999', text: val || '-' };
+    if (val === undefined || val === null || val === '') return { rank: '-', color: '#999', text: '-' };
+    
+    // 文字列の中に数字があれば、最初の数字を抽出 (例: "CF:58 / RF:58" -> 58)
+    const match = String(val).match(/\d+/);
+    if (!match) return { rank: '-', color: '#999', text: val };
 
+    const num = parseInt(match[0], 10);
     let rank = 'G';
-    let color = '#9E9E9E'; // グレー (1~19)
+    let color = '#9E9E9E'; // グレー
 
     if (num >= 90) { rank = 'S'; color = '#D4AF37'; }      // 金
     else if (num >= 80) { rank = 'A'; color = '#F06292'; } // ピンク
     else if (num >= 70) { rank = 'B'; color = '#E53935'; } // 赤
     else if (num >= 60) { rank = 'C'; color = '#FF9800'; } // オレンジ
-    else if (num >= 50) { rank = 'D'; color = '#FBC02D'; } // 黄色 (少し濃いめに調整)
+    else if (num >= 50) { rank = 'D'; color = '#FBC02D'; } // 黄色
     else if (num >= 40) { rank = 'E'; color = '#7CB342'; } // 黄緑
     else if (num >= 20) { rank = 'F'; color = '#03A9F4'; } // 水色
 
-    return { rank: rank, color: color, text: num };
+    // ランク判定は抽出した数字で、下のテキスト表示は元の文字をそのまま表示
+    return { rank: rank, color: color, text: val };
 }
 
-// ランク用のHTMLを生成するヘルパー関数
 function createStatCard(label, value) {
     const data = getRankData(value);
-    // ランクがない（数字じゃない）場合はランク部分をハイフンにする
     const displayRank = data.rank === '-' ? '' : `<div class="stat-rank" style="color: ${data.color};">${data.rank}</div>`;
     
     return `
@@ -127,7 +128,7 @@ function nextCandidate() {
     }
 
     if (draftPool.length === 0) {
-        alert("候補選手が枯渇しました！最初からやり直してください。");
+        alert("候補選手が枯渇しました！");
         return;
     }
 
@@ -177,7 +178,6 @@ function renderCard(player, type) {
             </div>
         `;
     } else {
-        // ★ 球種を自動取得する処理
         let pitchTags = '';
         Object.keys(player).forEach(key => {
             if (key.startsWith('球種_') && player[key]) {
