@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const buffer = await res.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         
-        // 画像で確認した「野手能力」「投手能力」タブを確実に指定
+        // 「野手能力」「投手能力」タブを確実に指定
         const sheetF = workbook.Sheets['野手能力'];
         const sheetP = workbook.Sheets['投手能力'];
         
@@ -30,19 +30,27 @@ window.addEventListener('DOMContentLoaded', async () => {
         const rawFielders = XLSX.utils.sheet_to_json(sheetF) || [];
         const rawPitchers = XLSX.utils.sheet_to_json(sheetP) || [];
         
-        // 画像通り「選手名」の列を基準にデータを取得
+        // 「選手名」の列を基準にデータを取得
         fieldersData = rawFielders.filter(p => p['選手名']);
         pitchersData = rawPitchers.filter(p => p['選手名']);
         
+        // ★原因特定用の調査コード
         if (fieldersData.length === 0 || pitchersData.length === 0) {
-            throw new Error("タブはありましたが、データが0件です。");
+            let fKeys = rawFielders.length > 0 ? Object.keys(rawFielders[0]).join(', ') : '野手データ空っぽ';
+            let pKeys = rawPitchers.length > 0 ? Object.keys(rawPitchers[0]).join(', ') : '投手データ空っぽ';
+            throw new Error(`エラー詳細：野手${fieldersData.length}件(認識項目: ${fKeys}) / 投手${pitchersData.length}件(認識項目: ${pKeys})`);
         }
 
         // 読み込みが成功したらドラフト開始
-        document.getElementById('screen-loading').classList.remove('active');
+        const loadingScreen = document.getElementById('screen-loading');
+        if (loadingScreen) loadingScreen.classList.remove('active');
         startDraft('fielder');
+        
     } catch (e) {
-        document.getElementById('loading-text').innerHTML = `<span style="color:#c62828; font-weight:bold;">エラー: ${e.message}</span>`;
+        const loadingText = document.getElementById('loading-text') || document.getElementById('statusMessage');
+        if (loadingText) {
+            loadingText.innerHTML = `<span style="color:#c62828; font-weight:bold;">${e.message}</span>`;
+        }
         console.error(e);
     }
 });
@@ -52,7 +60,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ==========================================
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const targetScreen = document.getElementById(id);
+    if (targetScreen) targetScreen.classList.add('active');
 }
 
 function updateDraftHeader() {
@@ -128,7 +137,7 @@ function skipPlayer() {
 }
 
 // ==========================================
-// 4. カード描画（Python版の能力値パラメータを完全再現）
+// 4. カード描画
 // ==========================================
 function renderCard(player, type) {
     const name = player["選手名"] || "不明";
@@ -136,7 +145,6 @@ function renderCard(player, type) {
     const htmlContainer = document.getElementById('draft-card');
     
     if (type === 'fielder') {
-        // 画像にある「ミート」「パワー」「走力」「守備力」を正確に取得
         const contact = player["ミート"] !== undefined ? player["ミート"] : "-";
         const power = player["パワー"] !== undefined ? player["パワー"] : "-";
         const speed = player["走力"] !== undefined ? player["走力"] : "-";
