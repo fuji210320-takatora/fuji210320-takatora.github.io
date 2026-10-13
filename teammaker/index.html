@@ -19,6 +19,7 @@
         .btn-disabled { background-color: #e0e0e0 !important; color: #9e9e9e !important; cursor: not-allowed; }
         .btn-primary { background-color: #2E7D32; margin-top: 20px; width: 100%; }
 
+        /* ドラフト＆起用設定用カード */
         .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: #fafafa; }
         .p-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; background: #00796B; color: white; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
         .p-name { font-size: 26px; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px;}
@@ -46,15 +47,35 @@
         .setup-pos-select { flex: 1; padding: 10px; font-size: 15px; font-weight: bold; border: 1px solid #dcdcdc; border-radius: 6px; background: #fff; color: #333; outline: none; }
         .setup-badge { padding: 6px 10px; font-size: 13px; font-weight: 900; border-radius: 4px; white-space: nowrap; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background: #eee; }
+        /* 結果画面タブとテーブル */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: center; }
+        th { background: #f0f0f0; color: #333; }
         .tab-group { display: flex; margin-bottom: 15px; border-bottom: 2px solid #ddd; }
-        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; color: #777; transition: 0.2s; }
-        .tab.active { color: #1976D2; border-bottom: 3px solid #1976D2; }
+        .tab { padding: 12px 20px; cursor: pointer; font-weight: bold; color: #777; transition: 0.2s; flex: 1; text-align: center; }
+        .tab.active { color: #1976D2; border-bottom: 3px solid #1976D2; background-color: #f5f9ff; }
         .tab-content { display: none; overflow-x: auto; }
         .tab-content.active { display: block; }
         .league-selector { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; font-size: 16px; font-weight: bold; background: #e3f2fd; padding: 15px; border-radius: 8px; }
+
+        .team-selector { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc; }
+
+        /* 成績詳細カード (画像再現) */
+        .result-player-card { background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .rpc-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .rpc-order { font-size: 20px; font-weight: bold; color: #999; width: 20px; text-align: center; }
+        .rpc-pos-circle { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; }
+        .rpc-name-box { display: flex; flex-direction: column; }
+        .rpc-name { font-size: 22px; font-weight: 900; color: #222; }
+        .rpc-pos-text { font-size: 12px; color: #888; font-weight: bold; margin-top: 3px; }
+        
+        .rpc-main-stats { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding: 0 10px; }
+        .rpc-stat-item { display: flex; align-items: baseline; gap: 8px; }
+        .rpc-label { font-size: 12px; color: #666; font-weight: bold; }
+        .rpc-val { font-size: 18px; font-weight: 900; color: #111; }
+        .rpc-val-big { font-size: 26px; font-weight: 900; color: #000; letter-spacing: -1px; }
+        
+        .rpc-sub-stats { background: #f8f9fa; padding: 12px 15px; border-radius: 6px; display: flex; justify-content: space-around; font-size: 12px; color: #666; font-weight: bold; flex-wrap: wrap; gap: 10px; }
     </style>
 </head>
 <body>
@@ -78,19 +99,17 @@
         <!-- 3. 起用設定 -->
         <div id="screen-setup" class="screen">
             <h2 style="text-align:center; margin-bottom:5px;">起用設定</h2>
-            
             <div class="league-selector">
                 参入リーグ：
                 <label><input type="radio" name="league_select" value="セ" checked> セ・リーグ (9番は控え)</label>
                 <label><input type="radio" name="league_select" value="パ"> パ・リーグ (9人全員スタメン)</label>
             </div>
-
             <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">打順や守備位置を変更すると自動で入れ替わります</p>
             <h3 style="border-bottom: 2px solid #00796B; color: #00796B; padding-bottom:5px;">スタメン・打順</h3>
             <div id="setup-fielders"></div>
             <h3 style="border-bottom: 2px solid #E53935; color: #E53935; margin-top:30px; padding-bottom:5px;">投手ローテーション</h3>
             <div id="setup-pitchers"></div>
-            <button class="btn-primary" onclick="preparePennant()">この設定でペナントレースを開始！</button>
+            <button class="btn-primary" onclick="preparePennant()">ペナントレースを開始！</button>
         </div>
         <!-- 4. 結果 -->
         <div id="screen-result" class="screen">
@@ -98,12 +117,22 @@
             <div id="final-rank" style="text-align:center; font-size:24px; font-weight:bold; margin-bottom:20px;"></div>
             <div class="tab-group">
                 <div class="tab active" onclick="switchTab('tab-standings')">順位表</div>
-                <div class="tab" onclick="switchTab('tab-fielders')">野手成績</div>
-                <div class="tab" onclick="switchTab('tab-pitchers')">投手成績</div>
+                <div class="tab" onclick="switchTab('tab-fielders')">詳細成績 (野手)</div>
+                <div class="tab" onclick="switchTab('tab-pitchers')">詳細成績 (投手)</div>
             </div>
+            
             <div id="tab-standings" class="tab-content active"></div>
-            <div id="tab-fielders" class="tab-content"></div>
-            <div id="tab-pitchers" class="tab-content"></div>
+            
+            <div id="tab-fielders" class="tab-content">
+                <select id="team-select-f" class="team-selector" onchange="renderFielderStats(this.value)"></select>
+                <div id="fielder-list"></div>
+            </div>
+            
+            <div id="tab-pitchers" class="tab-content">
+                <select id="team-select-p" class="team-selector" onchange="renderPitcherStats(this.value)"></select>
+                <div id="pitcher-list"></div>
+            </div>
+
             <button class="btn-primary" onclick="location.reload()" style="background-color:#757575; margin-top:30px;">最初からやり直す</button>
         </div>
     </div>
@@ -134,7 +163,6 @@ const OPPONENT_PITCHERS = {
     "西武": { "先発": ["隅田知一郎", "平良海馬", "髙橋光成", "武内夏暉", "渡邉勇太朗", "菅井信也"], "抑え": "ウィンゲンター", "中継ぎエース": "甲斐野央", "僅差": ["豆田泰志", "岩城颯空"], "リード": ["佐藤隼輔", "篠原響"], "ビハインド": ["森脇亮介", "黒田将矢"], "敗戦処理": ["浜屋将太"] }
 };
 
-// Pythonのタプル()をJSの配列[]に修正（クラッシュ原因）
 const OPPONENT_LINEUPS = {
     "阪神": {"order": [["近本光司", "CF"], ["中野拓夢", "2B"], ["森下翔太", "RF"], ["佐藤輝明", "3B"], ["大山悠輔", "1B"], ["前川右京", "LF"], ["坂本誠志郎", "C"], ["元山飛優", "SS"]], "sub": "熊谷敬宥"},
     "DeNA": {"order": [["度会隆輝", "LF"], ["牧秀悟", "2B"], ["佐野恵太", "1B"], ["エンカーナシオン", "RF"], ["宮﨑敏郎", "3B"], ["蝦名達夫", "CF"], ["宮下朝陽", "SS"], ["松尾汐恩", "C"]], "sub": "勝又温史"},
@@ -322,7 +350,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         fieldersData = (XLSX.utils.sheet_to_json(workbook.Sheets['野手能力']) || []).filter(p => p['選手名']);
         pitchersData = (XLSX.utils.sheet_to_json(workbook.Sheets['投手能力']) || []).filter(p => p['選手名']);
         
-        // 投手に打席用の初期ステータスを付与
         pitchersData.forEach(p => { p["ミート"] = 15; p["パワー"] = 15; });
         
         document.getElementById('screen-loading').classList.remove('active');
@@ -346,6 +373,13 @@ function parsePositionName(shortPos) {
     const map = { '捕':'捕手','一':'一塁手','二':'二塁手','三':'三塁手','遊':'遊撃手','左':'左翼手','中':'中堅手','右':'右翼手','DH':'指名打者',
                   'C':'捕手','1B':'一塁手','2B':'二塁手','3B':'三塁手','SS':'遊撃手','LF':'左翼手','CF':'中堅手','RF':'右翼手' };
     return map[shortPos.trim().toUpperCase()] || shortPos.trim();
+}
+
+function getPosColor(pos) {
+    if (pos.includes('捕')) return '#03A9F4'; // Blue
+    if (pos.includes('一') || pos.includes('二') || pos.includes('三') || pos.includes('遊')) return '#FF9800'; // Orange
+    if (pos.includes('左') || pos.includes('中') || pos.includes('右')) return '#4CAF50'; // Green
+    return '#9E9E9E'; // Gray for DH/控え
 }
 
 function getPositionAptitude(player, targetPos) {
@@ -441,16 +475,12 @@ function initSetupScreen() {
         
         unassigned.sort((a, b) => ((parseInt(b["ミート"])||50)+(parseInt(b["走力"])||50)) - ((parseInt(a["ミート"])||50)+(parseInt(a["走力"])||50)));
         unassigned[0].order = 1; unassigned.shift();
-
         unassigned.sort((a, b) => ((parseInt(b["ミート"])||50)+(parseInt(b["パワー"])||50)) - ((parseInt(a["ミート"])||50)+(parseInt(a["パワー"])||50)));
         unassigned[0].order = 4; unassigned.shift();
-
         unassigned.sort((a, b) => (parseInt(b["ミート"])||50) - (parseInt(a["ミート"])||50));
         unassigned[0].order = 2; unassigned.shift();
-
         unassigned.sort((a, b) => ((parseInt(b["パワー"])||50)+(parseInt(b["走力"])||50)) - ((parseInt(a["パワー"])||50)+(parseInt(a["走力"])||50)));
         unassigned[0].order = 3; unassigned.shift();
-
         unassigned.sort((a, b) => (parseInt(b["パワー"])||50) - (parseInt(a["パワー"])||50));
         let nextOrders = [5, 6, 7, 8, 9];
         unassigned.forEach((p, i) => { p.order = nextOrders[i]; });
@@ -491,7 +521,6 @@ function initSetupScreen() {
 
         myTeam.pitchers = [...starters, ...pPool];
     }
-
     renderSetupTables();
 }
 
@@ -510,7 +539,6 @@ function renderSetupTables() {
             posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''} style="color:${rInfo.color}; font-weight:bold;">${pos}（適性${rInfo.rank}）</option>`;
         });
 
-        // 本職のテキスト表示を削除
         fHtml += `<div class="setup-card"><div class="setup-order-box"><select class="setup-order-select" onchange="swapOrder('fielder', ${index}, this.value)">${orderOptions}</select><div class="setup-order-label">番</div><div class="setup-order-icon">≡</div></div><div class="setup-details"><div class="setup-name">${p["選手名"]}</div><div class="setup-meta">ミート:${parseInt(p["ミート"])||50} パワー:${parseInt(p["パワー"])||50} 走力:${parseInt(p["走力"])||50}</div><div class="setup-control-row"><select class="setup-pos-select" onchange="updatePos(${index}, this.value)">${posOptions}</select>${badgeHtml}</div></div></div>`;
     });
     document.getElementById('setup-fielders').innerHTML = fHtml;
@@ -551,7 +579,7 @@ function switchTab(tabId) {
 
 
 // ==========================================
-// 4. ペナントエンジン (全球団実名＋スケジュール＋DHルール対応)
+// 4. ペナントエンジン
 // ==========================================
 
 const TEAM_MAP = {
@@ -573,15 +601,11 @@ function preparePennant() {
     selectedLeague = document.querySelector('input[name="league_select"]:checked').value;
     myTeam.isCentral = (selectedLeague === "セ");
 
-    // セ・リーグの場合は9番打者を「控え」として打線から外す
     myTeam.fielders.sort((a, b) => a.order - b.order);
-    if (myTeam.isCentral) {
-        myTeam.subFielder = myTeam.fielders.pop();
-    }
+    if (myTeam.isCentral) { myTeam.subFielder = myTeam.fielders.pop(); }
 
     let leagueTeams = LEAGUES[selectedLeague];
     replacedTeamAbbr = leagueTeams[Math.floor(Math.random() * leagueTeams.length)];
-    // alertは削除
 
     allTeamsMap = {};
     for (let abbr in TEAM_MAP) {
@@ -601,7 +625,6 @@ function createSingleCPUTeam(teamName) {
     let t = { name: teamName, fielders: [], pitchers: [], isCPU: true, isCentral: isCentral };
     let baseStr = 50; 
 
-    // 投手生成
     let rolesData = OPPONENT_PITCHERS[teamName] || {};
     let createP = (name, role, pow, ctrl, stam) => {
         t.pitchers.push({ "選手名": name, role: role, "球威": pow, "制球": ctrl, "スタミナ": stam, "ミート": 15, "パワー": 15, stats: {} });
@@ -613,19 +636,12 @@ function createSingleCPUTeam(teamName) {
         if (rolesData[roleKey]) rolesData[roleKey].forEach(name => createP(name, roleKey, baseStr, baseStr, 40));
     });
 
-    // 野手生成
     let lineupData = OPPONENT_LINEUPS[teamName];
     if (lineupData) {
         lineupData.order.forEach((p, i) => {
-            t.fielders.push({
-                "選手名": p[0],
-                "ミート": 55 + Math.random()*15, "パワー": 55 + Math.random()*15, "守備力": 50,
-                "pos": parsePositionName(p[1]), "order": i + 1, stats: {}
-            });
+            t.fielders.push({ "選手名": p[0], "ミート": 55 + Math.random()*15, "パワー": 55 + Math.random()*15, "守備力": 50, "pos": parsePositionName(p[1]), "order": i + 1, stats: {} });
         });
-        if (lineupData.sub) {
-            t.subFielder = { "選手名": lineupData.sub, "pos": "控え", "order": "-", stats: {} };
-        }
+        if (lineupData.sub) { t.subFielder = { "選手名": lineupData.sub, "pos": "控え", "order": "-", stats: {} }; }
     } else {
         for(let f=1; f<=(isCentral?8:9); f++) t.fielders.push({ "選手名": "野手"+f, "ミート": baseStr, "パワー": baseStr, stats: {} });
     }
@@ -784,14 +800,14 @@ function startPennant() {
     for (let key in allTeamsMap) {
         let team = allTeamsMap[key];
         team.wins = 0; team.losses = 0; team.draws = 0; team.rotationIdx = 0;
-        let initFStat = () => ({ pa: 0, ab: 0, hit: 0, hr: 0, rbi: 0, bb: 0, so: 0 });
+        let initFStat = () => ({ pa: 0, ab: 0, hit: 0, double: 0, hr: 0, rbi: 0, bb: 0, so: 0, games: 0, steal: Math.floor(Math.random()*15) });
         team.fielders.forEach(p => p.stats = initFStat());
         if(team.subFielder) team.subFielder.stats = initFStat();
         
         team.pitchers.forEach(p => p.stats = { 
             games: 0, outs: 0, runs: 0, er: 0, wins: 0, losses: 0, saves: 0, holds: 0, so: 0, 
             games_pitched_in_row: 0, pitched_today: false, pitches_today: 0,
-            pa: 0, ab: 0, hit: 0, hr: 0, rbi: 0, bb: 0, so_bat: 0
+            pa: 0, ab: 0, hit: 0, hr: 0, double:0, rbi: 0, bb: 0, so_bat: 0
         });
     }
 
@@ -799,9 +815,7 @@ function startPennant() {
     scheduleLines.forEach(line => {
         let tokens = line.trim().split(/[\s\t]+/);
         if(tokens.length < 3) return;
-        
         for (let key in allTeamsMap) { allTeamsMap[key].pitchers.forEach(p => { p.stats.pitched_today = false; p.stats.pitches_today = 0; p.force_continue_outs = 0; }); }
-
         for(let i=2; i<tokens.length; i+=2) {
             if(tokens[i] && tokens[i+1]) {
                 let awayTeam = allTeamsMap[tokens[i]];
@@ -809,7 +823,6 @@ function startPennant() {
                 if (awayTeam && homeTeam) playGame(awayTeam, homeTeam);
             }
         }
-        
         for (let key in allTeamsMap) {
             let t = allTeamsMap[key];
             t.rotationIdx = (t.rotationIdx + 1) % 6;
@@ -817,11 +830,12 @@ function startPennant() {
         }
     });
 
+    // 順位表
     let targetLeagueKeys = LEAGUES[selectedLeague];
     let leagueTeams = targetLeagueKeys.map(k => allTeamsMap[k]);
     leagueTeams.sort((a, b) => b.wins - a.wins);
-
     document.getElementById('final-rank').innerHTML = `${selectedLeague}・リーグ 6チーム中 <span style="color:#c62828; font-size:40px;">${leagueTeams.findIndex(t => t === myTeam) + 1}位</span>`;
+    
     let tableHtml = `<table><tr><th>順位</th><th>チーム名</th><th>勝</th><th>敗</th><th>勝率</th></tr>`;
     leagueTeams.forEach((t, i) => {
         let wp = t.wins + t.losses > 0 ? (t.wins / (t.wins + t.losses)).toFixed(3).replace(/^0\./, '.') : '.000';
@@ -830,28 +844,115 @@ function startPennant() {
     });
     document.getElementById('tab-standings').innerHTML = tableHtml + `</table>`;
 
-    let statFHtml = `<table><tr><th>打順</th><th>守備</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th></tr>`;
-    let displayFielders = [...myTeam.fielders];
-    if (myTeam.subFielder) displayFielders.push(myTeam.subFielder);
-    displayFielders.forEach(p => {
-        let avg = p.stats.ab > 0 ? (p.stats.hit / p.stats.ab).toFixed(3).replace(/^0\./, '.') : '.000';
-        statFHtml += `<tr><td>${p.order}</td><td>${p.pos}</td><td style="font-weight:bold;">${p["選手名"]}</td><td>${avg}</td><td>${p.stats.hr}</td><td>${p.stats.rbi}</td></tr>`;
-    });
-    document.getElementById('tab-fielders').innerHTML = statFHtml + `</table>`;
+    // セレクトボックス初期化
+    let selectHtml = '';
+    for(let key in allTeamsMap) selectHtml += `<option value="${allTeamsMap[key].name}">${allTeamsMap[key].name}</option>`;
+    document.getElementById('team-select-f').innerHTML = selectHtml;
+    document.getElementById('team-select-p').innerHTML = selectHtml;
+    
+    document.getElementById('team-select-f').value = "マイチーム";
+    document.getElementById('team-select-p').value = "マイチーム";
+    
+    renderFielderStats("マイチーム");
+    renderPitcherStats("マイチーム");
+}
 
-    let statPHtml = `<table><tr><th>役割</th><th>選手名</th><th>登板</th><th>投球回</th><th>防御率</th><th>勝</th><th>敗</th><th>セ</th><th>HP</th></tr>`;
-    myTeam.pitchers.forEach(p => {
-        let era = p.stats.outs > 0 ? ((p.stats.er * 27) / p.stats.outs).toFixed(2) : '0.00';
-        let innings = Math.floor(p.stats.outs / 3) + "." + (p.stats.outs % 3);
-        statPHtml += `<tr><td>${p.role}</td><td style="font-weight:bold;">${p["選手名"]}</td><td>${p.stats.games}</td><td>${innings}</td><td>${era}</td><td>${p.stats.wins}</td><td>${p.stats.losses}</td><td>${p.stats.saves}</td><td>${p.stats.holds}</td></tr>`;
+function renderFielderStats(teamName) {
+    let teamKey = Object.keys(allTeamsMap).find(k => allTeamsMap[k].name === teamName);
+    if (!teamKey) return;
+    let team = allTeamsMap[teamKey];
+    
+    let html = '';
+    let displayFielders = [...team.fielders];
+    if (team.subFielder) displayFielders.push(team.subFielder);
+    displayFielders.sort((a, b) => (a.order === '-' ? 99 : a.order) - (b.order === '-' ? 99 : b.order));
+
+    displayFielders.forEach(p => {
+        let s = p.stats;
+        let avg = s.ab > 0 ? (s.hit / s.ab).toFixed(3).replace(/^0\./, '.') : '.000';
+        let obp = s.pa > 0 ? ((s.hit + s.bb) / s.pa) : 0;
+        let tb = (s.hit - (s.double||0) - s.hr) + ((s.double||0) * 2) + (s.hr * 4);
+        let slg = s.ab > 0 ? (tb / s.ab) : 0;
+        let ops = (obp + slg).toFixed(3).replace(/^0\./, '.');
+        if (s.pa === 0) ops = '.000';
+        
+        let posStr = p.pos || "控え";
+        let shortPos = posStr.charAt(0);
+        if (posStr === '指名打者') shortPos = 'D';
+
+        html += `
+        <div class="result-player-card">
+            <div class="rpc-header">
+                <div class="rpc-order">${p.order}</div>
+                <div class="rpc-pos-circle" style="background:${getPosColor(posStr)}">${shortPos}</div>
+                <div class="rpc-name-box">
+                    <div class="rpc-name">${p["選手名"]}</div>
+                    <div class="rpc-pos-text">${posStr}</div>
+                </div>
+            </div>
+            <div class="rpc-main-stats">
+                <div class="rpc-stat-item"><span class="rpc-label">打率</span><span class="rpc-val-big">${avg}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">本塁打</span><span class="rpc-val">${s.hr}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">打点</span><span class="rpc-val">${s.rbi}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">盗塁</span><span class="rpc-val">${s.pa > 100 ? s.steal : '-'}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">OPS</span><span class="rpc-val-big">${ops}</span></div>
+            </div>
+            <div class="rpc-sub-stats">
+                <span>試合 ${s.games}</span>
+                <span>打席 ${s.pa}</span>
+                <span>打数 ${s.ab}</span>
+                <span>安打 ${s.hit}</span>
+                <span>四球 ${s.bb}</span>
+            </div>
+        </div>`;
     });
-    document.getElementById('tab-pitchers').innerHTML = statPHtml + `</table>`;
+    document.getElementById('fielder-list').innerHTML = html;
+}
+
+function renderPitcherStats(teamName) {
+    let teamKey = Object.keys(allTeamsMap).find(k => allTeamsMap[k].name === teamName);
+    if (!teamKey) return;
+    let team = allTeamsMap[teamKey];
+    
+    let html = '';
+    team.pitchers.forEach((p, i) => {
+        let s = p.stats;
+        let era = s.outs > 0 ? ((s.er * 27) / s.outs).toFixed(2) : '0.00';
+        let innings = Math.floor(s.outs / 3) + "." + (s.outs % 3);
+
+        html += `
+        <div class="result-player-card">
+            <div class="rpc-header">
+                <div class="rpc-order">${i+1}</div>
+                <div class="rpc-pos-circle" style="background:#E53935;">投</div>
+                <div class="rpc-name-box">
+                    <div class="rpc-name">${p["選手名"]}</div>
+                    <div class="rpc-pos-text">${p.role || "投手"}</div>
+                </div>
+            </div>
+            <div class="rpc-main-stats">
+                <div class="rpc-stat-item"><span class="rpc-label">防御率</span><span class="rpc-val-big">${era}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">勝</span><span class="rpc-val">${s.wins}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">敗</span><span class="rpc-val">${s.losses}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">S</span><span class="rpc-val">${s.saves}</span></div>
+                <div class="rpc-stat-item"><span class="rpc-label">HP</span><span class="rpc-val">${s.holds}</span></div>
+            </div>
+            <div class="rpc-sub-stats">
+                <span>登板 ${s.games}</span>
+                <span>投球回 ${innings}</span>
+                <span>奪三振 ${s.so}</span>
+                <span>失点 ${s.runs}</span>
+                <span>自責点 ${s.er}</span>
+            </div>
+        </div>`;
+    });
+    document.getElementById('pitcher-list').innerHTML = html;
 }
 
 function playGame(teamAway, teamHome) {
     let awayPitching = new PitchingState(teamAway, teamAway.rotationIdx);
     let homePitching = new PitchingState(teamHome, teamHome.rotationIdx);
-    let state = { away: { team: teamAway, score: 0, batIdx: 0, pState: awayPitching }, home: { team: teamHome, score: 0, batIdx: 0, pState: homePitching } };
+    let state = { away: { team: teamAway, score: 0, batIdx: 0, pState: awayPitching, battersPlayed: new Set() }, home: { team: teamHome, score: 0, batIdx: 0, pState: homePitching, battersPlayed: new Set() } };
 
     for (let inning = 1; inning <= 9; inning++) {
         playHalfInning(state.away, state.home, inning);
@@ -867,6 +968,10 @@ function playGame(teamAway, teamHome) {
 
     awayPitching.finishGame(state.away.score, state.home.score);
     homePitching.finishGame(state.home.score, state.away.score);
+
+    // 試合数カウント (打席に立った選手のみ1加算)
+    state.away.battersPlayed.forEach(b => { if(b.stats.games !== undefined) b.stats.games++; });
+    state.home.battersPlayed.forEach(b => { if(b.stats.games !== undefined) b.stats.games++; });
 
     if (state.away.score > state.home.score) { teamAway.wins++; teamHome.losses++; assignPitcherRecords(awayPitching, homePitching); } 
     else if (state.home.score > state.away.score) { teamHome.wins++; teamAway.losses++; assignPitcherRecords(homePitching, awayPitching); }
@@ -886,12 +991,10 @@ function playHalfInning(offense, defense, inning) {
 
         let batter;
         let bIdx = offense.batIdx % 9;
-        if (offense.team.isCentral && bIdx === 8) {
-            batter = offense.pState.current; 
-        } else {
-            batter = offense.team.fielders[bIdx];
-        }
+        if (offense.team.isCentral && bIdx === 8) batter = offense.pState.current; 
+        else batter = offense.team.fielders[bIdx];
 
+        offense.battersPlayed.add(batter);
         let pitcher = defState.current;
         batter.stats.pa++;
         
@@ -904,7 +1007,11 @@ function playHalfInning(offense, defense, inning) {
         if (result === "so") { batter.stats.ab++; batter.stats.so++; pitcher.stats.so++; outs++; defState.addOut(); } 
         else if (result === "out" || result === "error") { batter.stats.ab++; outs++; defState.addOut(); }
         else if (result === "walk") { batter.stats.bb++; } 
-        else { batter.stats.ab++; batter.stats.hit++; if (result === "hr") batter.stats.hr++; }
+        else { 
+            batter.stats.ab++; batter.stats.hit++; 
+            if (result === "double") { if(batter.stats.double!==undefined) batter.stats.double++; }
+            if (result === "hr") batter.stats.hr++; 
+        }
 
         if (result !== "out" && result !== "so" && result !== "error") {
             let adv = advanceBases(bases, batter, result);
@@ -919,11 +1026,8 @@ function playHalfInning(offense, defense, inning) {
 }
 
 function assignPitcherRecords(winPState, losePState) {
-    let winUsed = winPState.pitchersUsedRecord;
-    let loseUsed = losePState.pitchersUsedRecord;
-    
-    let wp = null;
-    let tookLeadIndex = 0;
+    let winUsed = winPState.pitchersUsedRecord; let loseUsed = losePState.pitchersUsedRecord;
+    let wp = null; let tookLeadIndex = 0;
     for (let i = winUsed.length - 1; i >= 0; i--) { if (winUsed[i].entryScoreDef <= winUsed[i].entryScoreOff) { tookLeadIndex = i; break; } }
     let candidateWP = winUsed[tookLeadIndex];
 
@@ -941,14 +1045,10 @@ function assignPitcherRecords(winPState, losePState) {
     for (let i = loseUsed.length - 1; i >= 0; i--) { 
          if (loseUsed[i].entryScoreDef >= loseUsed[i].entryScoreOff && loseUsed[i].exitScoreDef < loseUsed[i].exitScoreOff) { lp = loseUsed[i].p; break; }
     }
-    if (!lp) {
-        let sorted = [...loseUsed].sort((a,b) => b.er - a.er);
-        lp = sorted.length > 0 ? sorted[0].p : loseUsed[0].p;
-    }
+    if (!lp) { let sorted = [...loseUsed].sort((a,b) => b.er - a.er); lp = sorted.length > 0 ? sorted[0].p : loseUsed[0].p; }
     if (lp) lp.stats.losses++;
 
-    let lastWinRecord = winUsed[winUsed.length - 1];
-    let savePitcher = null;
+    let lastWinRecord = winUsed[winUsed.length - 1]; let savePitcher = null;
     if (lastWinRecord.p !== wp && winUsed.length > 1) { 
         if (lastWinRecord.outs >= 1) { 
             let leadWhenEntered = lastWinRecord.entryScoreDef - lastWinRecord.entryScoreOff;
