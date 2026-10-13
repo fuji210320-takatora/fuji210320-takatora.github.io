@@ -107,7 +107,7 @@
             </div>
         </div>
 
-        <!-- 3. 起用設定画面 (写真風デザイン) -->
+        <!-- 3. 起用設定画面 -->
         <div id="screen-setup" class="screen">
             <h2 style="text-align:center; margin-bottom:5px;">起用設定</h2>
             <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">打順を変更すると自動で入れ替わります</p>
@@ -178,22 +178,26 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// ▼ 指定された色に変更
 function getRankInfo(num) {
     if (isNaN(num)) return { rank: '-', color: '#999' };
-    if (num >= 90) return { rank: 'S', color: '#D4AF37' };
-    if (num >= 80) return { rank: 'A', color: '#4CAF50' };
-    if (num >= 70) return { rank: 'B', color: '#FF9800' };
-    if (num >= 60) return { rank: 'C', color: '#FBC02D' };
-    if (num >= 50) return { rank: 'D', color: '#E53935' };
-    if (num >= 40) return { rank: 'E', color: '#7CB342' };
-    if (num >= 20) return { rank: 'F', color: '#03A9F4' };
-    return { rank: 'G', color: '#9E9E9E' };
+    if (num >= 90) return { rank: 'S', color: '#D4AF37' }; // 金色
+    if (num >= 80) return { rank: 'A', color: '#E91E63' }; // ピンク
+    if (num >= 70) return { rank: 'B', color: '#E53935' }; // 赤色
+    if (num >= 60) return { rank: 'C', color: '#FF9800' }; // オレンジ
+    if (num >= 50) return { rank: 'D', color: '#FBC02D' }; // 黄色
+    if (num >= 40) return { rank: 'E', color: '#8BC34A' }; // 黄緑
+    if (num >= 20) return { rank: 'F', color: '#03A9F4' }; // 水色
+    return { rank: 'G', color: '#9E9E9E' }; // グレー
 }
 
-// 守備位置の日本語変換と適性取得
+// ▼ 英語略称（2B, SSなど）を日本語名に変換する処理を完全網羅
 function parsePositionName(shortPos) {
-    const map = {'捕':'捕手','一':'一塁手','二':'二塁手','三':'三塁手','遊':'遊撃手','左':'左翼手','中':'中堅手','右':'右翼手','DH':'指名打者'};
-    return map[shortPos.trim()] || shortPos.trim();
+    const map = {
+        '捕':'捕手','一':'一塁手','二':'二塁手','三':'三塁手','遊':'遊撃手','左':'左翼手','中':'中堅手','右':'右翼手','DH':'指名打者',
+        'C':'捕手','1B':'一塁手','2B':'二塁手','3B':'三塁手','SS':'遊撃手','LF':'左翼手','CF':'中堅手','RF':'右翼手'
+    };
+    return map[shortPos.trim().toUpperCase()] || shortPos.trim();
 }
 
 function getPositionAptitude(player, targetPos) {
@@ -201,7 +205,7 @@ function getPositionAptitude(player, targetPos) {
     if (!player["守備力"]) return 20; 
     if (typeof player["守備力"] === 'number') return player["守備力"];
     
-    let apt = 10;
+    let apt = 10; // デフォルトはG(10)
     let parts = player["守備力"].toString().split('/');
     parts.forEach(p => {
         let splitData = p.split(':');
@@ -217,7 +221,7 @@ function getPositionAptitude(player, targetPos) {
 }
 
 // ==========================================
-// 2. ドラフト進行処理（カード描画完全復活）
+// 2. ドラフト進行処理
 // ==========================================
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -277,7 +281,6 @@ function renderCard(player, type) {
     }
 
     if (type === 'fielder') {
-        // 守備力の分解タグ生成
         let defenseMax = 0;
         let posTags = [];
         if (typeof player["守備力"] === 'string' && player["守備力"].includes(':')) {
@@ -287,7 +290,7 @@ function renderCard(player, type) {
                     const rating = parseInt(arr[1], 10);
                     if (!isNaN(rating)) {
                         if (rating > defenseMax) defenseMax = rating;
-                        posTags.push({ pos: arr[0].trim(), val: rating });
+                        posTags.push({ pos: parsePositionName(arr[0].trim()), val: rating });
                     }
                 }
             });
@@ -323,7 +326,6 @@ function renderCard(player, type) {
             ${posHtml}
         </div>`;
     } else {
-        // 球種の分解タグ生成
         let pitchTags = '';
         Object.keys(player).forEach(key => {
             if (key.startsWith('球種_') && player[key]) {
@@ -395,8 +397,8 @@ function renderSetupTables() {
         // ドロップダウン生成
         let posOptions = '';
         POSITIONS.forEach(pos => {
-            let r = getRankInfo(getPositionAptitude(p, pos)).rank;
-            posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''}>${pos}（適性${r}）</option>`;
+            let rInfo = getRankInfo(getPositionAptitude(p, pos));
+            posOptions += `<option value="${pos}" ${p.pos === pos ? 'selected' : ''} style="color:${rInfo.color}; font-weight:bold;">${pos}（適性${rInfo.rank}）</option>`;
         });
 
         let meet = parseInt(p["ミート"])||50; let pow = parseInt(p["パワー"])||50; let spd = parseInt(p["走力"])||50;
@@ -454,7 +456,6 @@ function renderSetupTables() {
     document.getElementById('setup-pitchers').innerHTML = pHtml;
 }
 
-// 打順の自動入れ替え処理
 function swapOrder(type, currentIndex, newValue) {
     const targetOrder = parseInt(newValue, 10);
     const teamArray = type === 'fielder' ? myTeam.fielders : myTeam.pitchers;
@@ -464,7 +465,7 @@ function swapOrder(type, currentIndex, newValue) {
     if (swapTarget) swapTarget.order = currentOrder;
     teamArray[currentIndex].order = targetOrder;
     
-    renderSetupTables(); // UIを再描画して順番を並び替え
+    renderSetupTables();
 }
 
 function updatePos(index, newPos) { myTeam.fielders[index].pos = newPos; renderSetupTables(); }
