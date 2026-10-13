@@ -13,7 +13,7 @@ let skipsLeft = 5;
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Excelファイル読み込み（キャッシュ対策付き）
+        // キャッシュを無視して最新のExcelを読み込む
         const res = await fetch('./baseball_data.xlsx?v=' + new Date().getTime());
         if (!res.ok) throw new Error("Fetch Error");
         
@@ -40,40 +40,30 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ==========================================
-// 2. 能力値のランクと色を判定する関数 (パワプロ風)
+// 2. 能力値のランク判定関数
 // ==========================================
-function getRankData(val) {
-    if (val === undefined || val === null || val === '') return { rank: '-', color: '#999', text: '-' };
-    
-    // 文字列の中に数字があれば、最初の数字を抽出 (例: "CF:58 / RF:58" -> 58)
-    const match = String(val).match(/\d+/);
-    if (!match) return { rank: '-', color: '#999', text: val };
-
-    const num = parseInt(match[0], 10);
-    let rank = 'G';
-    let color = '#9E9E9E'; // グレー
-
-    if (num >= 90) { rank = 'S'; color = '#D4AF37'; }      // 金
-    else if (num >= 80) { rank = 'A'; color = '#F06292'; } // ピンク
-    else if (num >= 70) { rank = 'B'; color = '#E53935'; } // 赤
-    else if (num >= 60) { rank = 'C'; color = '#FF9800'; } // オレンジ
-    else if (num >= 50) { rank = 'D'; color = '#FBC02D'; } // 黄色
-    else if (num >= 40) { rank = 'E'; color = '#7CB342'; } // 黄緑
-    else if (num >= 20) { rank = 'F'; color = '#03A9F4'; } // 水色
-
-    // ランク判定は抽出した数字で、下のテキスト表示は元の文字をそのまま表示
-    return { rank: rank, color: color, text: val };
+function getRankInfo(num) {
+    if (isNaN(num)) return { rank: '-', color: '#999' };
+    if (num >= 90) return { rank: 'S', color: '#D4AF37' };
+    if (num >= 80) return { rank: 'A', color: '#F06292' };
+    if (num >= 70) return { rank: 'B', color: '#E53935' };
+    if (num >= 60) return { rank: 'C', color: '#FF9800' };
+    if (num >= 50) return { rank: 'D', color: '#FBC02D' };
+    if (num >= 40) return { rank: 'E', color: '#7CB342' };
+    if (num >= 20) return { rank: 'F', color: '#03A9F4' };
+    return { rank: 'G', color: '#9E9E9E' };
 }
 
-function createStatCard(label, value) {
-    const data = getRankData(value);
+function createStatCard(label, val) {
+    const num = parseInt(val, 10);
+    const data = getRankInfo(num);
     const displayRank = data.rank === '-' ? '' : `<div class="stat-rank" style="color: ${data.color};">${data.rank}</div>`;
     
     return `
         <div class="stat-card">
             <div class="stat-label">${label}</div>
             ${displayRank}
-            <div class="stat-val">${data.text}</div>
+            <div class="stat-val">${isNaN(num) ? '-' : num}</div>
         </div>
     `;
 }
@@ -110,31 +100,23 @@ function startDraft(type) {
     requiredCount = type === 'fielder' ? 9 : 15;
     skipsLeft = 5;
     draftPool = type === 'fielder' ? [...fieldersData] : [...pitchersData];
-    
     showScreen('screen-draft');
     nextCandidate();
 }
 
 function nextCandidate() {
     const currentCount = currentDraftType === 'fielder' ? myTeam.fielders.length : myTeam.pitchers.length;
-
     if (currentCount >= requiredCount) {
-        if (currentDraftType === 'fielder') {
-            startDraft('pitcher');
-        } else {
-            initSetupScreen();
-        }
+        if (currentDraftType === 'fielder') startDraft('pitcher');
+        else initSetupScreen();
         return;
     }
-
     if (draftPool.length === 0) {
         alert("候補選手が枯渇しました！");
         return;
     }
-
     const randIdx = Math.floor(Math.random() * draftPool.length);
     currentCandidate = draftPool[randIdx];
-    
     renderCard(currentCandidate, currentDraftType);
     updateDraftHeader();
 }
@@ -142,7 +124,6 @@ function nextCandidate() {
 function takePlayer() {
     if (currentDraftType === 'fielder') myTeam.fielders.push(currentCandidate);
     else myTeam.pitchers.push(currentCandidate);
-    
     draftPool = draftPool.filter(p => p !== currentCandidate);
     nextCandidate();
 }
@@ -164,17 +145,54 @@ function renderCard(player, type) {
     const htmlContainer = document.getElementById('draft-card');
     
     if (type === 'fielder') {
+        // ★ 守備力のパース（例："1B:56 / LF:60" から最大値60とポジションリストを取得）
+        let defenseMax = 0;
+        let posTags = [];
+        
+        if (typeof player["守備力"] === 'string' && player["守備力"].includes(':')) {
+            const parts = player["守備力"].split('/');
+            parts.forEach(p => {
+                const arr = p.split(':');
+                if (arr.length === 2) {
+                    const rating = parseInt(arr[1], 10);
+                    if (!isNaN(rating)) {
+                        if (rating > defenseMax) defenseMax = rating;
+                        posTags.push({ pos: arr[0].trim(), val: rating });
+                    }
+                }
+            });
+        } else {
+            defenseMax = parseInt(player["守備力"], 10) || 0;
+        }
+
+        // 守れるポジションのタグHTMLを生成
+        let posHtml = '';
+        if (posTags.length > 0) {
+            posHtml = `
+                <div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 13px; color: #555; font-weight: bold; white-space: nowrap;">守れる所</div>
+                    <div class="defense-positions">
+                        ${posTags.map(t => {
+                            const r = getRankInfo(t.val);
+                            return `<span class="pos-tag">${t.pos} <span style="color:${r.color}; font-size:14px;">${r.rank}</span></span>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         htmlContainer.innerHTML = `
             <div class="card">
                 <div class="p-tag" style="background-color: #00796B;">野手</div>
                 <div class="p-name">${name}</div>
                 <div class="p-meta">${team}</div>
-                <div class="stats-box">
+                <div class="stats-box grid-4">
                     ${createStatCard('ミート', player["ミート"])}
                     ${createStatCard('パワー', player["パワー"])}
                     ${createStatCard('走力', player["走力"])}
-                    ${createStatCard('守備力', player["守備力"])}
+                    ${createStatCard('守備力', defenseMax)}
                 </div>
+                ${posHtml}
             </div>
         `;
     } else {
@@ -186,14 +204,19 @@ function renderCard(player, type) {
             }
         });
 
-        const pitchHtml = pitchTags ? `<div class="pitch-types">${pitchTags}</div>` : '';
+        const pitchHtml = pitchTags ? `
+            <div style="border-top: 1px dashed #ccc; margin-top: 15px; padding-top: 15px; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 13px; color: #555; font-weight: bold; white-space: nowrap;">球種</div>
+                <div class="pitch-types">${pitchTags}</div>
+            </div>
+        ` : '';
 
         htmlContainer.innerHTML = `
             <div class="card">
                 <div class="p-tag" style="background-color: #E53935;">投手</div>
                 <div class="p-name">${name}</div>
                 <div class="p-meta">${team}</div>
-                <div class="stats-box">
+                <div class="stats-box grid-3">
                     ${createStatCard('球威', player["球威"])}
                     ${createStatCard('制球', player["制球"])}
                     ${createStatCard('スタミナ', player["スタミナ"])}
