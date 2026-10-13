@@ -46,7 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // ★修正箇所：不安定な ../ をやめ、リポジトリのルートからの絶対パスで指定します
     // 例：URLが https://takatora.github.io/baseball-app/ の場合、'/baseball-app/baseball_data.xlsx' とします
-    fetch('/fuji210320-takatora.github.io/baseball_data.xlsx')
+    fetch('baseball_data.xlsx')
         .then(response => {
             if (!response.ok) throw new Error(`HTTPエラー ステータス: ${response.status}`);
             return response.arrayBuffer();
