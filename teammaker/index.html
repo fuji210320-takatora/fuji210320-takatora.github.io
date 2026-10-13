@@ -77,7 +77,7 @@
         <!-- 3. 起用設定 -->
         <div id="screen-setup" class="screen">
             <h2 style="text-align:center; margin-bottom:5px;">起用設定</h2>
-            <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">打順を変更すると自動で入れ替わります</p>
+            <p style="text-align:center; color:#666; font-size:13px; margin-top:0;">打順や守備位置の変更が可能です</p>
             <h3 style="border-bottom: 2px solid #00796B; color: #00796B; padding-bottom:5px;">スタメン・打順</h3>
             <div id="setup-fielders"></div>
             <h3 style="border-bottom: 2px solid #E53935; color: #E53935; margin-top:30px; padding-bottom:5px;">投手ローテーション</h3>
@@ -224,9 +224,69 @@ function renderCard(player, type) {
     }
 }
 
+// ==========================================
+// 3. 写真風・起用設定画面（打順・守備位置の自動設定機能追加）
+// ==========================================
 function initSetupScreen() {
     showScreen('screen-setup');
-    myTeam.fielders.forEach((p, i) => { if (!p.order) p.order = i + 1; });
+    
+    // ▼ 初回のみ：打順と守備位置の自動割り当てロジック
+    if (!myTeam.fielders[0].order) {
+        let unassigned = [...myTeam.fielders];
+        
+        // 1番: ミート + 走力
+        unassigned.sort((a, b) => ((parseInt(b["ミート"])||50)+(parseInt(b["走力"])||50)) - ((parseInt(a["ミート"])||50)+(parseInt(a["走力"])||50)));
+        unassigned[0].order = 1;
+        unassigned.shift();
+
+        // 4番: ミート + パワー
+        unassigned.sort((a, b) => ((parseInt(b["ミート"])||50)+(parseInt(b["パワー"])||50)) - ((parseInt(a["ミート"])||50)+(parseInt(a["パワー"])||50)));
+        unassigned[0].order = 4;
+        unassigned.shift();
+
+        // 2番: ミート単体
+        unassigned.sort((a, b) => (parseInt(b["ミート"])||50) - (parseInt(a["ミート"])||50));
+        unassigned[0].order = 2;
+        unassigned.shift();
+
+        // 3番: パワー + 走力
+        unassigned.sort((a, b) => ((parseInt(b["パワー"])||50)+(parseInt(b["走力"])||50)) - ((parseInt(a["パワー"])||50)+(parseInt(a["走力"])||50)));
+        unassigned[0].order = 3;
+        unassigned.shift();
+
+        // 5～9番: 残りをパワー順に
+        unassigned.sort((a, b) => (parseInt(b["パワー"])||50) - (parseInt(a["パワー"])||50));
+        let nextOrders = [5, 6, 7, 8, 9];
+        unassigned.forEach((p, i) => { p.order = nextOrders[i]; });
+
+        // ▼ 守備位置を被らないように割り当て（本職優先・適性順）
+        let positions = ['指名打者', '捕手', '一塁手', '二塁手', '三塁手', '遊撃手', '左翼手', '中堅手', '右翼手'];
+        let pairs = [];
+        myTeam.fielders.forEach(f => {
+            let rawDef = 'DH';
+            if (typeof f["守備力"] === 'string' && f["守備力"].includes(':')) rawDef = f["守備力"].split('/')[0].split(':')[0].trim();
+            let mainPos = parsePositionName(rawDef);
+
+            positions.forEach(pos => {
+                let apt = getPositionAptitude(f, pos);
+                if (pos === mainPos) apt += 100; // 本職を最優先するためのボーナス
+                pairs.push({ player: f, pos: pos, apt: apt });
+            });
+        });
+        pairs.sort((a, b) => b.apt - a.apt);
+
+        let assignedPlayers = new Set();
+        let assignedPositions = new Set();
+        for (let pair of pairs) {
+            if (!assignedPlayers.has(pair.player) && !assignedPositions.has(pair.pos)) {
+                pair.player.pos = pair.pos;
+                assignedPlayers.add(pair.player);
+                assignedPositions.add(pair.pos);
+            }
+            if (assignedPlayers.size === 9) break;
+        }
+    }
+
     renderSetupTables();
 }
 
@@ -237,9 +297,9 @@ function renderSetupTables() {
         let orderOptions = '';
         for(let i=1; i<=myTeam.fielders.length; i++) orderOptions += `<option value="${i}" ${p.order === i ? 'selected' : ''}>${i}</option>`;
         
+        // 本職表示用
         let rawDef = 'DH';
         if (typeof p["守備力"] === 'string' && p["守備力"].includes(':')) rawDef = p["守備力"].split('/')[0].split(':')[0].trim();
-        if(!p.pos) p.pos = parsePositionName(rawDef); 
 
         let rankInfo = getRankInfo(getPositionAptitude(p, p.pos));
         let badgeHtml = `<span class="setup-badge" style="background-color:${rankInfo.color}15; color:${rankInfo.color}; border: 1px solid ${rankInfo.color};">適性${rankInfo.rank}</span>`;
@@ -282,7 +342,7 @@ function switchTab(tabId) {
 }
 
 // ==========================================
-// 4. 新・完全ペナントエンジン (PitchingState・公式記録連動版)
+// 4. ペナントエンジン
 // ==========================================
 
 function preparePennant() {
@@ -362,7 +422,7 @@ function createCPUTeams() {
     return teams;
 }
 
-// ★ 投手交代ロジックエンジン (Python版からの完全移植)
+// 投手交代ロジックエンジン
 class PitchingState {
     constructor(team, rotationIdx) {
         this.team = team;
@@ -376,7 +436,7 @@ class PitchingState {
         this.used_bullpen = [];
         this.pitcher_runs = new Map();
         this.max_pitches = new Map();
-        this.pitchersUsedRecord = []; // WP, LP, SV, HLD 判定用
+        this.pitchersUsedRecord = []; 
 
         this.chooseStarter(rotationIdx);
     }
@@ -385,9 +445,8 @@ class PitchingState {
         if (this.starters.includes(p)) return "先発";
         if (p === this.closer) return "抑え";
         let r = p.role;
-        // JSの起用オプション（中継ぎエース, 中継ぎ, ビハインド, 敗戦処理）をマップ
         if (r === '中継ぎエース' || r === '敗戦処理' || r === 'ビハインド') return r;
-        return "僅差"; // 「中継ぎ」は汎用として「僅差・リード」のPythonロジックに対応させる
+        return "僅差"; 
     }
 
     getRolePriority(inning, score_diff) {
@@ -435,12 +494,10 @@ class PitchingState {
         let current_outs = this.current_start_outs;
         let isStarter = this.starters.includes(p);
         
-        // ▼ 中継ぎの回跨ぎ禁止ルール（リード＆3点差以内の勝ちパターンの場合のみ）
         if (!isStarter && current_outs >= 3) {
             if (score_diff >= 1 && score_diff <= 3 && p !== this.closer) return true;
         }
 
-        // ▼ 9回のセーブシチュエーションなら抑えに強制交代
         if (inning >= 9 && score_diff >= 1 && score_diff <= 3 && this.closer && p !== this.closer) {
             if (this.closer.stats.pitches_today === 0 && this.closer.stats.games_pitched_in_row < 3) return true;
         }
@@ -454,7 +511,7 @@ class PitchingState {
             } else if (isStarter) {
                 limit = stamina * (1.1 + Math.random() * 0.2) + 20;
             } else {
-                limit = Math.min(stamina * (1.1 + Math.random() * 0.2) + 20, 45); // 中継ぎ制限
+                limit = Math.min(stamina * (1.1 + Math.random() * 0.2) + 20, 45);
             }
             this.max_pitches.set(p, Math.max(15, limit));
         }
@@ -475,8 +532,7 @@ class PitchingState {
 
         let priority = this.getRolePriority(inning, score_diff);
         if (priority && role === priority[0]) return false;
-
-        if (current_outs >= 3) return true; // 中継ぎ基本1イニング
+        if (current_outs >= 3) return true;
 
         return false;
     }
@@ -489,7 +545,7 @@ class PitchingState {
 
         for (let p of all_bullpen) {
             if (this.used_bullpen.includes(p)) continue;
-            if (p.stats.games_pitched_in_row >= 3) continue; // 3連投回避
+            if (p.stats.games_pitched_in_row >= 3) continue; 
             available.push(p);
         }
 
@@ -498,7 +554,7 @@ class PitchingState {
         let pick = (pool, prio_list) => {
             for (let r of prio_list) {
                 let mappedR = r;
-                if (r === "僅差" || r === "リード") mappedR = "中継ぎ"; // UIとの対応
+                if (r === "僅差" || r === "リード") mappedR = "中継ぎ"; 
                 
                 let candidates = pool.filter(p => this.getRole(p) === r || this.getRole(p) === mappedR || p.role === mappedR);
                 if (candidates.length > 0) {
@@ -556,7 +612,7 @@ class PitchingState {
         let r = (this.pitcher_runs.get(this.current) || 0) + 1;
         this.pitcher_runs.set(this.current, r);
         this.current.stats.runs++;
-        this.current.stats.er++; // 簡易的に全て自責とする
+        this.current.stats.er++; 
         this.pitchersUsedRecord[this.pitchersUsedRecord.length - 1].er++;
     }
 
@@ -571,7 +627,6 @@ function startPennant() {
     showScreen('screen-result');
     let league = [myTeam, ...createCPUTeams()];
     
-    // 全選手の成績箱と連投状態の初期化
     league.forEach(team => {
         team.wins = 0; team.losses = 0; team.rotationIdx = 0;
         team.fielders.forEach(p => p.stats = { pa: 0, ab: 0, hit: 0, hr: 0, rbi: 0, bb: 0, so: 0 });
@@ -581,13 +636,11 @@ function startPennant() {
     const schedulePattern = [ [[0,1],[2,5],[3,4]], [[0,2],[1,3],[4,5]], [[0,3],[2,4],[1,5]], [[0,4],[3,5],[1,2]], [[0,5],[1,4],[2,3]] ];
     
     for (let day = 0; day < 143; day++) {
-        // 試合前のリセット
         league.forEach(t => t.pitchers.forEach(p => { p.stats.pitched_today = false; p.stats.pitches_today = 0; p.force_continue_outs = 0; }));
 
         let matches = schedulePattern[day % 5];
         matches.forEach(match => { playGame(league[match[0]], league[match[1]]); });
         
-        // 試合後の疲労（連投）更新
         league.forEach(t => {
             t.rotationIdx = (t.rotationIdx + 1) % 6;
             t.pitchers.forEach(p => {
@@ -597,7 +650,6 @@ function startPennant() {
         });
     }
 
-    // 順位表描画
     league.sort((a, b) => b.wins - a.wins);
     document.getElementById('final-rank').innerHTML = `6チーム中 <span style="color:#c62828; font-size:40px;">${league.findIndex(t => t.name === "マイチーム") + 1}位</span>`;
     let tableHtml = `<table><tr><th>順位</th><th>チーム名</th><th>勝</th><th>敗</th><th>勝率</th></tr>`;
@@ -608,11 +660,10 @@ function startPennant() {
     });
     document.getElementById('tab-standings').innerHTML = tableHtml + `</table>`;
 
-    // マイチーム成績描画
-    let statFHtml = `<table><tr><th>打順</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th></tr>`;
+    let statFHtml = `<table><tr><th>打順</th><th>守備</th><th>選手名</th><th>打率</th><th>本塁打</th><th>打点</th></tr>`;
     myTeam.fielders.forEach(p => {
         let avg = p.stats.ab > 0 ? (p.stats.hit / p.stats.ab).toFixed(3).replace(/^0\./, '.') : '.000';
-        statFHtml += `<tr><td>${p.order}</td><td style="font-weight:bold;">${p["選手名"]}</td><td>${avg}</td><td>${p.stats.hr}</td><td>${p.stats.rbi}</td></tr>`;
+        statFHtml += `<tr><td>${p.order}</td><td>${p.pos}</td><td style="font-weight:bold;">${p["選手名"]}</td><td>${avg}</td><td>${p.stats.hr}</td><td>${p.stats.rbi}</td></tr>`;
     });
     document.getElementById('tab-fielders').innerHTML = statFHtml + `</table>`;
 
@@ -656,14 +707,12 @@ function playHalfInning(offense, defense, inning) {
     let outs = 0; let bases = [null, null, null];
     let defState = defense.pState;
 
-    // イニング開始前の交代判定
     let scoreDiff = defense.score - offense.score;
     if (defState.shouldReplace(scoreDiff, inning)) {
         defState.replace(inning, scoreDiff, defense.score, offense.score);
     }
 
     while (outs < 3) {
-        // 打者ごとの交代判定
         scoreDiff = defense.score - offense.score;
         if (defState.shouldReplace(scoreDiff, inning)) {
             defState.replace(inning, scoreDiff, defense.score, offense.score);
@@ -675,7 +724,6 @@ function playHalfInning(offense, defense, inning) {
         
         let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs);
         
-        // 簡易球数計算
         let pitchesThrown = Math.floor(Math.random() * 4) + 3;
         if (result === 'walk') pitchesThrown += 2;
         if (result === 'so') pitchesThrown += 1;
@@ -698,12 +746,10 @@ function playHalfInning(offense, defense, inning) {
     }
 }
 
-// ★ 公式ルール完全準拠の投手記録割り当て (勝利・敗戦・セーブ・ホールド)
 function assignPitcherRecords(winPState, losePState) {
     let winUsed = winPState.pitchersUsedRecord;
     let loseUsed = losePState.pitchersUsedRecord;
     
-    // --- 1. WP (勝利投手) ---
     let wp = null;
     let tookLeadIndex = 0;
     for (let i = winUsed.length - 1; i >= 0; i--) {
@@ -712,23 +758,20 @@ function assignPitcherRecords(winPState, losePState) {
     let candidateWP = winUsed[tookLeadIndex];
 
     if (tookLeadIndex === 0) {
-        // 先発投手が5回(15アウト)以上投げたか判定
         if (candidateWP.outs >= 15) {
             wp = candidateWP.p;
         } else {
-            // 5回未満で降板した場合、最も効果的な投球をした救援投手に勝ちがつく
             let relievers = winUsed.slice(1);
             if (relievers.length > 0) {
                 relievers.sort((a, b) => (b.outs - b.er*3) - (a.outs - a.er*3));
                 wp = relievers[0].p;
             } else { wp = candidateWP.p; }
         }
-    } else { wp = candidateWP.p; } // 逆転勝利時はその投手に勝ちがつく
+    } else { wp = candidateWP.p; } 
     if (wp) wp.stats.wins++;
 
-    // --- 2. LP (敗戦投手) ---
     let lp = null;
-    for (let i = loseUsed.length - 1; i >= 0; i--) { // 勝ち越し点(決勝点)を許した投手
+    for (let i = loseUsed.length - 1; i >= 0; i--) { 
          if (loseUsed[i].entryScoreDef >= loseUsed[i].entryScoreOff && loseUsed[i].exitScoreDef < loseUsed[i].exitScoreOff) { lp = loseUsed[i].p; break; }
     }
     if (!lp) {
@@ -737,7 +780,6 @@ function assignPitcherRecords(winPState, losePState) {
     }
     if (lp) lp.stats.losses++;
 
-    // --- 3. SV (セーブ) ---
     let lastWinRecord = winUsed[winUsed.length - 1];
     let savePitcher = null;
     if (lastWinRecord.p !== wp && winUsed.length > 1) { 
@@ -750,7 +792,6 @@ function assignPitcherRecords(winPState, losePState) {
         }
     }
 
-    // --- 4. HLD (ホールド) ---
     for (let i = 1; i < winUsed.length; i++) {
         let hldRecord = winUsed[i];
         if (hldRecord.p === wp || hldRecord.p === savePitcher) continue; 
