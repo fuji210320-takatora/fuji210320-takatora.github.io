@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ドラフトシミュレーター</title>
+    <title>プロ野球チームメーカー</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f6f5f0; color: #333; margin: 0; padding: 20px; }
@@ -60,7 +60,7 @@
 
         .team-selector { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc; }
 
-        /* 成績詳細カード (画像再現) */
+        /* 成績詳細カード */
         .result-player-card { background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .rpc-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .rpc-order { font-size: 20px; font-weight: bold; color: #999; width: 20px; text-align: center; }
@@ -650,37 +650,216 @@ function createSingleCPUTeam(teamName) {
 
 function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
 function fatigueFactor(stamina, gameOuts) { let innings = gameOuts / 3.0; if (innings <= 4) return 1.0; return clamp(1.0 - ((innings - 4) * Math.max(0.0, (80.0 - stamina)) * 0.0015), 0.82, 1.0); }
-function atBatProbabilities(batter, pitcher, gameOuts) {
-    let bCon = parseInt(batter["ミート"])||50; let bPow = parseInt(batter["パワー"])||50;
-    let pPow = parseInt(pitcher["球威"])||50; let pCtrl = parseInt(pitcher["制球"])||50; let pStamina = parseInt(pitcher["スタミナ"])||50;
-    let soQuality = 25.0 + (pPow * 0.4) + (pCtrl * 0.2); let bbQuality = (pCtrl * 0.8) + 15.0;
-    let fatigue = fatigueFactor(pStamina, gameOuts);
-    let walk = 0.095 - ((bbQuality - 50.0) * 0.0015) + (bPow>50?(bPow-50)*0.0012:0);
-    let so = 0.155 - ((bCon - soQuality) * 0.0008) + (soQuality - 60.0) * 0.0055;
-    if (fatigue < 1.0) { walk += (1.0 - fatigue) * 0.02; so -= (1.0 - fatigue) * 0.03; }
-    walk = clamp(walk, 0.010, 0.20); so = clamp(so, 0.05, 0.45);
-    return [{ result: "walk", prob: walk }, { result: "so", prob: so }, { result: "in_play", prob: Math.max(0.20, 1.0 - (walk + so)) }];
-}
-function resolveStatcastInPlay(batter, pitcher) {
-    let bCon = parseInt(batter["ミート"])||50; let bPow = parseInt(batter["パワー"])||50;
-    let pPow = parseInt(pitcher["球威"])||50; let pCtrl = parseInt(pitcher["制球"])||50;
-    let gbProb = 0.45 - (bPow-50)*0.0015 + (pCtrl-50)*0.0020;
-    let fbProb = 0.25 + (bPow-50)*0.0015 - (pPow-50)*0.0020;
-    let r = Math.random() * (gbProb + fbProb + 0.30);
-    let bType = r < gbProb ? "GB" : (r < gbProb + fbProb ? "FB" : "LD");
-    if (bType === "GB") return Math.random() > 0.72 ? (Math.random() < 0.10 ? "double" : "single") : (Math.random() < 0.02 ? "error" : "out");
-    if (bType === "FB") {
-        let hrProb = clamp(0.030 + (bPow - 50) * 0.0040, 0.0, 0.40);
-        if (Math.random() < hrProb) return "hr";
-        return Math.random() > 0.82 ? (Math.random() < 0.65 ? "single" : "double") : "out";
+
+function getPitchQuality(pitcher) {
+    let pitchNames = Object.keys(pitcher).filter(k => k.startsWith('球種_') && pitcher[k]);
+    if (pitchNames.length === 0) return { quality: 50.0, variety: 0 };
+    let weights = pitchNames.map(n => Math.max(1.0, parseInt(pitcher[n]) || 50));
+    let totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    let r = Math.random() * totalWeight;
+    let sum = 0;
+    let chosenQuality = 50.0;
+    for (let i = 0; i < pitchNames.length; i++) {
+        sum += weights[i];
+        if (r <= sum) { chosenQuality = parseInt(pitcher[pitchNames[i]]) || 50; break; }
     }
-    return Math.random() > 0.30 ? "single" : "out";
+    return { quality: chosenQuality, variety: pitchNames.length };
 }
-function simulateAtBatOutcome(batter, pitcher, gameOuts) {
+
+function atBatProbabilities(batter, pitcher, gameOuts) {
+    let bCon = parseInt(batter["ミート"]) || 50;
+    let bPow = parseInt(batter["パワー"]) || 50;
+    let pPow = parseInt(pitcher["球威"]) || 50;
+    let pCtrl = parseInt(pitcher["制球"]) || 50;
+    let pStam = parseInt(pitcher["スタミナ"]) || 50;
+
+    let pitchInfo = getPitchQuality(pitcher);
+    let pitchQuality = pitchInfo.quality;
+    let pitchVariety = pitchInfo.variety;
+
+    let soQuality = (pitchQuality * 0.4) + (pPow * 0.4) + (pCtrl * 0.2) + 5.0;
+    let bbQuality = (pCtrl * 0.8) + (pitchQuality * 0.2) + 5.0;
+
+    let fatigue = fatigueFactor(pStam, gameOuts);
+    let bbDiff = bbQuality - 50.0;
+    let rawContactDiff = bCon - soQuality;
+
+    let contactPenalty = 0.0;
+    if (bCon < 45.0) {
+        let diff = 45.0 - bCon;
+        contactPenalty = (diff * 0.4) + (diff * diff * 0.01);
+    }
+
+    let powerPenalty = 0.0;
+    if (bPow < 60.0) {
+        let diff = 60.0 - bPow;
+        powerPenalty = (diff * 0.4) + (diff * diff * 0.01);
+    }
+
+    let varietyDebuff = Math.max(0, pitchVariety - 2) * 0.0015;
+
+    let walkBonus = 0.0;
+    if (bPow > 50.0) walkBonus += (bPow - 50.0) * 0.0012;
+    if (bCon > 50.0) walkBonus += (bCon - 50.0) * 0.0006;
+    if (bPow >= 80.0) walkBonus += (bPow - 80.0) * 0.0015;
+
+    let baseWalk = 0.095;
+    let baseSo = 0.155;
+
+    let walk = baseWalk - (bbDiff * 0.0015) + walkBonus;
+    let soQualityDelta = soQuality - 60.0;
+    let so = baseSo - (rawContactDiff * 0.0008) + (contactPenalty * 0.0015) + (powerPenalty * 0.0008) + varietyDebuff + (soQualityDelta * 0.0055);
+
+    if (fatigue < 1.0) {
+        walk += (1.0 - fatigue) * 0.02;
+        so -= (1.0 - fatigue) * 0.03;
+    }
+
+    walk = clamp(walk, 0.010, 0.20);
+    so = clamp(so, 0.05, 0.45);
+    let inPlay = Math.max(0.20, 1.0 - (walk + so));
+
+    let totalStep1 = walk + so + inPlay;
+    return [
+        { result: "walk", prob: walk / totalStep1 },
+        { result: "so", prob: so / totalStep1 },
+        { result: "in_play", prob: inPlay / totalStep1 }
+    ];
+}
+
+function getFielderDefense(defTeam, engPos) {
+    if (!defTeam) return 30.0;
+    const map = { "1B": "一塁手", "2B": "二塁手", "3B": "三塁手", "SS": "遊撃手", "LF": "左翼手", "CF": "中堅手", "RF": "右翼手", "C": "捕手" };
+    let targetPos = map[engPos];
+    let fielder = defTeam.fielders.find(f => f.pos === targetPos);
+    if (!fielder) return 30.0;
+    return getPositionAptitude(fielder, targetPos);
+}
+
+function resolveStatcastInPlay(batter, pitcher, defTeam) {
+    let bCon = parseInt(batter["ミート"]) || 50;
+    let bPow = parseInt(batter["パワー"]) || 50;
+    let pPow = parseInt(pitcher["球威"]) || 50;
+    let pCtrl = parseInt(pitcher["制球"]) || 50;
+
+    let gbProb = 0.45, fbProb = 0.25, ldProb = 0.20, puProb = 0.10;
+
+    let bPowDiff = bPow - 50.0;
+    if (bPowDiff > 0) { fbProb += bPowDiff * 0.0015; gbProb -= bPowDiff * 0.0015; }
+
+    let bConDiff = bCon - 50.0;
+    if (bConDiff > 0) { ldProb += bConDiff * 0.0025; puProb -= bConDiff * 0.0025; }
+
+    let ctrlDiff = pCtrl - 50.0;
+    gbProb += ctrlDiff * 0.0020; ldProb -= ctrlDiff * 0.0020;
+
+    let powDiff = pPow - 50.0;
+    puProb += powDiff * 0.0020; fbProb -= powDiff * 0.0020;
+
+    gbProb = Math.max(0.05, gbProb);
+    fbProb = Math.max(0.05, fbProb);
+    ldProb = Math.max(0.05, ldProb);
+    puProb = Math.max(0.01, puProb);
+
+    let totalTypeProb = gbProb + fbProb + ldProb + puProb;
+    let rType = Math.random() * totalTypeProb;
+    let battedType = "PU";
+    if (rType < gbProb) battedType = "GB";
+    else if (rType < gbProb + fbProb) battedType = "FB";
+    else if (rType < gbProb + fbProb + ldProb) battedType = "LD";
+
+    let posR = Math.random();
+    let pos = "CF";
+    if (battedType === "PU") {
+        if (posR < 0.2) pos = "C"; else if (posR < 0.4) pos = "1B"; else if (posR < 0.6) pos = "2B"; else if (posR < 0.8) pos = "3B"; else pos = "SS";
+    } else if (battedType === "GB") {
+        if (posR < 0.15) pos = "1B"; else if (posR < 0.50) pos = "2B"; else if (posR < 0.65) pos = "3B"; else pos = "SS";
+    } else if (battedType === "FB") {
+        if (posR < 0.33) pos = "LF"; else if (posR < 0.67) pos = "CF"; else pos = "RF";
+    } else {
+        if (posR < 0.05) pos = "1B"; else if (posR < 0.15) pos = "2B"; else if (posR < 0.20) pos = "3B"; else if (posR < 0.30) pos = "SS"; else if (posR < 0.50) pos = "LF"; else if (posR < 0.80) pos = "CF"; else pos = "RF";
+    }
+
+    let ability = getFielderDefense(defTeam, pos);
+    let posBaseError = { "3B": 0.045, "SS": 0.030, "2B": 0.020, "1B": 0.010, "LF": 0.005, "CF": 0.005, "RF": 0.005, "C": 0.003 };
+    let baseErr = posBaseError[pos] || 0.02;
+
+    let outcome = "out";
+
+    if (battedType === "GB") {
+        let baseReach = 0.72;
+        let reachProb = (ability === 0.0) ? 0.35 : clamp(baseReach + (ability - 55.0) * 0.006, 0.40, 0.95);
+        if (Math.random() > reachProb) {
+            outcome = (["1B", "3B"].includes(pos) && Math.random() < 0.10) ? "double" : "single";
+        } else {
+            let errProb = (ability === 0.0) ? 0.20 : clamp(baseErr * (1.0 + (55.0 - ability) / 40.0), baseErr * 0.2, baseErr * 3.0);
+            outcome = Math.random() < errProb ? "error" : "out";
+        }
+    } else if (battedType === "FB") {
+        let p = bPow;
+        let hrProb = 0;
+        if (p < 50.0) hrProb = Math.max(0.0, (p - 30.0) * 0.002);
+        else if (p < 60.0) hrProb = 0.030 + (p - 50.0) * 0.0040;
+        else if (p < 65.0) hrProb = 0.070 + (p - 60.0) * 0.0050;
+        else if (p < 70.0) hrProb = 0.095 + (p - 65.0) * 0.0060;
+        else if (p < 75.0) hrProb = 0.125 + (p - 70.0) * 0.0080;
+        else if (p < 77.0) hrProb = 0.165 + (p - 75.0) * 0.0125;
+        else if (p < 80.0) hrProb = 0.190 + (p - 77.0) * 0.0100;
+        else if (p < 85.0) hrProb = 0.220 + (p - 80.0) * 0.0080;
+        else if (p < 90.0) hrProb = 0.260 + (p - 85.0) * 0.0080;
+        else hrProb = 0.300 + (p - 90.0) * 0.0050;
+
+        hrProb = clamp(hrProb, 0.0, 0.40);
+
+        if (Math.random() < hrProb) {
+            outcome = "hr";
+        } else {
+            let baseReach = 0.82;
+            let reachProb = (ability === 0.0) ? 0.30 : clamp(baseReach + (ability - 55.0) * 0.005, 0.40, 0.99);
+            if (Math.random() > reachProb) {
+                let hitR = Math.random();
+                outcome = hitR < 0.65 ? "single" : (hitR < 0.95 ? "double" : "triple");
+            } else {
+                let errProb = (ability === 0.0) ? 0.10 : clamp(baseErr * (1.0 + (55.0 - ability) / 40.0), baseErr * 0.2, baseErr * 3.0);
+                outcome = Math.random() < errProb ? "error" : "out";
+            }
+        }
+    } else if (battedType === "LD") {
+        let baseReach = 0.30;
+        let reachProb = (ability === 0.0) ? 0.10 : clamp(baseReach + (ability - 55.0) * 0.005, 0.10, 0.60);
+        if (Math.random() > reachProb) {
+            let hitR = Math.random();
+            outcome = hitR < 0.70 ? "single" : (hitR < 0.95 ? "double" : "triple");
+        } else {
+            let errProb = (ability === 0.0) ? 0.15 : clamp(baseErr * (1.0 + (55.0 - ability) / 40.0), baseErr * 0.2, baseErr * 3.0);
+            outcome = Math.random() < errProb ? "error" : "out";
+        }
+    } else if (battedType === "PU") {
+        let baseReach = 0.98;
+        let reachProb = (ability === 0.0) ? 0.60 : clamp(baseReach + (ability - 55.0) * 0.002, 0.60, 1.0);
+        if (Math.random() > reachProb) {
+            outcome = "single";
+        } else {
+            let errProb = (ability === 0.0) ? 0.15 : clamp(baseErr * (1.0 + (55.0 - ability) / 40.0), baseErr * 0.2, baseErr * 3.0);
+            outcome = Math.random() < errProb ? "error" : "out";
+        }
+    }
+
+    return outcome;
+}
+
+function simulateAtBatOutcome(batter, pitcher, gameOuts, defTeam) {
     let probs = atBatProbabilities(batter, pitcher, gameOuts);
-    let r1 = Math.random(); let cum = 0.0;
-    for (let p of probs) { cum += p.prob; if (r1 <= cum) { if (p.result !== "in_play") return p.result; break; } }
-    return resolveStatcastInPlay(batter, pitcher);
+    let r1 = Math.random();
+    let cum = 0.0;
+    for (let p of probs) {
+        cum += p.prob;
+        if (r1 <= cum) {
+            if (p.result !== "in_play") return p.result;
+            break;
+        }
+    }
+    return resolveStatcastInPlay(batter, pitcher, defTeam);
 }
 
 function advanceBases(bases, batter, result) {
@@ -998,7 +1177,9 @@ function playHalfInning(offense, defense, inning) {
         let pitcher = defState.current;
         batter.stats.pa++;
         
-        let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs);
+        // ▼ ここを修正済み：第4引数に守備側のチーム情報を渡しています
+        let result = simulateAtBatOutcome(batter, pitcher, defState.current_start_outs, defense.team);
+        
         let pitchesThrown = Math.floor(Math.random() * 4) + 3;
         if (result === 'walk') pitchesThrown += 2;
         if (result === 'so') pitchesThrown += 1;
