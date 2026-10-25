@@ -9,7 +9,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 header{background:#143e32;color:#fff;padding:22px 16px}header .wrap,main{max-width:1150px;margin:auto}h1{font-size:clamp(22px,4vw,32px);margin:0 0 6px}header p{margin:0;color:#d8e8e1;font-size:14px}
 main{padding:18px 14px 40px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 16px;box-shadow:0 3px 12px #17212b08}
-h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:700}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #cbd5dc;border-radius:8px;padding:10px;font:inherit;background:#fff;color:var(--ink)}.field textarea{min-height:72px;resize:vertical}
+h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:700}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #cbd5dc;border-radius:8px;padding:10px;font:inherit;background:#fff;color:var(--ink)}.field textarea{min-height:72px;resize:vertical}.autocomplete{position:relative}.suggestions{display:none;position:absolute;z-index:20;left:0;right:0;top:100%;max-height:240px;overflow-y:auto;background:#fff;border:1px solid #b8c7cf;border-radius:8px;box-shadow:0 5px 16px #17212b22}.suggestion{display:block;width:100%;text-align:left;border:0;border-radius:0;background:#fff;color:var(--ink);padding:10px 12px;font-weight:400}.suggestion:hover,.suggestion:focus{background:var(--accent2);color:var(--ink)}.suggestion small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}button,.button{border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:white}.secondary{background:#e9eef1;color:#263743}.danger{background:#a83232}.small{padding:6px 9px;font-size:12px}.hint{font-size:12px;color:var(--muted);line-height:1.6}.toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}.toolbar input{max-width:300px;border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit}
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:900px;background:white}th,td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;white-space:nowrap}th{background:#edf3f0;color:#244337;position:sticky;top:0}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#f8fbf9}.empty{text-align:center;padding:28px;color:var(--muted)}.badge{display:inline-block;border-radius:20px;background:var(--accent2);color:var(--accent);padding:3px 8px;font-size:12px;font-weight:700}.statrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.stat{background:#f2f6f4;border-radius:9px;padding:8px 12px;font-size:13px}.stat strong{font-size:17px;display:block}
 @media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:13px}.field input,.field select{padding:9px}main{padding:12px 9px 28px}}
@@ -34,7 +34,7 @@ h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repea
 <div class="grid">
 <div class="field"><label for="week">月/週</label><input id="week" placeholder="例：3月2週"></div>
 <div class="field"><label for="place">場所</label><input id="place" placeholder="例：中山"></div>
-<div class="field"><label for="raceName">レース名（入力候補あり）</label><input id="raceName" list="raceNames" placeholder="レース名を入力・選択"><datalist id="raceNames"></datalist></div>
+<div class="field autocomplete"><label for="raceName">レース名（部分一致で候補表示）</label><input id="raceName" autocomplete="off" placeholder="レース名の一部を入力"><div id="raceSuggestions" class="suggestions" role="listbox"></div><datalist id="raceNames"></datalist></div>
 <div class="field"><label for="raceClass">クラス</label><input id="raceClass" placeholder="例：G1"></div>
 <div class="field"><label for="course">コース</label><input id="course" placeholder="例：芝2000m"></div>
 <div class="field"><label for="popularity">人気</label><input id="popularity" type="number" min="1" step="1" placeholder="例：3"></div>
@@ -94,11 +94,29 @@ function setFromMaster(){
   const found = raceMaster.find(r=>r.race===name);
   if(found){ $("week").value=found.week||""; $("place").value=found.place||""; $("raceClass").value=found.class||""; $("course").value=found.course||""; }
 }
+function hideRaceSuggestions(){ $("raceSuggestions").style.display="none"; }
+function chooseRaceSuggestion(name){ $("raceName").value=name; setFromMaster(); hideRaceSuggestions(); }
+function showRaceSuggestions(){
+  const q=$("raceName").value.trim().toLocaleLowerCase("ja");
+  const box=$("raceSuggestions");
+  if(!q){box.innerHTML="";hideRaceSuggestions();return;}
+  const matches=[...new Map(raceMaster.filter(r=>r.race && r.race.toLocaleLowerCase("ja").includes(q)).map(r=>[r.race,r])).values()].slice(0,30);
+  if(!matches.length){box.innerHTML='<div class="suggestion" style="color:#667482">一致する候補はありません</div>';box.style.display="block";return;}
+  box.innerHTML=matches.map(r=>`<button type="button" class="suggestion" role="option" data-race="${esc(r.race)}">${esc(r.race)}<small>${esc([r.week,r.place,r.class,r.course].filter(Boolean).join("・"))}</small></button>`).join("");
+  box.style.display="block";
+  box.querySelectorAll("button[data-race]").forEach(b=>b.addEventListener("mousedown",e=>{e.preventDefault();chooseRaceSuggestion(b.dataset.race);}));
+}
+$("raceName").addEventListener("input", showRaceSuggestions);
+$("raceName").addEventListener("focus", showRaceSuggestions);
 $("raceName").addEventListener("change", setFromMaster);
-$("raceName").addEventListener("input", () => {
-  const found = raceMaster.find(r=>r.race===$("raceName").value.trim());
-  if(found) setFromMaster();
+$("raceName").addEventListener("keydown",e=>{
+  if(e.key==="Escape")hideRaceSuggestions();
+  if(e.key==="Enter" && $("raceSuggestions").style.display==="block"){
+    const first=$("raceSuggestions").querySelector("button[data-race]");
+    if(first){e.preventDefault();chooseRaceSuggestion(first.dataset.race);}
+  }
 });
+document.addEventListener("click",e=>{if(!e.target.closest(".autocomplete"))hideRaceSuggestions();});
 function getForm(){
  return {week:$("week").value.trim(),place:$("place").value.trim(),race:$("raceName").value.trim(),
  "class":$("raceClass").value.trim(),course:$("course").value.trim(),popularity:$("popularity").value.trim(),
