@@ -30,7 +30,21 @@ h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repea
 </section>
 
 <section class="card">
-<h2 id="formTitle">レースを追加</h2>
+<h2>レース検索</h2>
+<div class="grid">
+<div class="field"><label for="searchRace">レース名</label><input id="searchRace" placeholder="レース名の一部"></div>
+<div class="field"><label for="searchWeek">月／週</label><input id="searchWeek" placeholder="例：4月2週"></div>
+<div class="field"><label for="searchPlace">場所</label><input id="searchPlace" placeholder="例：阪神"></div>
+<div class="field"><label for="searchClass">クラス</label><input id="searchClass" placeholder="例：未勝利、G1"></div>
+</div>
+<div class="actions"><button onclick="searchRaces()">検索</button><button class="secondary" onclick="clearRaceSearch()">条件クリア</button><label class="button secondary" for="raceDataFile">race_data.csvを読み込む</label><input id="raceDataFile" type="file" accept=".csv,text/csv" hidden onchange="importRaceData(event)"></div>
+<p class="hint">検索条件は組み合わせて指定できます。レースを選ぶと成績登録フォームに情報を引き継ぎます。GitHub Pagesでは同じリポジトリの race_data.csv を自動読み込みします。</p>
+<div class="tablewrap" style="margin-top:12px"><table style="min-width:650px"><thead><tr><th>レース名</th><th>月／週</th><th>場所</th><th>クラス</th><th>コース</th><th>操作</th></tr></thead><tbody id="raceSearchRows"></tbody></table></div>
+<div class="actions"><button class="secondary" onclick="downloadRaceData()">現在のレースデータをCSV保存</button></div>
+</section>
+
+<section class="card" id="recordFormCard">
+<h2 id="formTitle">成績登録</h2>
 <div class="grid">
 <div class="field"><label for="week">月/週</label><input id="week" placeholder="例：3月2週"></div>
 <div class="field"><label for="place">場所</label><input id="place" placeholder="例：中山"></div>
@@ -43,7 +57,7 @@ h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repea
 <div class="field"><label for="notes">備考</label><input id="notes" placeholder="例：レコード、重馬場など"></div>
 </div>
 <div class="actions">
-<button id="saveBtn" onclick="saveRace()">レースを追加</button>
+<button id="saveBtn" onclick="saveRace()">成績を登録</button>
 <button class="secondary" onclick="clearForm()">入力をクリア</button>
 </div>
 <p class="hint">レース名を候補から選ぶと、登録済みレースの「月/週・場所・クラス・コース」が自動入力されます。候補にないレースは手入力で登録できます。</p>
@@ -66,13 +80,8 @@ h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repea
 </section>
 
 <section class="card">
-<h2>レース候補データ</h2>
-<p class="hint">初期候補は、以前のレース一覧を取り込んだものです。ダビスタ2のゲーム内条件と一致しないレースや開催条件が含まれる可能性があります。候補にないレースは手入力できます。候補データはJSONで保存・復元できます。</p>
-<div class="actions">
-<button class="secondary" onclick="downloadRaceMaster()">レース候補をJSON保存</button>
-<label class="button secondary" for="masterFile">レース候補JSONを読み込む</label><input id="masterFile" type="file" accept=".json,application/json" hidden onchange="importRaceMaster(event)">
-<button class="secondary" onclick="addCustomRace()">今の入力内容をレース候補に登録</button>
-</div>
+<h2>レースデータについて</h2>
+<p class="hint">初期の271件は race_data.csv に書き出してあります。今後はこのCSVをExcelやGoogleスプレッドシートで編集し、CSV形式で保存してください。GitHubに index.html と race_data.csv を同じフォルダに置くと自動読み込みします。スマホでHTMLを直接開く場合は「race_data.csvを読み込む」から選択してください。</p>
 </section>
 </main>
 <script>
@@ -129,7 +138,7 @@ function saveRace(){
  else races.push({...row,id:Date.now().toString(36)+Math.random().toString(36).slice(2,7)});
  persist(); clearForm(); render();
 }
-function clearForm(){ FIELDS.forEach(k=>{const id=k==="race"?"raceName":k==="class"?"raceClass":k;$ (id).value="";}); editingId=null; $("formTitle").textContent="レースを追加"; $("saveBtn").textContent="レースを追加"; }
+function clearForm(){ FIELDS.forEach(k=>{const id=k==="race"?"raceName":k==="class"?"raceClass":k;$ (id).value="";}); editingId=null; $("formTitle").textContent="成績登録"; $("saveBtn").textContent="成績登録"; }
 function editRace(id){
  const r=races.find(x=>x.id===id); if(!r)return;
  $("week").value=r.week||"";$("place").value=r.place||"";$("raceName").value=r.race||"";$("raceClass").value=r.class||"";$("course").value=r.course||"";$("popularity").value=r.popularity||"";$("placing").value=r.placing||"";$("jockey").value=r.jockey||"";$("notes").value=r.notes||"";
@@ -159,6 +168,16 @@ function parseCSV(text){
  for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c;}else{if(c==='"')quoted=true;else if(c===","){row.push(cell);cell="";}else if(c==="\n"){row.push(cell.replace(/\r$/,""));rows.push(row);row=[];cell="";}else cell+=c;}}
  if(cell.length||row.length){row.push(cell.replace(/\r$/,""));rows.push(row);}return rows;
 }
+function searchRaces(){
+ const vals={race:$('searchRace').value.trim().toLocaleLowerCase('ja'),week:$('searchWeek').value.trim().toLocaleLowerCase('ja'),place:$('searchPlace').value.trim().toLocaleLowerCase('ja'),cls:$('searchClass').value.trim().toLocaleLowerCase('ja')};
+ const found=raceMaster.filter(r=>(!vals.race||r.race.toLocaleLowerCase('ja').includes(vals.race))&&(!vals.week||r.week.toLocaleLowerCase('ja').includes(vals.week))&&(!vals.place||r.place.toLocaleLowerCase('ja').includes(vals.place))&&(!vals.cls||r.class.toLocaleLowerCase('ja').includes(vals.cls)));
+ $('raceSearchRows').innerHTML=found.length?found.map((r,i)=>`<tr><td>${esc(r.race)}</td><td>${esc(r.week)}</td><td>${esc(r.place)}</td><td>${esc(r.class)}</td><td>${esc(r.course)}</td><td><button class="small" onclick="selectMasterRace(${raceMaster.indexOf(r)})">成績登録へ</button></td></tr>`).join(''):`<tr><td colspan="6" class="empty">該当するレースがありません。</td></tr>`;
+}
+function clearRaceSearch(){['searchRace','searchWeek','searchPlace','searchClass'].forEach(id=>$(id).value='');searchRaces();}
+function selectMasterRace(i){const r=raceMaster[i];if(!r)return; $('week').value=r.week||'';$('place').value=r.place||'';$('raceName').value=r.race||'';$('raceClass').value=r.class||'';$('course').value=r.course||'';document.getElementById('recordFormCard').scrollIntoView({behavior:'smooth'});}
+function downloadRaceData(){const rows=[['レース名','月/週','場所','クラス','コース'],...raceMaster.map(r=>[r.race,r.week,r.place,r.class,r.course])];downloadBlob('\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n'),'race_data.csv','text/csv;charset=utf-8');}
+function importRaceData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const table=parseCSV(reader.result);if(table.length<2)throw new Error('データ行がありません');const first=table[0].join('|');const hasHeader=/レース名|race/i.test(first);const data=table.slice(hasHeader?1:0).filter(r=>r.some(v=>String(v).trim())).map(r=>({race:String(r[0]||''),week:String(r[1]||''),place:String(r[2]||''),class:String(r[3]||''),course:String(r[4]||'')})).filter(r=>r.race);if(!data.length)throw new Error('レースデータが見つかりません');raceMaster=data;persist();refreshRaceNames();searchRaces();alert(`${data.length}件のレースデータを読み込みました。`);}catch(e){alert('CSVを読み込めませんでした：'+e.message);}event.target.value='';};reader.readAsText(file,'UTF-8');}
+async function autoLoadRaceData(){try{const res=await fetch('./race_data.csv',{cache:'no-store'});if(!res.ok)return;const txt=await res.text();const table=parseCSV(txt);if(table.length<2)return;const data=table.slice(1).filter(r=>r[0]).map(r=>({race:r[0]||'',week:r[1]||'',place:r[2]||'',class:r[3]||'',course:r[4]||''}));if(data.length){raceMaster=data;persist();refreshRaceNames();searchRaces();}}catch(e){/* file://ではfetch不可。手動読み込みを使う */}}
 function importCSV(event){
  const file=event.target.files[0];if(!file)return;const reader=new FileReader();
  reader.onload=()=>{try{const table=parseCSV(reader.result);if(table.length<2)throw new Error("データ行がありません");
@@ -186,7 +205,8 @@ $("horseName").value=load("ds2_horse_name","");
 $("horseMemo").value=load("ds2_horse_memo","");
 $("horseName").addEventListener("input",()=>{localStorage.setItem("ds2_horse_name",$("horseName").value);render();});
 $("horseMemo").addEventListener("input",()=>localStorage.setItem("ds2_horse_memo",$("horseMemo").value));
-refreshRaceNames();render();
+refreshRaceNames();render();searchRaces();autoLoadRaceData();
+["searchRace","searchWeek","searchPlace","searchClass"].forEach(id=>$(id).addEventListener("input",searchRaces));
 </script>
 </body>
 </html>
