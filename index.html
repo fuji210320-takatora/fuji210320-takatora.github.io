@@ -41,11 +41,26 @@ if(!userId){userId=crypto.randomUUID();localStorage.setItem('dbb_user_id',userId
 let roomId=null,room=null,unsubscribe=null,selected=null,teamSetupDraft=null;
 const players=[{"name":"佐藤輝明","team":"阪神","type":"野手","positionAbilities":[{"position":"3B","value":51.0},{"position":"LF","value":55.0},{"position":"RF","value":60.0}],"abilities":{"ミート":74,"パワー":84,"走力":66},"rawDefense":"3B:51 / LF:55 / RF:60","id":"player_001"},{"name":"近藤健介","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"C","value":11.0},{"position":"1B","value":32.0},{"position":"LF","value":58.0},{"position":"CF","value":31.0},{"position":"RF","value":62.0}],"abilities":{"ミート":80,"パワー":79,"走力":48},"rawDefense":"C:11 /1B:32 / LF:58 / CF:31 / RF:62","id":"player_002"},{"name":"レイエス","team":"日本ハム","type":"野手","positionAbilities":[{"position":"1B","value":44.0},{"position":"LF","value":22.0},{"position":"RF","value":22.0}],"abilities":{"ミート":82,"パワー":84,"走力":32},"rawDefense":"1B:44 / LF:22 / RF:22","id":"player_003"},{"name":"森下翔太","team":"阪神","type":"野手","positionAbilities":[{"position":"LF","value":64.0},{"position":"CF","value":47.0},{"position":"RF","value":75.0}],"abilities":{"ミート":77,"パワー":81,"走力":55},"rawDefense":"LF:64 / CF:47 / RF:75","id":"player_004"},{"name":"西川史礁","team":"ロッテ","type":"野手","positionAbilities":[{"position":"LF","value":69.0},{"position":"RF","value":68.0}],"abilities":{"ミート":76,"パワー":66,"走力":52},"rawDefense":"LF:69 / RF:68","id":"player_005"},{"name":"西川龍馬","team":"オリックス","type":"野手","positionAbilities":[{"position":"RF","value":38.0},{"position":"LF","value":42.0}],"abilities":{"ミート":71,"パワー":64,"走力":56},"rawDefense":"RF:38 / LF:42","id":"player_006"},{"name":"水野達稀","team":"日本ハム","type":"野手","positionAbilities":[{"position":"2B","value":65.0},{"position":"SS","value":57.0}],"abilities":{"ミート":62,"パワー":54,"走力":77},"rawDefense":"2B:65 / SS:57","id":"player_007"},{"name":"栗原陵矢","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"C","value":15.0},{"position":"1B","value":59.0},{"position":"3B","value":66.0},{"position":"LF","value":41.0}],"abilities":{"ミート":51,"パワー":87,"走力":50},"rawDefense":"C:15 / 1B:59 / 3B:66 / LF:41","id":"player_008"},{"name":"柳田悠岐","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"LF","value":54.0},{"position":"CF","value":28.0},{"position":"RF","value":43.0}],"abilities":{"ミート":70,"パワー":72,"走力":49},"rawDefense":"LF:54 / CF:28 / RF:43","id":"player_009"},{"name":"大山悠輔","team":"阪神","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"3B","value":21.0},{"position":"LF","value":21.0}],"abilities":{"ミート":62,"パワー":70,"走力":48},"rawDefense":"1B:51 / 3B:21 / LF:21","id":"player_010"},{"name":"太田椋","team":"オリックス","type":"野手","positionAbilities":[{"position":"1B","value":39.0},{"position":"2B","value":45.0}],"abilities":{"ミート":68,"パワー":54,"走力":55},"rawDefense":"1B:39 / 2B:45","id":"player_011"},{"name":"正木智也","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"1B","value":59.0},{"position":"LF","value":57.0},{"position":"CF","value":50.0},{"position":"RF","value":59.0}],"abilities":{"ミート":58,"パワー":83,"走力":34},"rawDefense":"1B:59 / LF:57 / CF:50 / RF:59","id":"player_012"},{"name":"周東佑京","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"2B","value":25.0},{"position":"3B","value":25.0},{"position":"LF","value":56.0},{"position":"CF","value":92.0},{"position":"RF","value":51.0}],"abilities":{"ミート":72,"パワー":46,"走力":98},"rawDefense":"2B:25 / 3B:25 / LF:56 / CF:92 / RF:51","id":"player_013"},{"name":"牧原大成","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"2B","value":64.0},{"position":"LF","value":65.0},{"position":"CF","value":58.0},{"position":"RF","value":52.0}],"abilities":{"ミート":74,"パワー":49,"走力":78},"rawDefense":"2B:64 / LF:65 / CF:58 / RF:52","id":"player_014"},{"name":"中野拓夢","team":"阪神","type":"野手","positionAbilities":[{"position":"2B","value":69.0},{"position":"SS","value":47.0}],"abilities":{"ミート":78,"パワー":31,"走力":65},"rawDefense":"2B:69 / SS:47","id":"player_015"},{"name":"度会隆輝","team":"DeNA","type":"野手","positionAbilities":[{"position":"3B","value":49.0},{"position":"LF","value":48.0},{"position":"RF","value":63.0}],"abilities":{"ミート":69,"パワー":62,"走力":61},"rawDefense":"3B:49 / LF:48 / RF:63","id":"player_016"},{"name":"牧秀悟","team":"DeNA","type":"野手","positionAbilities":[{"position":"1B","value":36.0},{"position":"2B","value":49.0}],"abilities":{"ミート":68,"パワー":78,"走力":32},"rawDefense":"1B:36 / 2B:49","id":"player_017"},{"name":"滝澤夏央","team":"西武","type":"野手","positionAbilities":[{"position":"2B","value":70.0},{"position":"3B","value":57.0},{"position":"SS","value":89.0}],"abilities":{"ミート":68,"パワー":36,"走力":72},"rawDefense":"2B:70 / 3B:57 / SS:89","id":"player_018"},{"name":"辰己涼介","team":"楽天","type":"野手","positionAbilities":[{"position":"LF","value":31.0},{"position":"CF","value":72.0},{"position":"RF","value":70.0}],"abilities":{"ミート":47,"パワー":61,"走力":70},"rawDefense":"LF:31 / CF:72 / RF:70","id":"player_019"},{"name":"佐野恵太","team":"DeNA","type":"野手","positionAbilities":[{"position":"1B","value":35.0},{"position":"LF","value":30.0}],"abilities":{"ミート":67,"パワー":61,"走力":32},"rawDefense":"1B:35 / LF:30","id":"player_020"},{"name":"増田珠","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"LF","value":45.0},{"position":"RF","value":52.0}],"abilities":{"ミート":59,"パワー":60,"走力":35},"rawDefense":"1B:51 / LF:45 / RF:52","id":"player_021"},{"name":"藤原恭大","team":"ロッテ","type":"野手","positionAbilities":[{"position":"CF","value":44.0},{"position":"RF","value":52.0}],"abilities":{"ミート":64,"パワー":56,"走力":73},"rawDefense":"CF:44 / RF:52","id":"player_022"},{"name":"紅林弘太郎","team":"オリックス","type":"野手","positionAbilities":[{"position":"2B","value":35.0},{"position":"3B","value":41.0},{"position":"SS","value":63.0}],"abilities":{"ミート":58,"パワー":69,"走力":55},"rawDefense":"2B:35 / 3B:41 / SS:63","id":"player_023"},{"name":"浦田俊輔","team":"巨人","type":"野手","positionAbilities":[{"position":"2B","value":70.0},{"position":"3B","value":68.0},{"position":"SS","value":43.0}],"abilities":{"ミート":66,"パワー":37,"走力":84},"rawDefense":"2B:70 / 3B:68 / SS:43","id":"player_024"},{"name":"松本剛","team":"巨人","type":"野手","positionAbilities":[{"position":"LF","value":66.0},{"position":"CF","value":51.0},{"position":"RF","value":67.0}],"abilities":{"ミート":66,"パワー":53,"走力":64},"rawDefense":"LF:66 / CF:51 / RF:67","id":"player_025"},{"name":"村松開人","team":"中日","type":"野手","positionAbilities":[{"position":"2B","value":55.0},{"position":"SS","value":69.0}],"abilities":{"ミート":66,"パワー":53,"走力":70},"rawDefense":"2B:55 / SS:69","id":"player_026"},{"name":"村林一輝","team":"楽天","type":"野手","positionAbilities":[{"position":"2B","value":34.0},{"position":"3B","value":54.0},{"position":"SS","value":48.0}],"abilities":{"ミート":65,"パワー":53,"走力":50},"rawDefense":"2B:34 / 3B:54 / SS:48","id":"player_027"},{"name":"細川成也","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":27.0},{"position":"LF","value":27.0}],"abilities":{"ミート":39,"パワー":78,"走力":37},"rawDefense":"1B:27 / LF:27","id":"player_028"},{"name":"ネビン","team":"西武","type":"野手","positionAbilities":[{"position":"1B","value":68.0}],"abilities":{"ミート":65,"パワー":69,"走力":28},"rawDefense":"1B:68","id":"player_029"},{"name":"近本光司","team":"阪神","type":"野手","positionAbilities":[{"position":"LF","value":45.0},{"position":"CF","value":82.0}],"abilities":{"ミート":78,"パワー":45,"走力":77},"rawDefense":"LF:45 / CF:82","id":"player_030"},{"name":"ダルベック","team":"巨人","type":"野手","positionAbilities":[{"position":"1B","value":50.0},{"position":"3B","value":41.0}],"abilities":{"ミート":54,"パワー":77,"走力":36},"rawDefense":"1B:50 / 3B:41","id":"player_031"},{"name":"小川龍成","team":"ロッテ","type":"野手","positionAbilities":[{"position":"2B","value":77.0},{"position":"SS","value":58.0}],"abilities":{"ミート":64,"パワー":47,"走力":62},"rawDefense":"2B:77 / SS:58","id":"player_032"},{"name":"長岡秀樹","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"2B","value":50.0},{"position":"SS","value":55.0}],"abilities":{"ミート":53,"パワー":57,"走力":52},"rawDefense":"2B:50 / SS:55","id":"player_033"},{"name":"坂倉将吾","team":"広島","type":"野手","positionAbilities":[{"position":"C","value":41.0},{"position":"1B","value":49.0},{"position":"3B","value":40.0}],"abilities":{"ミート":52,"パワー":70,"走力":58},"rawDefense":"C:41 / 1B:49 / 3B:40","id":"player_034"},{"name":"中島大輔","team":"楽天","type":"野手","positionAbilities":[{"position":"LF","value":89.0},{"position":"CF","value":70.0},{"position":"RF","value":62.0}],"abilities":{"ミート":64,"パワー":45,"走力":79},"rawDefense":"LF:89 / CF:70 / RF:62","id":"player_035"},{"name":"山口航輝","team":"ロッテ","type":"野手","positionAbilities":[{"position":"1B","value":54.0},{"position":"LF","value":51.0}],"abilities":{"ミート":56,"パワー":85,"走力":39},"rawDefense":"1B:54 / LF:51","id":"player_036"},{"name":"福永裕基","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":46.0},{"position":"2B","value":60.0},{"position":"3B","value":56.0}],"abilities":{"ミート":59,"パワー":55,"走力":54},"rawDefense":"1B:46 / 2B:60 / 3B:56","id":"player_037"},{"name":"泉口友汰","team":"巨人","type":"野手","positionAbilities":[{"position":"2B","value":51.0},{"position":"3B","value":51.0},{"position":"SS","value":72.0}],"abilities":{"ミート":61,"パワー":57,"走力":60},"rawDefense":"2B:51 / 3B:51 / SS:72","id":"player_038"},{"name":"勝又温史","team":"DeNA","type":"野手","positionAbilities":[{"position":"LF","value":57.0},{"position":"CF","value":65.0},{"position":"RF","value":42.0}],"abilities":{"ミート":60,"パワー":44,"走力":61},"rawDefense":"LF:57 / CF:65 / RF:42","id":"player_039"},{"name":"サンタナ","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"LF","value":18.0}],"abilities":{"ミート":53,"パワー":68,"走力":21},"rawDefense":"LF:18","id":"player_040"},{"name":"筒香嘉智","team":"DeNA","type":"野手","positionAbilities":[{"position":"1B","value":25.0},{"position":"3B","value":30.0},{"position":"LF","value":35.0}],"abilities":{"ミート":49,"パワー":69,"走力":32},"rawDefense":"1B:25 / 3B:30 / LF:35","id":"player_041"},{"name":"カナリオ","team":"西武","type":"野手","positionAbilities":[{"position":"RF","value":48.0}],"abilities":{"ミート":46,"パワー":61,"走力":73},"rawDefense":"RF:48","id":"player_042"},{"name":"宗佑磨","team":"オリックス","type":"野手","positionAbilities":[{"position":"3B","value":59.0},{"position":"CF","value":21.0}],"abilities":{"ミート":56,"パワー":52,"走力":55},"rawDefense":"3B:59 / CF:21","id":"player_043"},{"name":"万波中正","team":"日本ハム","type":"野手","positionAbilities":[{"position":"1B","value":35.0},{"position":"LF","value":67.0},{"position":"CF","value":30.0},{"position":"RF","value":51.0}],"abilities":{"ミート":51,"パワー":72,"走力":52},"rawDefense":"1B:35 / LF:67 / CF:30 / RF:51","id":"player_044"},{"name":"渡部聖弥","team":"西武","type":"野手","positionAbilities":[{"position":"3B","value":58.0},{"position":"LF","value":51.0}],"abilities":{"ミート":58,"パワー":60,"走力":40},"rawDefense":"3B:58 / LF:51","id":"player_045"},{"name":"菊池涼介","team":"広島","type":"野手","positionAbilities":[{"position":"2B","value":58.0}],"abilities":{"ミート":64,"パワー":59,"走力":50},"rawDefense":"2B:58","id":"player_046"},{"name":"清宮幸太郎","team":"日本ハム","type":"野手","positionAbilities":[{"position":"1B","value":58.0},{"position":"3B","value":42.0},{"position":"LF","value":25.0}],"abilities":{"ミート":49,"パワー":71,"走力":42},"rawDefense":"1B:58 / 3B:42 / LF:25","id":"player_047"},{"name":"中川圭太","team":"オリックス","type":"野手","positionAbilities":[{"position":"1B","value":30.0},{"position":"LF","value":30.0},{"position":"CF","value":33.0},{"position":"RF","value":57.0}],"abilities":{"ミート":58,"パワー":54,"走力":52},"rawDefense":"1B:30 / LF:30 / CF:33 / RF:57","id":"player_048"},{"name":"黒川史陽","team":"楽天","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"2B","value":55.0},{"position":"3B","value":60.0}],"abilities":{"ミート":61,"パワー":51,"走力":33},"rawDefense":"1B:51 / 2B:55 / 3B:60","id":"player_049"},{"name":"小園海斗","team":"広島","type":"野手","positionAbilities":[{"position":"2B","value":41.0},{"position":"3B","value":47.0},{"position":"SS","value":43.0}],"abilities":{"ミート":57,"パワー":50,"走力":58},"rawDefense":"2B:41 / 3B:47 / SS:43","id":"player_050"},{"name":"佐々木俊輔","team":"巨人","type":"野手","positionAbilities":[{"position":"LF","value":70.0},{"position":"CF","value":64.0},{"position":"RF","value":43.0}],"abilities":{"ミート":55,"パワー":60,"走力":70},"rawDefense":"LF:70 / CF:64 / RF:43","id":"player_051"},{"name":"大城卓三","team":"巨人","type":"野手","positionAbilities":[{"position":"C","value":72.0},{"position":"1B","value":51.0}],"abilities":{"ミート":61,"パワー":69,"走力":24},"rawDefense":"C:72 / 1B:51","id":"player_052"},{"name":"丸山和郁","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"LF","value":31.0},{"position":"CF","value":57.0},{"position":"RF","value":72.0}],"abilities":{"ミート":64,"パワー":48,"走力":80},"rawDefense":"LF:31 / CF:57 / RF:72","id":"player_053"},{"name":"野村佑希","team":"日本ハム","type":"野手","positionAbilities":[{"position":"1B","value":62.0},{"position":"2B","value":44.0},{"position":"3B","value":50.0},{"position":"LF","value":45.0},{"position":"CF","value":57.0},{"position":"RF","value":55.0}],"abilities":{"ミート":60,"パワー":68,"走力":48},"rawDefense":"1B:62 / 2B:44 / 3B:50 / LF:45 / CF:57 / RF:55","id":"player_054"},{"name":"佐々木泰","team":"広島","type":"野手","positionAbilities":[{"position":"1B","value":53.0},{"position":"3B","value":68.0},{"position":"RF","value":30.0}],"abilities":{"ミート":58,"パワー":52,"走力":45},"rawDefense":"1B:53 / 3B:68 / RF:30","id":"player_055"},{"name":"佐藤都志也","team":"ロッテ","type":"野手","positionAbilities":[{"position":"C","value":56.0},{"position":"1B","value":52.0}],"abilities":{"ミート":60,"パワー":69,"走力":51},"rawDefense":"C:56 / 1B:52","id":"player_056"},{"name":"小島大河","team":"西武","type":"野手","positionAbilities":[{"position":"C","value":55.0}],"abilities":{"ミート":60,"パワー":61,"走力":46},"rawDefense":"C:55","id":"player_057"},{"name":"マッカスカー","team":"楽天","type":"野手","positionAbilities":[{"position":"LF","value":35.0},{"position":"RF","value":55.0}],"abilities":{"ミート":51,"パワー":75,"走力":31},"rawDefense":"LF:35 / RF:55","id":"player_058"},{"name":"来田涼斗","team":"オリックス","type":"野手","positionAbilities":[{"position":"LF","value":31.0},{"position":"CF","value":55.0},{"position":"RF","value":41.0}],"abilities":{"ミート":59,"パワー":50,"走力":71},"rawDefense":"LF:31 / CF:55 / RF:41","id":"player_059"},{"name":"山中稜真","team":"オリックス","type":"野手","positionAbilities":[{"position":"C","value":35.0},{"position":"1B","value":60.0},{"position":"LF","value":68.0},{"position":"RF","value":63.0}],"abilities":{"ミート":60,"パワー":52,"走力":34},"rawDefense":"C:35 / 1B:60 / LF:68 / RF:63","id":"player_060"},{"name":"郡司裕也","team":"日本ハム","type":"野手","positionAbilities":[{"position":"C","value":41.0},{"position":"1B","value":48.0},{"position":"3B","value":48.0},{"position":"LF","value":32.0}],"abilities":{"ミート":54,"パワー":58,"走力":47},"rawDefense":"C:41 / 1B:48 / 3B:48 / LF:32","id":"player_061"},{"name":"YG安田","team":"楽天","type":"野手","positionAbilities":[{"position":"C","value":35.0},{"position":"1B","value":30.0}],"abilities":{"ミート":48,"パワー":60,"走力":30},"rawDefense":"C:35 / 1B:30","id":"player_062"},{"name":"宗山塁","team":"楽天","type":"野手","positionAbilities":[{"position":"2B","value":35.0},{"position":"3B","value":35.0},{"position":"SS","value":66.0}],"abilities":{"ミート":68,"パワー":58,"走力":66},"rawDefense":"2B:35 / 3B:35 / SS:66","id":"player_063"},{"name":"古賀悠斗","team":"西武","type":"野手","positionAbilities":[{"position":"C","value":60.0}],"abilities":{"ミート":54,"パワー":55,"走力":31},"rawDefense":"C:60","id":"player_064"},{"name":"岩田幸宏","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"LF","value":55.0},{"position":"CF","value":55.0}],"abilities":{"ミート":49,"パワー":48,"走力":90},"rawDefense":"LF:55 / CF:55","id":"player_065"},{"name":"石川昂弥","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":60.0},{"position":"3B","value":62.0}],"abilities":{"ミート":59,"パワー":60,"走力":30},"rawDefense":"1B:60 / 3B:62","id":"player_066"},{"name":"古賀優大","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"C","value":79.0}],"abilities":{"ミート":61,"パワー":49,"走力":34},"rawDefense":"C:79","id":"player_067"},{"name":"宮崎敏郎","team":"DeNA","type":"野手","positionAbilities":[{"position":"3B","value":48.0}],"abilities":{"ミート":61,"パワー":57,"走力":30},"rawDefense":"3B:48","id":"player_068"},{"name":"石伊雄太","team":"中日","type":"野手","positionAbilities":[{"position":"C","value":56.0}],"abilities":{"ミート":58,"パワー":50,"走力":30},"rawDefense":"C:56","id":"player_069"},{"name":"蝦名達夫","team":"DeNA","type":"野手","positionAbilities":[{"position":"LF","value":57.0},{"position":"CF","value":43.0},{"position":"RF","value":64.0}],"abilities":{"ミート":58,"パワー":53,"走力":62},"rawDefense":"LF:57 / CF:43 / RF:64","id":"player_070"},{"name":"長谷川信哉","team":"西武","type":"野手","positionAbilities":[{"position":"1B","value":46.0},{"position":"CF","value":50.0},{"position":"RF","value":33.0}],"abilities":{"ミート":58,"パワー":61,"走力":66},"rawDefense":"1B:46 / CF:50 / RF:33","id":"player_071"},{"name":"エンカーナシオン","team":"DeNA","type":"野手","positionAbilities":[{"position":"RF","value":55.0}],"abilities":{"ミート":61,"パワー":70,"走力":52},"rawDefense":"RF:55","id":"player_072"},{"name":"内山壮真","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"2B","value":59.0},{"position":"3B","value":43.0},{"position":"SS","value":45.0},{"position":"LF","value":41.0}],"abilities":{"ミート":57,"パワー":59,"走力":53},"rawDefense":"2B:59 / 3B:43 / SS:45 / LF:41","id":"player_073"},{"name":"平沢大河","team":"西武","type":"野手","positionAbilities":[{"position":"1B","value":47.0},{"position":"2B","value":43.0},{"position":"3B","value":46.0},{"position":"LF","value":46.0},{"position":"RF","value":51.0}],"abilities":{"ミート":57,"パワー":53,"走力":30},"rawDefense":"1B:47 / 2B:43 / 3B:46 / LF:46 / RF:51","id":"player_074"},{"name":"田宮裕涼","team":"日本ハム","type":"野手","positionAbilities":[{"position":"C","value":68.0},{"position":"LF","value":65.0},{"position":"CF","value":55.0}],"abilities":{"ミート":53,"パワー":53,"走力":55},"rawDefense":"C:68 / LF:65 / CF:55","id":"player_075"},{"name":"柳町達","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"LF","value":68.0},{"position":"RF","value":57.0}],"abilities":{"ミート":52,"パワー":42,"走力":58},"rawDefense":"LF:68 / RF:57","id":"player_076"},{"name":"安田尚憲","team":"ロッテ","type":"野手","positionAbilities":[{"position":"1B","value":46.0},{"position":"3B","value":53.0}],"abilities":{"ミート":56,"パワー":58,"走力":42},"rawDefense":"1B:46 / 3B:53","id":"player_077"},{"name":"キャベッジ","team":"巨人","type":"野手","positionAbilities":[{"position":"LF","value":46.0},{"position":"CF","value":38.0},{"position":"RF","value":28.0}],"abilities":{"ミート":39,"パワー":64,"走力":41},"rawDefense":"LF:46 / CF:38 / RF:28","id":"player_078"},{"name":"赤羽由紘","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"1B","value":57.0},{"position":"2B","value":47.0},{"position":"3B","value":51.0},{"position":"LF","value":54.0},{"position":"RF","value":55.0}],"abilities":{"ミート":42,"パワー":54,"走力":60},"rawDefense":"1B:57 / 2B:47 / 3B:51 / LF:54 / RF:55","id":"player_079"},{"name":"モンテロ","team":"広島","type":"野手","positionAbilities":[{"position":"1B","value":47.0}],"abilities":{"ミート":55,"パワー":59,"走力":26},"rawDefense":"1B:47","id":"player_080"},{"name":"松尾汐恩","team":"DeNA","type":"野手","positionAbilities":[{"position":"C","value":56.0}],"abilities":{"ミート":55,"パワー":53,"走力":49},"rawDefense":"C:56","id":"player_081"},{"name":"阿部寿樹","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":48.0},{"position":"2B","value":31.0},{"position":"3B","value":40.0},{"position":"LF","value":47.0}],"abilities":{"ミート":55,"パワー":51,"走力":40},"rawDefense":"1B:48 / 2B:31 / 3B:40 / LF:47","id":"player_082"},{"name":"森友哉","team":"オリックス","type":"野手","positionAbilities":[{"position":"C","value":43.0},{"position":"RF","value":25.0}],"abilities":{"ミート":49,"パワー":54,"走力":46},"rawDefense":"C:43 / RF:25","id":"player_083"},{"name":"秋山翔吾","team":"広島","type":"野手","positionAbilities":[{"position":"LF","value":43.0},{"position":"CF","value":50.0},{"position":"RF","value":42.0}],"abilities":{"ミート":54,"パワー":50,"走力":52},"rawDefense":"LF:43 / CF:50 / RF:42","id":"player_084"},{"name":"岡林勇希","team":"中日","type":"野手","positionAbilities":[{"position":"CF","value":66.0},{"position":"RF","value":69.0}],"abilities":{"ミート":46,"パワー":49,"走力":78},"rawDefense":"CF:66 / RF:69","id":"player_085"},{"name":"名原典彦","team":"広島","type":"野手","positionAbilities":[{"position":"LF","value":45.0},{"position":"CF","value":70.0},{"position":"RF","value":69.0}],"abilities":{"ミート":48,"パワー":50,"走力":71},"rawDefense":"LF:45 / CF:70 / RF:69","id":"player_086"},{"name":"高寺望夢","team":"阪神","type":"野手","positionAbilities":[{"position":"2B","value":63.0},{"position":"3B","value":42.0},{"position":"SS","value":42.0},{"position":"LF","value":68.0},{"position":"CF","value":62.0},{"position":"RF","value":60.0}],"abilities":{"ミート":44,"パワー":48,"走力":77},"rawDefense":"2B:63 / 3B:42 / SS:42 / LF:68 / CF:62 / RF:60","id":"player_087"},{"name":"庄子雄大","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"2B","value":66.0},{"position":"3B","value":55.0},{"position":"SS","value":75.0}],"abilities":{"ミート":53,"パワー":46,"走力":85},"rawDefense":"2B:66 / 3B:55 / SS:75","id":"player_088"},{"name":"奈良間大己","team":"日本ハム","type":"野手","positionAbilities":[{"position":"2B","value":62.0},{"position":"3B","value":45.0},{"position":"SS","value":64.0}],"abilities":{"ミート":53,"パワー":53,"走力":58},"rawDefense":"2B:62 / 3B:45 / SS:64","id":"player_089"},{"name":"宮下朝陽","team":"DeNA","type":"野手","positionAbilities":[{"position":"2B","value":55.0},{"position":"3B","value":60.0},{"position":"SS","value":66.0}],"abilities":{"ミート":53,"パワー":63,"走力":54},"rawDefense":"2B:55 / 3B:60 / SS:66","id":"player_090"},{"name":"山本祐大","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"C","value":71.0},{"position":"1B","value":28.0}],"abilities":{"ミート":64,"パワー":51,"走力":48},"rawDefense":"C:71 / 1B:28","id":"player_091"},{"name":"ソト","team":"ロッテ","type":"野手","positionAbilities":[{"position":"1B","value":44.0},{"position":"2B","value":15.0},{"position":"RF","value":22.0}],"abilities":{"ミート":42,"パワー":63,"走力":22},"rawDefense":"1B:44 / 2B:15 / RF:22","id":"player_092"},{"name":"浅村栄斗","team":"楽天","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"2B","value":32.0},{"position":"3B","value":35.0}],"abilities":{"ミート":52,"パワー":54,"走力":30},"rawDefense":"1B:51 / 2B:32 / 3B:35","id":"player_093"},{"name":"平良竜哉","team":"楽天","type":"野手","positionAbilities":[{"position":"2B","value":35.0},{"position":"3B","value":45.0},{"position":"RF","value":41.0}],"abilities":{"ミート":52,"パワー":55,"走力":34},"rawDefense":"2B:35 / 3B:45 / RF:41","id":"player_094"},{"name":"田中幹也","team":"中日","type":"野手","positionAbilities":[{"position":"2B","value":81.0},{"position":"SS","value":60.0}],"abilities":{"ミート":59,"パワー":49,"走力":71},"rawDefense":"2B:81 / SS:60","id":"player_095"},{"name":"吉田賢吾","team":"日本ハム","type":"野手","positionAbilities":[{"position":"C","value":31.0},{"position":"1B","value":43.0},{"position":"2B","value":30.0},{"position":"LF","value":42.0},{"position":"CF","value":29.0},{"position":"RF","value":48.0}],"abilities":{"ミート":59,"パワー":60,"走力":29},"rawDefense":"C:31 / 1B:43 / 2B:30 / LF:42 / CF:29 / RF:48","id":"player_096"},{"name":"有薗直輝","team":"日本ハム","type":"野手","positionAbilities":[{"position":"1B","value":55.0},{"position":"3B","value":63.0}],"abilities":{"ミート":52,"パワー":54,"走力":41},"rawDefense":"1B:55 / 3B:63","id":"player_097"},{"name":"ファビアン","team":"広島","type":"野手","positionAbilities":[{"position":"LF","value":51.0}],"abilities":{"ミート":44,"パワー":62,"走力":36},"rawDefense":"LF:51","id":"player_098"},{"name":"サノー","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":48.0}],"abilities":{"ミート":21,"パワー":76,"走力":27},"rawDefense":"1B:48","id":"player_099"},{"name":"渡部遼人","team":"オリックス","type":"野手","positionAbilities":[{"position":"LF","value":60.0},{"position":"CF","value":83.0},{"position":"RF","value":61.0}],"abilities":{"ミート":51,"パワー":47,"走力":77},"rawDefense":"LF:60 / CF:83 / RF:61","id":"player_100"},{"name":"元山飛優","team":"阪神","type":"野手","positionAbilities":[{"position":"1B","value":41.0},{"position":"2B","value":43.0},{"position":"3B","value":43.0},{"position":"SS","value":55.0}],"abilities":{"ミート":64,"パワー":33,"走力":53},"rawDefense":"1B:41 / 2B:43 / 3B:43 / SS:55","id":"player_101"},{"name":"モンテル","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"CF","value":33.0},{"position":"RF","value":50.0}],"abilities":{"ミート":59,"パワー":59,"走力":66},"rawDefense":"CF:33 / RF:50","id":"player_102"},{"name":"高橋周平","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":41.0},{"position":"2B","value":28.0},{"position":"3B","value":44.0}],"abilities":{"ミート":51,"パワー":46,"走力":41},"rawDefense":"1B:41 / 2B:28 / 3B:44","id":"player_103"},{"name":"大盛穂","team":"広島","type":"野手","positionAbilities":[{"position":"LF","value":50.0},{"position":"CF","value":68.0},{"position":"RF","value":55.0}],"abilities":{"ミート":50,"パワー":51,"走力":73},"rawDefense":"LF:50 / CF:68 / RF:55","id":"player_104"},{"name":"友杉篤輝","team":"ロッテ","type":"野手","positionAbilities":[{"position":"2B","value":70.0},{"position":"SS","value":82.0}],"abilities":{"ミート":50,"パワー":45,"走力":77},"rawDefense":"2B:70 / SS:82","id":"player_105"},{"name":"武岡龍世","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"2B","value":30.0},{"position":"3B","value":51.0},{"position":"SS","value":52.0}],"abilities":{"ミート":50,"パワー":52,"走力":58},"rawDefense":"2B:30 / 3B:51 / SS:52","id":"player_106"},{"name":"源田壮亮","team":"西武","type":"野手","positionAbilities":[{"position":"2B","value":50.0},{"position":"3B","value":50.0},{"position":"SS","value":96.0}],"abilities":{"ミート":50,"パワー":48,"走力":71},"rawDefense":"2B:50 / 3B:50 / SS:96","id":"player_107"},{"name":"林安可","team":"西武","type":"野手","positionAbilities":[{"position":"RF","value":47.0}],"abilities":{"ミート":43,"パワー":56,"走力":30},"rawDefense":"RF:47","id":"player_108"},{"name":"桑原将志","team":"西武","type":"野手","positionAbilities":[{"position":"LF","value":51.0},{"position":"CF","value":59.0}],"abilities":{"ミート":43,"パワー":56,"走力":71},"rawDefense":"LF:51 / CF:59","id":"player_109"},{"name":"前川右京","team":"阪神","type":"野手","positionAbilities":[{"position":"1B","value":28.0},{"position":"LF","value":28.0}],"abilities":{"ミート":50,"パワー":54,"走力":31},"rawDefense":"1B:28 / LF:28","id":"player_110"},{"name":"渡辺佳明","team":"楽天","type":"野手","positionAbilities":[{"position":"1B","value":48.0},{"position":"2B","value":45.0},{"position":"3B","value":41.0},{"position":"LF","value":41.0},{"position":"RF","value":44.0}],"abilities":{"ミート":50,"パワー":48,"走力":30},"rawDefense":"1B:48 / 2B:45 / 3B:41 / LF:41 / RF:44","id":"player_111"},{"name":"平山功太","team":"巨人","type":"野手","positionAbilities":[{"position":"CF","value":46.0},{"position":"RF","value":55.0}],"abilities":{"ミート":50,"パワー":51,"走力":30},"rawDefense":"CF:46 / RF:55","id":"player_112"},{"name":"西川愛也","team":"西武","type":"野手","positionAbilities":[{"position":"CF","value":58.0},{"position":"RF","value":58.0}],"abilities":{"ミート":49,"パワー":49,"走力":66},"rawDefense":"CF:58 / RF:58","id":"player_113"},{"name":"若月健矢","team":"オリックス","type":"野手","positionAbilities":[{"position":"C","value":52.0}],"abilities":{"ミート":49,"パワー":57,"走力":25},"rawDefense":"C:52","id":"player_114"},{"name":"オスナ","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"1B","value":41.0}],"abilities":{"ミート":41,"パワー":60,"走力":28},"rawDefense":"1B:41","id":"player_115"},{"name":"佐藤直樹","team":"楽天","type":"野手","positionAbilities":[{"position":"LF","value":55.0},{"position":"CF","value":56.0},{"position":"RF","value":66.0}],"abilities":{"ミート":49,"パワー":60,"走力":71},"rawDefense":"LF:55 / CF:56 / RF:66","id":"player_116"},{"name":"岸田行倫","team":"巨人","type":"野手","positionAbilities":[{"position":"C","value":71.0},{"position":"1B","value":35.0}],"abilities":{"ミート":49,"パワー":49,"走力":30},"rawDefense":"C:71 / 1B:35","id":"player_117"},{"name":"板山祐太郎","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"2B","value":54.0},{"position":"3B","value":55.0},{"position":"LF","value":30.0},{"position":"CF","value":57.0},{"position":"RF","value":58.0}],"abilities":{"ミート":49,"パワー":54,"走力":60},"rawDefense":"1B:51 / 2B:54 / 3B:55 / LF:30 / CF:57 / RF:58","id":"player_118"},{"name":"カストロ","team":"日本ハム","type":"野手","positionAbilities":[{"position":"2B","value":48.0},{"position":"3B","value":53.0},{"position":"SS","value":38.0},{"position":"CF","value":55.0},{"position":"RF","value":44.0}],"abilities":{"ミート":31,"パワー":58,"走力":56},"rawDefense":"2B:48 / 3B:53 / SS:38 / CF:55 / RF:44","id":"player_119"},{"name":"岸潤一郎","team":"西武","type":"野手","positionAbilities":[{"position":"1B","value":52.0},{"position":"LF","value":45.0},{"position":"CF","value":60.0},{"position":"RF","value":61.0}],"abilities":{"ミート":48,"パワー":48,"走力":75},"rawDefense":"1B:52 / LF:45 / CF:60 / RF:61","id":"player_120"},{"name":"福島圭音","team":"阪神","type":"野手","positionAbilities":[{"position":"LF","value":28.0},{"position":"CF","value":41.0},{"position":"RF","value":37.0}],"abilities":{"ミート":48,"パワー":47,"走力":82},"rawDefense":"LF:28 / CF:41 / RF:37","id":"player_121"},{"name":"細川凌平","team":"日本ハム","type":"野手","positionAbilities":[{"position":"1B","value":50.0},{"position":"2B","value":31.0},{"position":"3B","value":38.0},{"position":"LF","value":52.0},{"position":"CF","value":51.0},{"position":"RF","value":52.0}],"abilities":{"ミート":48,"パワー":46,"走力":78},"rawDefense":"1B:50 / 2B:31 / 3B:38 / LF:52 / CF:51 / RF:52","id":"player_122"},{"name":"丸佳浩","team":"巨人","type":"野手","positionAbilities":[{"position":"LF","value":38.0},{"position":"RF","value":37.0}],"abilities":{"ミート":51,"パワー":51,"走力":41},"rawDefense":"LF:38 / RF:37","id":"player_123"},{"name":"寺地隆成","team":"ロッテ","type":"野手","positionAbilities":[{"position":"C","value":35.0},{"position":"1B","value":45.0},{"position":"3B","value":44.0}],"abilities":{"ミート":47,"パワー":49,"走力":58},"rawDefense":"C:35 / 1B:45 / 3B:44","id":"player_124"},{"name":"石井一成","team":"西武","type":"野手","positionAbilities":[{"position":"2B","value":65.0},{"position":"3B","value":53.0}],"abilities":{"ミート":47,"パワー":52,"走力":58},"rawDefense":"2B:65 / 3B:53","id":"player_125"},{"name":"持丸泰輝","team":"広島","type":"野手","positionAbilities":[{"position":"C","value":43.0}],"abilities":{"ミート":47,"パワー":49,"走力":30},"rawDefense":"C:43","id":"player_126"},{"name":"鵜飼航丞","team":"中日","type":"野手","positionAbilities":[{"position":"LF","value":32.0},{"position":"CF","value":35.0},{"position":"RF","value":41.0}],"abilities":{"ミート":47,"パワー":51,"走力":34},"rawDefense":"LF:32 / CF:35 / RF:41","id":"player_127"},{"name":"吉川尚輝","team":"巨人","type":"野手","positionAbilities":[{"position":"2B","value":50.0},{"position":"3B","value":50.0}],"abilities":{"ミート":47,"パワー":46,"走力":66},"rawDefense":"2B:50 / 3B:50","id":"player_128"},{"name":"山崎剛","team":"ロッテ","type":"野手","positionAbilities":[{"position":"2B","value":57.0},{"position":"3B","value":56.0},{"position":"SS","value":57.0}],"abilities":{"ミート":47,"パワー":39,"走力":70},"rawDefense":"2B:57 / 3B:56 / SS:57","id":"player_129"},{"name":"野村勇","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"2B","value":55.0},{"position":"3B","value":42.0},{"position":"SS","value":57.0}],"abilities":{"ミート":47,"パワー":58,"走力":67},"rawDefense":"2B:55 / 3B:42 / SS:57","id":"player_130"},{"name":"石塚裕惺","team":"巨人","type":"野手","positionAbilities":[{"position":"3B","value":42.0},{"position":"SS","value":52.0}],"abilities":{"ミート":48,"パワー":51,"走力":55},"rawDefense":"3B:42 / SS:52","id":"player_131"},{"name":"水谷瞬","team":"日本ハム","type":"野手","positionAbilities":[{"position":"LF","value":66.0},{"position":"CF","value":51.0},{"position":"RF","value":75.0}],"abilities":{"ミート":46,"パワー":52,"走力":70},"rawDefense":"LF:66 / CF:51 / RF:75","id":"player_132"},{"name":"増田陸","team":"巨人","type":"野手","positionAbilities":[{"position":"1B","value":62.0},{"position":"2B","value":40.0}],"abilities":{"ミート":46,"パワー":59,"走力":37},"rawDefense":"1B:62 / 2B:40","id":"player_133"},{"name":"林琢真","team":"DeNA","type":"野手","positionAbilities":[{"position":"2B","value":56.0},{"position":"3B","value":45.0},{"position":"SS","value":75.0}],"abilities":{"ミート":46,"パワー":41,"走力":72},"rawDefense":"2B:56 / 3B:45 / SS:75","id":"player_134"},{"name":"三森大貴","team":"DeNA","type":"野手","positionAbilities":[{"position":"1B","value":55.0},{"position":"2B","value":78.0},{"position":"CF","value":36.0}],"abilities":{"ミート":50,"パワー":45,"走力":80},"rawDefense":"1B:55 / 2B:78 / CF:36","id":"player_135"},{"name":"野間峻祥","team":"広島","type":"野手","positionAbilities":[{"position":"CF","value":48.0},{"position":"RF","value":35.0}],"abilities":{"ミート":41,"パワー":38,"走力":72},"rawDefense":"CF:48 / RF:35","id":"player_136"},{"name":"坂本誠志郎","team":"阪神","type":"野手","positionAbilities":[{"position":"C","value":82.0}],"abilities":{"ミート":45,"パワー":61,"走力":35},"rawDefense":"C:82","id":"player_137"},{"name":"太田光","team":"楽天","type":"野手","positionAbilities":[{"position":"C","value":48.0}],"abilities":{"ミート":45,"パワー":47,"走力":30},"rawDefense":"C:48","id":"player_138"},{"name":"上田希由翔","team":"ロッテ","type":"野手","positionAbilities":[{"position":"1B","value":52.0},{"position":"2B","value":71.0},{"position":"3B","value":72.0}],"abilities":{"ミート":45,"パワー":60,"走力":48},"rawDefense":"1B:52 / 2B:71 / 3B:72","id":"player_139"},{"name":"小郷裕哉","team":"楽天","type":"野手","positionAbilities":[{"position":"CF","value":55.0},{"position":"RF","value":51.0}],"abilities":{"ミート":35,"パワー":45,"走力":72},"rawDefense":"CF:55 / RF:51","id":"player_140"},{"name":"ヒュンメル","team":"DeNA","type":"野手","positionAbilities":[{"position":"RF","value":30.0}],"abilities":{"ミート":45,"パワー":51,"走力":28},"rawDefense":"RF:30","id":"player_141"},{"name":"川瀬晃","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"1B","value":55.0},{"position":"2B","value":68.0},{"position":"3B","value":64.0},{"position":"SS","value":69.0}],"abilities":{"ミート":44,"パワー":46,"走力":69},"rawDefense":"1B:55 / 2B:68 / 3B:64 / SS:69","id":"player_142"},{"name":"木浪聖也","team":"阪神","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"3B","value":48.0},{"position":"SS","value":30.0}],"abilities":{"ミート":36,"パワー":45,"走力":46},"rawDefense":"1B:51 / 3B:48 / SS:30","id":"player_143"},{"name":"進藤勇也","team":"日本ハム","type":"野手","positionAbilities":[{"position":"C","value":50.0},{"position":"1B","value":31.0}],"abilities":{"ミート":39,"パワー":53,"走力":30},"rawDefense":"C:50 / 1B:31","id":"player_144"},{"name":"花田旭","team":"中日","type":"野手","positionAbilities":[{"position":"LF","value":48.0},{"position":"CF","value":48.0},{"position":"RF","value":61.0}],"abilities":{"ミート":38,"パワー":55,"走力":49},"rawDefense":"LF:48 / CF:48 / RF:61","id":"player_145"},{"name":"五十幡亮汰","team":"日本ハム","type":"野手","positionAbilities":[{"position":"LF","value":61.0},{"position":"CF","value":75.0},{"position":"RF","value":54.0}],"abilities":{"ミート":44,"パワー":34,"走力":94},"rawDefense":"LF:61 / CF:75 / RF:54","id":"player_146"},{"name":"中村奨成","team":"広島","type":"野手","positionAbilities":[{"position":"C","value":11.0},{"position":"LF","value":61.0},{"position":"CF","value":59.0},{"position":"RF","value":46.0}],"abilities":{"ミート":31,"パワー":50,"走力":61},"rawDefense":"C:11 / LF:61 / CF:59 / RF:46","id":"player_147"},{"name":"海野隆司","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"C","value":72.0}],"abilities":{"ミート":43,"パワー":47,"走力":30},"rawDefense":"C:72","id":"player_148"},{"name":"熊谷敬宥","team":"阪神","type":"野手","positionAbilities":[{"position":"1B","value":25.0},{"position":"2B","value":31.0},{"position":"3B","value":29.0},{"position":"SS","value":31.0},{"position":"LF","value":31.0}],"abilities":{"ミート":43,"パワー":45,"走力":76},"rawDefense":"1B:25 / 2B:31 / 3B:29 / SS:31 / LF:31","id":"player_149"},{"name":"山川穂高","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"1B","value":33.0}],"abilities":{"ミート":22,"パワー":69,"走力":21},"rawDefense":"1B:33","id":"player_150"},{"name":"野口智哉","team":"オリックス","type":"野手","positionAbilities":[{"position":"2B","value":48.0},{"position":"3B","value":45.0},{"position":"SS","value":48.0},{"position":"LF","value":48.0},{"position":"CF","value":44.0},{"position":"RF","value":51.0}],"abilities":{"ミート":43,"パワー":49,"走力":69},"rawDefense":"2B:48 / 3B:45 / SS:48 / LF:48 / CF:44 / RF:51","id":"player_151"},{"name":"京田陽太","team":"DeNA","type":"野手","positionAbilities":[{"position":"1B","value":55.0},{"position":"2B","value":40.0},{"position":"3B","value":55.0},{"position":"SS","value":69.0}],"abilities":{"ミート":43,"パワー":46,"走力":71},"rawDefense":"1B:55 / 2B:40 / 3B:55 / SS:69","id":"player_152"},{"name":"伏見寅威","team":"阪神","type":"野手","positionAbilities":[{"position":"C","value":79.0},{"position":"1B","value":21.0}],"abilities":{"ミート":45,"パワー":48,"走力":26},"rawDefense":"C:79 / 1B:21","id":"player_153"},{"name":"堀内謙伍","team":"楽天","type":"野手","positionAbilities":[{"position":"C","value":50.0},{"position":"1B","value":44.0},{"position":"RF","value":36.0}],"abilities":{"ミート":43,"パワー":46,"走力":44},"rawDefense":"C:50 / 1B:44 / RF:36","id":"player_154"},{"name":"ボスラー","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":40.0},{"position":"3B","value":51.0},{"position":"LF","value":55.0},{"position":"RF","value":34.0}],"abilities":{"ミート":22,"パワー":60,"走力":29},"rawDefense":"1B:40 / 3B:51 / LF:55 / RF:34","id":"player_155"},{"name":"勝田成","team":"広島","type":"野手","positionAbilities":[{"position":"2B","value":60.0},{"position":"3B","value":55.0},{"position":"SS","value":60.0}],"abilities":{"ミート":44,"パワー":39,"走力":61},"rawDefense":"2B:60 / 3B:55 / SS:60","id":"player_156"},{"name":"今宮健太","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"2B","value":65.0},{"position":"3B","value":60.0},{"position":"SS","value":49.0}],"abilities":{"ミート":43,"パワー":46,"走力":56},"rawDefense":"2B:65 / 3B:60 / SS:49","id":"player_157"},{"name":"高部瑛斗","team":"ロッテ","type":"野手","positionAbilities":[{"position":"CF","value":59.0},{"position":"RF","value":45.0}],"abilities":{"ミート":31,"パワー":43,"走力":80},"rawDefense":"CF:59 / RF:45","id":"player_158"},{"name":"小幡竜平","team":"阪神","type":"野手","positionAbilities":[{"position":"2B","value":35.0},{"position":"3B","value":35.0},{"position":"SS","value":41.0}],"abilities":{"ミート":32,"パワー":43,"走力":70},"rawDefense":"2B:35 / 3B:35 / SS:41","id":"player_159"},{"name":"小深田大翔","team":"楽天","type":"野手","positionAbilities":[{"position":"2B","value":42.0},{"position":"3B","value":42.0}],"abilities":{"ミート":36,"パワー":44,"走力":74},"rawDefense":"2B:42 / 3B:42","id":"player_160"},{"name":"大塚瑠晏","team":"日本ハム","type":"野手","positionAbilities":[{"position":"2B","value":52.0},{"position":"3B","value":60.0},{"position":"SS","value":61.0}],"abilities":{"ミート":38,"パワー":51,"走力":78},"rawDefense":"2B:52 / 3B:60 / SS:61","id":"player_161"},{"name":"西野真弘","team":"オリックス","type":"野手","positionAbilities":[{"position":"2B","value":59.0},{"position":"3B","value":59.0}],"abilities":{"ミート":41,"パワー":43,"走力":59},"rawDefense":"2B:59 / 3B:59","id":"player_162"},{"name":"中山礼都","team":"巨人","type":"野手","positionAbilities":[{"position":"LF","value":65.0},{"position":"RF","value":41.0}],"abilities":{"ミート":40,"パワー":53,"走力":71},"rawDefense":"LF:65 / RF:41","id":"player_163"},{"name":"ポランコ","team":"ロッテ","type":"野手","positionAbilities":[{"position":"LF","value":38.0}],"abilities":{"ミート":32,"パワー":64,"走力":30},"rawDefense":"LF:38","id":"player_164"},{"name":"坂本勇人","team":"巨人","type":"野手","positionAbilities":[{"position":"3B","value":55.0},{"position":"SS","value":33.0}],"abilities":{"ミート":32,"パワー":50,"走力":52},"rawDefense":"3B:55 / SS:33","id":"player_165"},{"name":"佐藤啓介","team":"広島","type":"野手","positionAbilities":[{"position":"1B","value":55.0},{"position":"2B","value":55.0},{"position":"LF","value":36.0}],"abilities":{"ミート":39,"パワー":47,"走力":61},"rawDefense":"1B:55 / 2B:55 / LF:36","id":"player_166"},{"name":"石原貴規","team":"広島","type":"野手","positionAbilities":[{"position":"C","value":46.0}],"abilities":{"ミート":38,"パワー":44,"走力":32},"rawDefense":"C:46","id":"player_167"},{"name":"山本大斗","team":"ロッテ","type":"野手","positionAbilities":[{"position":"LF","value":58.0},{"position":"CF","value":30.0},{"position":"RF","value":65.0}],"abilities":{"ミート":25,"パワー":66,"走力":30},"rawDefense":"LF:58 / CF:30 / RF:65","id":"player_168"},{"name":"矢澤宏太","team":"日本ハム","type":"野手","positionAbilities":[{"position":"LF","value":63.0},{"position":"CF","value":45.0},{"position":"RF","value":50.0}],"abilities":{"ミート":38,"パワー":49,"走力":71},"rawDefense":"LF:63 / CF:45 / RF:50","id":"player_169"},{"name":"立石正広","team":"阪神","type":"野手","positionAbilities":[{"position":"2B","value":31.0},{"position":"3B","value":53.0},{"position":"LF","value":31.0}],"abilities":{"ミート":30,"パワー":52,"走力":52},"rawDefense":"2B:31 / 3B:53 / LF:31","id":"player_170"},{"name":"鈴木叶","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"C","value":61.0}],"abilities":{"ミート":36,"パワー":47,"走力":40},"rawDefense":"C:61","id":"player_171"},{"name":"伊藤琉偉","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"2B","value":47.0},{"position":"3B","value":51.0},{"position":"SS","value":51.0},{"position":"LF","value":41.0},{"position":"RF","value":41.0}],"abilities":{"ミート":36,"パワー":44,"走力":55},"rawDefense":"2B:47 / 3B:51 / SS:51 / LF:41 / RF:41","id":"player_172"},{"name":"平川蓮","team":"広島","type":"野手","positionAbilities":[{"position":"CF","value":42.0},{"position":"RF","value":58.0}],"abilities":{"ミート":36,"パワー":52,"走力":66},"rawDefense":"CF:42 / RF:58","id":"player_173"},{"name":"松川虎生","team":"ロッテ","type":"野手","positionAbilities":[{"position":"C","value":50.0}],"abilities":{"ミート":34,"パワー":42,"走力":30},"rawDefense":"C:50","id":"player_174"},{"name":"井上広大","team":"ロッテ","type":"野手","positionAbilities":[{"position":"1B","value":55.0},{"position":"LF","value":44.0},{"position":"RF","value":47.0}],"abilities":{"ミート":32,"パワー":58,"走力":45},"rawDefense":"1B:55 / LF:44 / RF:47","id":"player_175"},{"name":"シーモア","team":"オリックス","type":"野手","positionAbilities":[{"position":"1B","value":36.0}],"abilities":{"ミート":31,"パワー":50,"走力":30},"rawDefense":"1B:36","id":"player_176"},{"name":"辰見鴻之介","team":"広島","type":"野手","positionAbilities":[{"position":"1B","value":41.0},{"position":"2B","value":52.0},{"position":"3B","value":41.0},{"position":"LF","value":41.0}],"abilities":{"ミート":25,"パワー":25,"走力":95},"rawDefense":"1B:41 / 2B:52 / 3B:41 / LF:41","id":"player_177"},{"name":"二俣翔一","team":"広島","type":"野手","positionAbilities":[{"position":"C","value":18.0},{"position":"1B","value":48.0},{"position":"2B","value":38.0},{"position":"3B","value":58.0},{"position":"SS","value":58.0},{"position":"LF","value":52.0},{"position":"CF","value":52.0},{"position":"RF","value":52.0}],"abilities":{"ミート":42,"パワー":48,"走力":69},"rawDefense":"C:18 / 1B:48 / 2B:38 / 3B:58 / SS:58 / LF:52 / CF:52 / RF:52","id":"player_178"},{"name":"植田海","team":"阪神","type":"野手","positionAbilities":[{"position":"SS","value":51.0},{"position":"2B","value":51.0},{"position":"LF","value":51.0},{"position":"CF","value":44.0},{"position":"RF","value":48.0}],"abilities":{"ミート":39,"パワー":21,"走力":82},"rawDefense":"SS:51 / 2B:51 / LF:51 / CF:44 / RF:48","id":"player_179"},{"name":"ガルシア","team":"阪神","type":"野手","positionAbilities":[{"position":"1B","value":38.0},{"position":"LF","value":21.0}],"abilities":{"ミート":18,"パワー":55,"走力":28},"rawDefense":"1B:38 / LF:21","id":"player_180"},{"name":"嶋村麟士朗","team":"阪神","type":"野手","positionAbilities":[{"position":"C","value":32.0},{"position":"1B","value":32.0}],"abilities":{"ミート":33,"パワー":49,"走力":37},"rawDefense":"C:32 / 1B:32","id":"player_181"},{"name":"梅野隆太郎","team":"阪神","type":"野手","positionAbilities":[{"position":"C","value":54.0}],"abilities":{"ミート":31,"パワー":44,"走力":51},"rawDefense":"C:54","id":"player_182"},{"name":"矢野雅哉","team":"広島","type":"野手","positionAbilities":[{"position":"SS","value":71.0},{"position":"3B","value":65.0},{"position":"2B","value":33.0}],"abilities":{"ミート":38,"パワー":37,"走力":69},"rawDefense":"SS:71 / 3B:65 / 2B:33","id":"player_183"},{"name":"末包昇大","team":"広島","type":"野手","positionAbilities":[{"position":"1B","value":41.0},{"position":"LF","value":41.0},{"position":"RF","value":38.0}],"abilities":{"ミート":31,"パワー":54,"走力":46},"rawDefense":"1B:41 / LF:41 /RF:38","id":"player_184"},{"name":"戸柱恭孝","team":"DeNA","type":"野手","positionAbilities":[{"position":"C","value":58.0},{"position":"1B","value":24.0}],"abilities":{"ミート":44,"パワー":42,"走力":25},"rawDefense":"C:58 / 1B:24","id":"player_185"},{"name":"石上泰輝","team":"DeNA","type":"野手","positionAbilities":[{"position":"3B","value":48.0},{"position":"SS","value":53.0}],"abilities":{"ミート":39,"パワー":40,"走力":68},"rawDefense":"3B:48 / SS:53","id":"player_186"},{"name":"古市尊","team":"DeNA","type":"野手","positionAbilities":[{"position":"C","value":39.0}],"abilities":{"ミート":57,"パワー":47,"走力":58},"rawDefense":"C:39","id":"player_187"},{"name":"梶原昂希","team":"DeNA","type":"野手","positionAbilities":[{"position":"LF","value":44.0},{"position":"CF","value":51.0},{"position":"RF","value":51.0}],"abilities":{"ミート":42,"パワー":49,"走力":70},"rawDefense":"LF:44 / CF:51 / RF:51","id":"player_188"},{"name":"加藤匠馬","team":"中日","type":"野手","positionAbilities":[{"position":"C","value":61.0},{"position":"1B","value":23.0}],"abilities":{"ミート":16,"パワー":21,"走力":54},"rawDefense":"C:61 / 1B:23","id":"player_189"},{"name":"山本泰寛","team":"中日","type":"野手","positionAbilities":[{"position":"1B","value":45.0},{"position":"2B","value":61.0},{"position":"3B","value":51.0},{"position":"SS","value":42.0}],"abilities":{"ミート":28,"パワー":44,"走力":66},"rawDefense":"1B:45 / 2B:61 / 3B:51 / SS:42","id":"player_190"},{"name":"木下拓哉","team":"中日","type":"野手","positionAbilities":[{"position":"C","value":62.0}],"abilities":{"ミート":52,"パワー":41,"走力":38},"rawDefense":"C:62","id":"player_191"},{"name":"上林誠知","team":"中日","type":"野手","positionAbilities":[{"position":"LF","value":44.0},{"position":"CF","value":53.0},{"position":"RF","value":53.0}],"abilities":{"ミート":44,"パワー":54,"走力":61},"rawDefense":"LF:44 / CF:53 / RF:53","id":"player_192"},{"name":"笹原操希","team":"巨人","type":"野手","positionAbilities":[{"position":"LF","value":42.0},{"position":"CF","value":42.0},{"position":"RF","value":35.0}],"abilities":{"ミート":39,"パワー":49,"走力":68},"rawDefense":"LF:42 / CF:42 / RF:35","id":"player_193"},{"name":"門脇誠","team":"巨人","type":"野手","positionAbilities":[{"position":"2B","value":55.0},{"position":"3B","value":61.0},{"position":"SS","value":61.0}],"abilities":{"ミート":42,"パワー":39,"走力":64},"rawDefense":"2B:55 / 3B:61 / SS:61","id":"player_194"},{"name":"知念大成","team":"巨人","type":"野手","positionAbilities":[{"position":"CF","value":31.0},{"position":"RF","value":31.0}],"abilities":{"ミート":50,"パワー":24,"走力":41},"rawDefense":"CF:31 / RF:31","id":"player_195"},{"name":"ティマ","team":"巨人","type":"野手","positionAbilities":[{"position":"3B","value":20.0},{"position":"LF","value":28.0}],"abilities":{"ミート":15,"パワー":49,"走力":28},"rawDefense":"3B:20 / LF:28","id":"player_196"},{"name":"松下歩叶","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"2B","value":44.0},{"position":"3B","value":54.0},{"position":"SS","value":32.0}],"abilities":{"ミート":41,"パワー":44,"走力":80},"rawDefense":"2B:44 / 3B:54 / SS:32","id":"player_197"},{"name":"西村瑠伊斗","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"3B","value":35.0},{"position":"LF","value":44.0},{"position":"RF","value":42.0}],"abilities":{"ミート":54,"パワー":42,"走力":43},"rawDefense":"3B:35 / LF:44 / RF:42","id":"player_198"},{"name":"宮本丈","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"1B","value":42.0},{"position":"2B","value":48.0},{"position":"3B","value":42.0},{"position":"SS","value":42.0},{"position":"LF","value":40.0},{"position":"RF","value":38.0}],"abilities":{"ミート":57,"パワー":41,"走力":60},"rawDefense":"1B:42 / 2B:48 / 3B:42 / SS:42 / LF:40 / RF:38","id":"player_199"},{"name":"山田哲人","team":"ヤクルト","type":"野手","positionAbilities":[{"position":"2B","value":39.0},{"position":"1B","value":31.0}],"abilities":{"ミート":49,"パワー":53,"走力":51},"rawDefense":"2B:39 / 1B:31","id":"player_200"},{"name":"山縣秀","team":"日本ハム","type":"野手","positionAbilities":[{"position":"2B","value":58.0},{"position":"3B","value":50.0},{"position":"SS","value":69.0}],"abilities":{"ミート":43,"パワー":31,"走力":59},"rawDefense":"2B:58 / 3B:50 / SS:69","id":"player_201"},{"name":"上川畑大悟","team":"日本ハム","type":"野手","positionAbilities":[{"position":"2B","value":55.0},{"position":"3B","value":53.0},{"position":"SS","value":58.0}],"abilities":{"ミート":42,"パワー":41,"走力":63},"rawDefense":"2B:55 / 3B:53 / SS:58","id":"player_202"},{"name":"今川優馬","team":"日本ハム","type":"野手","positionAbilities":[{"position":"LF","value":44.0},{"position":"RF","value":48.0}],"abilities":{"ミート":46,"パワー":58,"走力":55},"rawDefense":"LF:44 / RF:48","id":"player_203"},{"name":"A.マルティネス","team":"日本ハム","type":"野手","positionAbilities":[{"position":"C","value":32.0},{"position":"1B","value":38.0},{"position":"RF","value":35.0},{"position":"LF","value":35.0}],"abilities":{"ミート":36,"パワー":55,"走力":41},"rawDefense":"C:32 / 1B:38 / RF:35 / LF:35","id":"player_204"},{"name":"武藤敦貴","team":"楽天","type":"野手","positionAbilities":[{"position":"LF","value":55.0},{"position":"CF","value":45.0},{"position":"RF","value":45.0}],"abilities":{"ミート":37,"パワー":40,"走力":66},"rawDefense":"LF:55 / CF:45 / RF:45","id":"player_205"},{"name":"伊藤裕季也","team":"楽天","type":"野手","positionAbilities":[{"position":"1B","value":44.0},{"position":"3B","value":44.0},{"position":"LF","value":35.0}],"abilities":{"ミート":35,"パワー":55,"走力":51},"rawDefense":"1B:44 / 3B:44 / LF:35","id":"player_206"},{"name":"鈴木大地","team":"楽天","type":"野手","positionAbilities":[{"position":"1B","value":41.0},{"position":"2B","value":41.0},{"position":"3B","value":36.0},{"position":"SS","value":31.0},{"position":"LF","value":28.0}],"abilities":{"ミート":41,"パワー":39,"走力":48},"rawDefense":"1B:41 / 2B:41 / 3B:36 / SS:31 / LF:28","id":"player_207"},{"name":"ワォーターズ","team":"楽天","type":"野手","positionAbilities":[{"position":"SS","value":35.0}],"abilities":{"ミート":45,"パワー":28,"走力":79},"rawDefense":"SS:35","id":"player_208"},{"name":"蛭間拓哉","team":"西武","type":"野手","positionAbilities":[{"position":"LF","value":54.0},{"position":"RF","value":51.0}],"abilities":{"ミート":59,"パワー":48,"走力":44},"rawDefense":"LF:54 / RF:51","id":"player_209"},{"name":"中村剛也","team":"西武","type":"野手","positionAbilities":[{"position":"3B","value":33.0}],"abilities":{"ミート":46,"パワー":58,"走力":22},"rawDefense":"3B:33","id":"player_210"},{"name":"柘植世那","team":"西武","type":"野手","positionAbilities":[{"position":"C","value":51.0}],"abilities":{"ミート":57,"パワー":49,"走力":41},"rawDefense":"C:51","id":"player_211"},{"name":"外崎修汰","team":"西武","type":"野手","positionAbilities":[{"position":"2B","value":58.0},{"position":"3B","value":41.0},{"position":"RF","value":36.0}],"abilities":{"ミート":36,"パワー":51,"走力":55},"rawDefense":"2B:58 / 3B:41 / RF:36","id":"player_212"},{"name":"愛斗","team":"ロッテ","type":"野手","positionAbilities":[{"position":"LF","value":44.0},{"position":"CF","value":56.0},{"position":"RF","value":56.0}],"abilities":{"ミート":38,"パワー":49,"走力":57},"rawDefense":"LF:44 / CF:56 / RF:56","id":"player_213"},{"name":"池田来翔","team":"ロッテ","type":"野手","positionAbilities":[{"position":"2B","value":48.0},{"position":"3B","value":44.0},{"position":"SS","value":30.0}],"abilities":{"ミート":42,"パワー":39,"走力":66},"rawDefense":"2B:48 / 3B:44 / SS:30","id":"player_214"},{"name":"和田康士朗","team":"ロッテ","type":"野手","positionAbilities":[{"position":"LF","value":52.0},{"position":"CF","value":54.0},{"position":"RF","value":51.0}],"abilities":{"ミート":41,"パワー":37,"走力":91},"rawDefense":"LF:52 / CF:54 / RF:51","id":"player_215"},{"name":"岡大海","team":"ロッテ","type":"野手","positionAbilities":[{"position":"LF","value":48.0},{"position":"CF","value":61.0},{"position":"RF","value":55.0}],"abilities":{"ミート":28,"パワー":48,"走力":80},"rawDefense":"LF:48 / CF:61 / RF:55","id":"player_216"},{"name":"杉澤龍","team":"オリックス","type":"野手","positionAbilities":[{"position":"LF","value":48.0},{"position":"RF","value":46.0}],"abilities":{"ミート":51,"パワー":49,"走力":48},"rawDefense":"LF:48 / RF:46","id":"player_217"},{"name":"麦谷祐介","team":"オリックス","type":"野手","positionAbilities":[{"position":"LF","value":53.0},{"position":"CF","value":56.0},{"position":"RF","value":56.0}],"abilities":{"ミート":29,"パワー":44,"走力":84},"rawDefense":"LF:53 / CF:56 / RF:56","id":"player_218"},{"name":"杉本裕太郎","team":"オリックス","type":"野手","positionAbilities":[{"position":"1B","value":38.0},{"position":"LF","value":44.0},{"position":"RF","value":41.0}],"abilities":{"ミート":22,"パワー":58,"走力":43},"rawDefense":"1B:38 / LF:44 / RF:41","id":"player_219"},{"name":"大城滉二","team":"オリックス","type":"野手","positionAbilities":[{"position":"2B","value":51.0},{"position":"3B","value":44.0},{"position":"SS","value":44.0},{"position":"RF","value":38.0}],"abilities":{"ミート":41,"パワー":43,"走力":60},"rawDefense":"2B:51 / 3B:44 / SS:44 / RF:38","id":"player_220"},{"name":"廣瀨隆太","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"2B","value":42.0},{"position":"3B","value":38.0}],"abilities":{"ミート":47,"パワー":47,"走力":51},"rawDefense":"2B:42 / 3B:38","id":"player_221"},{"name":"山本恵大","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"LF","value":49.0}],"abilities":{"ミート":52,"パワー":52,"走力":41},"rawDefense":"LF:49 / RF 45","id":"player_222"},{"name":"石塚綜一郎","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"C","value":22.0},{"position":"1B","value":37.0},{"position":"LF","value":31.0}],"abilities":{"ミート":44,"パワー":51,"走力":40},"rawDefense":"C:22 / 1B:37 / LF:31","id":"player_223"},{"name":"谷川原健太","team":"ソフトバンク","type":"野手","positionAbilities":[{"position":"C","value":44.0},{"position":"1B","value":44.0},{"position":"LF","value":51.0},{"position":"RF","value":58.0}],"abilities":{"ミート":36,"パワー":48,"走力":57},"rawDefense":"C:44 / 1B:44 / LF:51 / RF:58","id":"player_224"},{"name":"村上宗隆","team":"MLB","type":"野手","positionAbilities":[{"position":"1B","value":51.0},{"position":"3B","value":41.0}],"abilities":{"ミート":77,"パワー":92,"走力":63},"rawDefense":"1B:51 /  3B:41","id":"player_225"},{"name":"岡本和真","team":"MLB","type":"野手","positionAbilities":[{"position":"1B","value":61.0},{"position":"3B","value":66.0},{"position":"LF","value":42.0}],"abilities":{"ミート":79,"パワー":86,"走力":43},"rawDefense":"1B:61 / 3B:66 / LF:42","id":"player_226"},{"name":"大谷翔平","team":"MLB","type":"野手","positionAbilities":[{"position":"LF","value":42.0},{"position":"RF","value":42.0}],"abilities":{"ミート":89,"パワー":98,"走力":77},"rawDefense":"LF:42 / RF:42","id":"player_227"},{"name":"吉田正尚","team":"MLB","type":"野手","positionAbilities":[{"position":"LF","value":38.0}],"abilities":{"ミート":85,"パワー":79,"走力":41},"rawDefense":"LF:38","id":"player_228"},{"name":"鈴木誠也","team":"MLB","type":"野手","positionAbilities":[{"position":"CF","value":48.0},{"position":"RF","value":75.0}],"abilities":{"ミート":84,"パワー":84,"走力":72},"rawDefense":"CF:48 / RF:75","id":"player_229"},{"name":"ヌートバー","team":"MLB","type":"野手","positionAbilities":[{"position":"LF","value":68.0},{"position":"CF","value":78.0},{"position":"RF","value":78.0}],"abilities":{"ミート":73,"パワー":75,"走力":81},"rawDefense":"LF:68 / CF:78 / RF:78","id":"player_230"},{"name":"マルセリーノ","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":63,"制球":24,"スタミナ":43},"pitches":{"フォーシーム":46,"フォーク":30,"スライダー":75},"id":"player_231"},{"name":"ルイーズ","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":47,"制球":57,"スタミナ":35},"pitches":{"フォーシーム":67,"シンカー":81,"カットボール":54,"チェンジアップ":71,"カーブ":60},"id":"player_232"},{"name":"レイノルズ","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":90,"制球":63,"スタミナ":46},"pitches":{"フォーシーム":89,"フォーク":55,"スライダー":63,"カットボール":79},"id":"player_233"},{"name":"中川虎大","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":78,"制球":45,"スタミナ":35},"pitches":{"フォーシーム":77,"フォーク":72,"カーブ":42},"id":"player_234"},{"name":"伊勢大夢","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":52,"スタミナ":37},"pitches":{"フォーシーム":77,"フォーク":57,"スライダー":39,"カットボール":41},"id":"player_235"},{"name":"入江大生","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":60,"制球":22,"スタミナ":54},"pitches":{"フォーシーム":58,"フォーク":35,"スライダー":83,"カットボール":68,"カーブ":72},"id":"player_236"},{"name":"吉野光樹","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":59,"制球":59,"スタミナ":34},"pitches":{"フォーシーム":67,"フォーク":73,"カットボール":75,"カーブ":33},"id":"player_237"},{"name":"坂本裕哉","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":56,"スタミナ":43},"pitches":{"フォーシーム":44,"カットボール":89,"チェンジアップ":46},"id":"player_238"},{"name":"宮城滝太","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":68,"スタミナ":35},"pitches":{"フォーシーム":77,"フォーク":60,"スライダー":74,"カーブ":56},"id":"player_239"},{"name":"尾形崇斗","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":80,"制球":49,"スタミナ":60},"pitches":{"フォーシーム":82,"フォーク":55,"スライダー":56,"カットボール":45,"カーブ":54},"id":"player_240"},{"name":"山﨑康晃","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":54,"スタミナ":31},"pitches":{"フォーシーム":42,"フォーク":57,"スライダー":56},"id":"player_241"},{"name":"岩田将貴","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":59,"制球":71,"スタミナ":41},"pitches":{"フォーシーム":57,"シンカー":69,"スライダー":74},"id":"player_242"},{"name":"平良拳太郎","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":71,"スタミナ":60},"pitches":{"フォーシーム":72,"シンカー":72,"フォーク":68,"スライダー":59,"カットボール":63,"カーブ":49},"id":"player_243"},{"name":"東克樹","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":84,"スタミナ":77},"pitches":{"フォーシーム":67,"シンカー":65,"フォーク":72,"スライダー":68,"カットボール":54,"チェンジアップ":58,"カーブ":59},"id":"player_244"},{"name":"松本凌人","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":63,"制球":35,"スタミナ":21},"pitches":{"フォーシーム":34,"スライダー":74},"id":"player_245"},{"name":"浜地真澄","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":52,"制球":84,"スタミナ":34},"pitches":{"フォーシーム":56,"スライダー":57,"カットボール":59},"id":"player_246"},{"name":"深沢鳳介","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":48,"スタミナ":71},"pitches":{"フォーシーム":55,"フォーク":34,"スライダー":59,"カットボール":50,"カーブ":57},"id":"player_247"},{"name":"片山皓心","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":42,"スタミナ":60},"pitches":{"フォーシーム":52,"シンカー":52,"スライダー":64,"カットボール":52,"チェンジアップ":67,"カーブ":50},"id":"player_248"},{"name":"石田健大","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":67,"スタミナ":41},"pitches":{"フォーシーム":54,"カットボール":70,"チェンジアップ":73},"id":"player_249"},{"name":"石田裕太郎","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":68,"制球":70,"スタミナ":67},"pitches":{"フォーシーム":68,"シンカー":81,"スライダー":37,"カットボール":65,"チェンジアップ":63,"カーブ":46,"スイーパー":48},"id":"player_250"},{"name":"竹田祐","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":53,"制球":50,"スタミナ":61},"pitches":{"フォーシーム":41,"フォーク":46,"スライダー":74,"カーブ":49},"id":"player_251"},{"name":"篠木健太郎","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":48,"スタミナ":76},"pitches":{"フォーシーム":71,"フォーク":39,"スライダー":49,"カットボール":68,"カーブ":61},"id":"player_252"},{"name":"若松尚輝","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":57,"制球":54,"スタミナ":49},"pitches":{"フォーシーム":63,"フォーク":50,"スライダー":82},"id":"player_253"},{"name":"馬場皐輔","team":"DeNA","type":"投手","positionAbilities":[],"abilities":{"球威":51,"制球":66,"スタミナ":34},"pitches":{"フォーシーム":45,"フォーク":78,"カットボール":42},"id":"player_254"},{"name":"エスピノーザ","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":80,"制球":68,"スタミナ":78},"pitches":{"シンカー":83,"スライダー":64,"カットボール":45,"チェンジアップ":46,"カーブ":65},"id":"player_255"},{"name":"ジェリー","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":57,"スタミナ":62},"pitches":{"フォーシーム":66,"シンカー":63,"スライダー":67,"カットボール":30,"チェンジアップ":30},"id":"player_256"},{"name":"ペルドモ","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":41,"スタミナ":44},"pitches":{"シンカー":48,"スライダー":57,"チェンジアップ":54},"id":"player_257"},{"name":"マチャド","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":71,"制球":84,"スタミナ":43},"pitches":{"フォーシーム":82,"シンカー":51,"スライダー":73,"チェンジアップ":70},"id":"player_258"},{"name":"九里亜蓮","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":53,"スタミナ":87},"pitches":{"フォーシーム":38,"シンカー":61,"フォーク":66,"スライダー":54,"カットボール":44,"カーブ":30},"id":"player_259"},{"name":"入山海斗","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":59,"制球":35,"スタミナ":31},"pitches":{"フォーシーム":68,"フォーク":37,"カットボール":45,"カーブ":30},"id":"player_260"},{"name":"博志","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":51,"スタミナ":49},"pitches":{"シンカー":51,"フォーク":70,"カットボール":72},"id":"player_261"},{"name":"古田島成龍","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":25,"制球":53,"スタミナ":45},"pitches":{"フォーシーム":39,"シンカー":77,"チェンジアップ":49},"id":"player_262"},{"name":"吉田輝星","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":45,"スタミナ":24},"pitches":{"フォーシーム":75,"シンカー":42,"フォーク":54,"スライダー":49,"チェンジアップ":69},"id":"player_263"},{"name":"富山凌雅","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":49,"スタミナ":32},"pitches":{"フォーシーム":49,"シンカー":70,"フォーク":48,"スライダー":72},"id":"player_264"},{"name":"寺西成騎","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":40,"スタミナ":54},"pitches":{"フォーシーム":42,"シンカー":59,"フォーク":63,"スライダー":70,"カットボール":53,"カーブ":36},"id":"player_265"},{"name":"山岡泰輔","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":45,"スタミナ":40},"pitches":{"フォーシーム":47,"シンカー":46,"スライダー":66,"カットボール":33},"id":"player_266"},{"name":"山田修義","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":54,"スタミナ":24},"pitches":{"フォーシーム":39,"スライダー":40,"カットボール":62},"id":"player_267"},{"name":"山﨑颯一郎","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":45,"スタミナ":38},"pitches":{"フォーシーム":79,"フォーク":67,"カットボール":52},"id":"player_268"},{"name":"岩嵜翔","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":60,"制球":40,"スタミナ":32},"pitches":{"フォーシーム":45,"フォーク":60,"スライダー":45,"カーブ":61},"id":"player_269"},{"name":"川瀬堅斗","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":52,"制球":21,"スタミナ":50},"pitches":{"フォーシーム":43,"チェンジアップ":60,"カーブ":48},"id":"player_270"},{"name":"才木海翔","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":38,"スタミナ":32},"pitches":{"フォーシーム":35,"フォーク":55},"id":"player_271"},{"name":"曽谷龍平","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":64,"スタミナ":77},"pitches":{"フォーシーム":75,"シンカー":74,"フォーク":69,"スライダー":42,"カットボール":41},"id":"player_272"},{"name":"東山玲士","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":74,"制球":51,"スタミナ":30},"pitches":{"フォーシーム":39,"チェンジアップ":78},"id":"player_273"},{"name":"椋木蓮","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":87,"スタミナ":43},"pitches":{"フォーシーム":88,"シンカー":58,"フォーク":60,"スライダー":62},"id":"player_274"},{"name":"権田琉成","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":37,"制球":56,"スタミナ":48},"pitches":{"フォーシーム":70,"シンカー":36,"スライダー":62,"カットボール":45},"id":"player_275"},{"name":"片山楽生","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":46,"スタミナ":51},"pitches":{"フォーシーム":69,"シンカー":43,"フォーク":36,"スライダー":56,"カットボール":30,"カーブ":71},"id":"player_276"},{"name":"田嶋大樹","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":46,"制球":45,"スタミナ":56},"pitches":{"フォーシーム":30,"シンカー":69,"フォーク":76,"スライダー":56,"カットボール":64,"チェンジアップ":57,"カーブ":46},"id":"player_277"},{"name":"阿部翔太","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":35,"制球":53,"スタミナ":40},"pitches":{"フォーシーム":33,"シンカー":30,"フォーク":34,"カットボール":84},"id":"player_278"},{"name":"髙島泰都","team":"オリックス","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":35,"スタミナ":58},"pitches":{"フォーシーム":42,"シンカー":75,"カットボール":43,"チェンジアップ":50,"カーブ":36},"id":"player_279"},{"name":"オスナ","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":80,"スタミナ":40},"pitches":{"フォーシーム":84,"シンカー":41,"スライダー":80,"カットボール":51,"チェンジアップ":47,"カーブ":55},"id":"player_280"},{"name":"スチュワート・ジュニア","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":66,"制球":24,"スタミナ":60},"pitches":{"フォーシーム":42,"フォーク":71,"スライダー":40,"カットボール":77,"カーブ":60},"id":"player_281"},{"name":"ヘルナンデス","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":81,"制球":43,"スタミナ":37},"pitches":{"フォーシーム":83,"スライダー":68,"カーブ":59},"id":"player_282"},{"name":"モイネロ","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":66,"制球":76,"スタミナ":80},"pitches":{"フォーシーム":80,"スライダー":71,"カットボール":77,"チェンジアップ":76,"カーブ":88},"id":"player_283"},{"name":"上沢直之","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":74,"スタミナ":77},"pitches":{"フォーシーム":79,"シンカー":48,"フォーク":72,"スライダー":76,"カットボール":58,"チェンジアップ":69,"カーブ":75},"id":"player_284"},{"name":"上茶谷大河","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":56,"スタミナ":60},"pitches":{"フォーシーム":70,"シンカー":35,"フォーク":47,"スライダー":78,"カットボール":56,"チェンジアップ":30},"id":"player_285"},{"name":"伊藤優輔","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":59,"制球":42,"スタミナ":45},"pitches":{"フォーシーム":52,"フォーク":46,"スライダー":41,"カットボール":72,"カーブ":45},"id":"player_286"},{"name":"前田悠伍","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":68,"制球":77,"スタミナ":64},"pitches":{"フォーシーム":78,"フォーク":79,"スライダー":44,"チェンジアップ":79,"カーブ":72},"id":"player_287"},{"name":"大津亮介","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":52,"制球":83,"スタミナ":70},"pitches":{"フォーシーム":53,"シンカー":76,"フォーク":50,"スライダー":78,"カットボール":46,"チェンジアップ":88,"カーブ":49},"id":"player_288"},{"name":"大関友久","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":47,"制球":53,"スタミナ":78},"pitches":{"フォーシーム":49,"シンカー":70,"フォーク":51,"スライダー":44,"カーブ":80},"id":"player_289"},{"name":"小林樹斗","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":35,"制球":77,"スタミナ":43},"pitches":{"フォーシーム":70,"フォーク":78,"スライダー":47,"カットボール":71},"id":"player_290"},{"name":"徐若熙","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":48,"スタミナ":55},"pitches":{"フォーシーム":42,"フォーク":62,"スライダー":62,"カーブ":50},"id":"player_291"},{"name":"木村光","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":51,"制球":50,"スタミナ":36},"pitches":{"フォーシーム":49,"シンカー":51,"フォーク":67,"スライダー":89,"カーブ":52},"id":"player_292"},{"name":"杉山一樹","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":88,"制球":44,"スタミナ":42},"pitches":{"フォーシーム":85,"フォーク":88},"id":"player_293"},{"name":"松本晴","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":71,"制球":57,"スタミナ":72},"pitches":{"フォーシーム":50,"スライダー":71,"カットボール":67,"チェンジアップ":73,"カーブ":72},"id":"player_294"},{"name":"松本裕樹","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":77,"制球":77,"スタミナ":44},"pitches":{"フォーシーム":85,"フォーク":56,"スライダー":68,"カーブ":67},"id":"player_295"},{"name":"津森宥紀","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":61,"スタミナ":37},"pitches":{"フォーシーム":84,"フォーク":31,"スライダー":73},"id":"player_296"},{"name":"鈴木豪太","team":"ソフトバンク","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":80,"スタミナ":48},"pitches":{"フォーシーム":83,"フォーク":46,"スライダー":55,"カットボール":66},"id":"player_297"},{"name":"ウォルターズ","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":21,"スタミナ":52},"pitches":{"フォーシーム":52,"シンカー":66,"スライダー":61,"カットボール":89,"カーブ":59,"スイーパー":66},"id":"player_298"},{"name":"キハダ","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":77,"制球":25,"スタミナ":38},"pitches":{"フォーシーム":72,"スライダー":45,"チェンジアップ":39},"id":"player_299"},{"name":"リランソ","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":35,"スタミナ":39},"pitches":{"フォーシーム":69,"フォーク":56,"スライダー":59},"id":"player_300"},{"name":"丸山翔大","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":53,"スタミナ":47},"pitches":{"フォーシーム":68,"シンカー":70,"フォーク":66,"カットボール":26,"カーブ":51},"id":"player_301"},{"name":"吉村貢司郎","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":74,"スタミナ":65},"pitches":{"フォーシーム":64,"フォーク":57,"スライダー":63,"カットボール":60,"カーブ":64},"id":"player_302"},{"name":"増居翔太","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":50,"スタミナ":58},"pitches":{"フォーシーム":61,"フォーク":79,"スライダー":38,"チェンジアップ":42,"カーブ":59},"id":"player_303"},{"name":"大西広樹","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":43,"制球":40,"スタミナ":32},"pitches":{"フォーシーム":50,"シンカー":37,"フォーク":37,"スライダー":74},"id":"player_304"},{"name":"奥川恭伸","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":69,"スタミナ":81},"pitches":{"フォーシーム":76,"フォーク":54,"スライダー":74,"カーブ":76},"id":"player_305"},{"name":"小川泰弘","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":43,"制球":58,"スタミナ":66},"pitches":{"フォーシーム":43,"シンカー":38,"フォーク":44,"スライダー":65,"カットボール":45,"チェンジアップ":53},"id":"player_306"},{"name":"小澤怜史","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":49,"制球":58,"スタミナ":45},"pitches":{"フォーシーム":71,"フォーク":54,"スライダー":30,"カットボール":73},"id":"player_307"},{"name":"山野太一","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":76,"スタミナ":80},"pitches":{"フォーシーム":71,"シンカー":55,"フォーク":44,"スライダー":74,"カットボール":47,"チェンジアップ":58,"カーブ":75},"id":"player_308"},{"name":"廣澤優","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":46,"制球":43,"スタミナ":39},"pitches":{"フォーシーム":72,"フォーク":73,"スライダー":55,"チェンジアップ":71},"id":"player_309"},{"name":"星知弥","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":45,"スタミナ":39},"pitches":{"フォーシーム":45,"フォーク":87,"スライダー":47,"カットボール":65},"id":"player_310"},{"name":"木澤尚文","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":33,"制球":34,"スタミナ":25},"pitches":{"シンカー":44,"フォーク":31,"カットボール":62},"id":"player_311"},{"name":"松本健吾","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":57,"制球":60,"スタミナ":58},"pitches":{"フォーシーム":71,"シンカー":61,"フォーク":60,"スライダー":55,"カットボール":53,"カーブ":40},"id":"player_312"},{"name":"清水昇","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":84,"制球":64,"スタミナ":33},"pitches":{"フォーシーム":45,"フォーク":80,"カットボール":60},"id":"player_313"},{"name":"田口麗斗","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":28,"制球":41,"スタミナ":38},"pitches":{"フォーシーム":79,"シンカー":51,"フォーク":30,"スライダー":61},"id":"player_314"},{"name":"石原勇輝","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":50,"スタミナ":27},"pitches":{"フォーシーム":60,"シンカー":45,"スライダー":48,"チェンジアップ":68,"カーブ":71},"id":"player_315"},{"name":"荘司宏太","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":64,"制球":25,"スタミナ":38},"pitches":{"フォーシーム":73,"スライダー":63,"チェンジアップ":52,"カーブ":30},"id":"player_316"},{"name":"阪口皓亮","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":43,"スタミナ":40},"pitches":{"フォーシーム":78,"フォーク":30,"スライダー":50,"カットボール":68,"カーブ":61,"スイーパー":63},"id":"player_317"},{"name":"高梨裕稔","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":59,"制球":66,"スタミナ":62},"pitches":{"フォーシーム":68,"シンカー":77,"フォーク":53,"スライダー":70,"カーブ":39},"id":"player_318"},{"name":"高橋奎二","team":"ヤクルト","type":"投手","positionAbilities":[],"abilities":{"球威":72,"制球":26,"スタミナ":62},"pitches":{"フォーシーム":66,"スライダー":59,"カットボール":31,"チェンジアップ":62,"カーブ":57},"id":"player_319"},{"name":"ジャクソン","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":65,"制球":45,"スタミナ":67},"pitches":{"フォーシーム":76,"シンカー":49,"カットボール":57,"チェンジアップ":60,"カーブ":55},"id":"player_320"},{"name":"ロング","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":33,"制球":36,"スタミナ":56},"pitches":{"フォーシーム":46,"スライダー":43,"カットボール":82,"チェンジアップ":32,"カーブ":68},"id":"player_321"},{"name":"中森俊介","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":71,"スタミナ":40},"pitches":{"フォーシーム":65,"フォーク":77,"スライダー":75,"スイーパー":65},"id":"player_322"},{"name":"八木彬","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":46,"制球":77,"スタミナ":52},"pitches":{"フォーシーム":84,"シンカー":65,"フォーク":65,"スライダー":47},"id":"player_323"},{"name":"坂本光士郎","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":74,"制球":40,"スタミナ":46},"pitches":{"フォーシーム":72,"フォーク":37,"スライダー":64,"カットボール":55},"id":"player_324"},{"name":"宮﨑颯","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":25,"制球":43,"スタミナ":39},"pitches":{"フォーシーム":36,"スライダー":95},"id":"player_325"},{"name":"小島和哉","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":56,"スタミナ":79},"pitches":{"フォーシーム":48,"フォーク":62,"スライダー":46,"カットボール":52,"チェンジアップ":79},"id":"player_326"},{"name":"小野郁","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":49,"制球":49,"スタミナ":46},"pitches":{"フォーシーム":53,"フォーク":47,"スライダー":61,"チェンジアップ":72},"id":"player_327"},{"name":"廣池康志郎","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":34,"制球":58,"スタミナ":57},"pitches":{"フォーシーム":68,"シンカー":42,"フォーク":44,"スライダー":48,"チェンジアップ":45,"カーブ":72},"id":"player_328"},{"name":"横山陸人","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":68,"制球":51,"スタミナ":44},"pitches":{"フォーシーム":75,"フォーク":60,"スライダー":70,"カットボール":52},"id":"player_329"},{"name":"毛利海大","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":43,"制球":40,"スタミナ":61},"pitches":{"フォーシーム":46,"シンカー":79,"フォーク":45,"スライダー":57,"カーブ":36},"id":"player_330"},{"name":"河村説人","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":38,"制球":57,"スタミナ":68},"pitches":{"フォーシーム":30,"シンカー":63,"フォーク":67,"スライダー":47,"カットボール":59,"カーブ":54},"id":"player_331"},{"name":"澤田圭佑","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":65,"スタミナ":42},"pitches":{"フォーシーム":71,"フォーク":70,"スライダー":69,"チェンジアップ":65},"id":"player_332"},{"name":"田中晴也","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":63,"制球":60,"スタミナ":62},"pitches":{"フォーシーム":66,"フォーク":65,"スライダー":75,"カットボール":75,"チェンジアップ":54},"id":"player_333"},{"name":"益田直也","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":31,"制球":65,"スタミナ":42},"pitches":{"フォーシーム":72,"シンカー":61,"スライダー":42,"カットボール":55},"id":"player_334"},{"name":"西野勇士","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":30,"制球":65,"スタミナ":57},"pitches":{"フォーシーム":46,"シンカー":58,"フォーク":61,"スライダー":73,"カーブ":68},"id":"player_335"},{"name":"鈴木昭汰","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":77,"スタミナ":39},"pitches":{"フォーシーム":74,"シンカー":59,"フォーク":71,"スライダー":56},"id":"player_336"},{"name":"高野脩汰","team":"ロッテ","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":61,"スタミナ":43},"pitches":{"フォーシーム":71,"フォーク":83,"スライダー":55,"カーブ":57},"id":"player_337"},{"name":"アブレウ","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":66,"制球":22,"スタミナ":33},"pitches":{"フォーシーム":32,"シンカー":61,"スライダー":84,"チェンジアップ":44},"id":"player_338"},{"name":"マラー","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":65,"制球":73,"スタミナ":75},"pitches":{"フォーシーム":63,"シンカー":63,"スライダー":59,"カットボール":74,"チェンジアップ":49,"カーブ":62},"id":"player_339"},{"name":"メヒア","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":56,"スタミナ":55},"pitches":{"フォーシーム":32,"カットボール":51,"カーブ":74},"id":"player_340"},{"name":"中西聖輝","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":35,"スタミナ":55},"pitches":{"フォーシーム":51,"フォーク":62,"スライダー":74,"カーブ":37},"id":"player_341"},{"name":"伊藤茉央","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":57,"スタミナ":23},"pitches":{"フォーシーム":50,"シンカー":54,"スライダー":60},"id":"player_342"},{"name":"吉田聖弥","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":81,"制球":32,"スタミナ":38},"pitches":{"フォーシーム":66,"スライダー":36,"カットボール":77,"チェンジアップ":85,"カーブ":50},"id":"player_343"},{"name":"大野雄大","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":51,"制球":70,"スタミナ":78},"pitches":{"フォーシーム":74,"シンカー":68,"フォーク":53,"スライダー":58,"カットボール":70,"チェンジアップ":38},"id":"player_344"},{"name":"杉浦稔大","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":41,"スタミナ":50},"pitches":{"フォーシーム":56,"フォーク":58,"カットボール":71},"id":"player_345"},{"name":"松山晋也","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":81,"制球":85,"スタミナ":37},"pitches":{"フォーシーム":84,"フォーク":80},"id":"player_346"},{"name":"柳裕也","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":74,"スタミナ":78},"pitches":{"フォーシーム":50,"シンカー":30,"フォーク":59,"スライダー":54,"カットボール":65,"チェンジアップ":65,"カーブ":83},"id":"player_347"},{"name":"森博人","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":40,"スタミナ":22},"pitches":{"フォーシーム":70,"フォーク":38,"スライダー":56,"カットボール":81},"id":"player_348"},{"name":"橋本侑樹","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":71,"制球":41,"スタミナ":32},"pitches":{"フォーシーム":60,"フォーク":67,"スライダー":71},"id":"player_349"},{"name":"櫻井頼之介","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":41,"スタミナ":56},"pitches":{"フォーシーム":47,"フォーク":69,"スライダー":59,"カットボール":66,"チェンジアップ":55,"カーブ":68},"id":"player_350"},{"name":"涌井秀章","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":83,"スタミナ":56},"pitches":{"フォーシーム":61,"シンカー":70,"フォーク":48,"スライダー":57,"チェンジアップ":61,"カーブ":37},"id":"player_351"},{"name":"牧野憲伸","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":51,"制球":41,"スタミナ":22},"pitches":{"フォーシーム":30,"スライダー":67,"チェンジアップ":30},"id":"player_352"},{"name":"草加勝","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":52,"スタミナ":40},"pitches":{"フォーシーム":67,"シンカー":81,"フォーク":70,"スライダー":59,"カーブ":65},"id":"player_353"},{"name":"藤嶋健人","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":46,"制球":45,"スタミナ":33},"pitches":{"フォーシーム":78,"フォーク":48,"スライダー":55,"チェンジアップ":69,"カーブ":51},"id":"player_354"},{"name":"金丸夢斗","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":70,"スタミナ":79},"pitches":{"フォーシーム":71,"フォーク":67,"スライダー":58,"カットボール":52,"チェンジアップ":40,"カーブ":86},"id":"player_355"},{"name":"髙橋宏斗","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":68,"制球":49,"スタミナ":82},"pitches":{"フォーシーム":73,"フォーク":56,"カットボール":80,"カーブ":69},"id":"player_356"},{"name":"齋藤綱記","team":"中日","type":"投手","positionAbilities":[],"abilities":{"球威":74,"制球":46,"スタミナ":28},"pitches":{"フォーシーム":52,"シンカー":62,"フォーク":69,"スライダー":72},"id":"player_357"},{"name":"ウィットリー","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":41,"スタミナ":63},"pitches":{"フォーシーム":68,"フォーク":79,"カットボール":52,"カーブ":85,"スイーパー":76},"id":"player_358"},{"name":"ハワード","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":74,"制球":58,"スタミナ":55},"pitches":{"フォーシーム":73,"スライダー":69,"チェンジアップ":58,"カーブ":70},"id":"player_359"},{"name":"マタ","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":69,"制球":30,"スタミナ":54},"pitches":{"フォーシーム":43,"シンカー":61,"スライダー":62,"カットボール":48,"チェンジアップ":61,"カーブ":55},"id":"player_360"},{"name":"マルティネス","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":85,"制球":89,"スタミナ":28},"pitches":{"フォーシーム":95,"シンカー":47,"フォーク":88,"スライダー":89,"チェンジアップ":74},"id":"player_361"},{"name":"ルシアーノ","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":57,"制球":32,"スタミナ":40},"pitches":{"フォーシーム":49,"スライダー":41},"id":"player_362"},{"name":"中川皓太","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":79,"制球":86,"スタミナ":27},"pitches":{"フォーシーム":79,"シンカー":67,"フォーク":86,"スライダー":49},"id":"player_363"},{"name":"井上温大","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":76,"制球":75,"スタミナ":79},"pitches":{"フォーシーム":80,"シンカー":44,"フォーク":68,"スライダー":73,"カットボール":75,"カーブ":55},"id":"player_364"},{"name":"代木大和","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":58,"スタミナ":48},"pitches":{"フォーシーム":53,"カットボール":68,"チェンジアップ":86,"カーブ":40},"id":"player_365"},{"name":"則本昂大","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":53,"制球":45,"スタミナ":60},"pitches":{"フォーシーム":40,"フォーク":57,"スライダー":39,"カットボール":70,"チェンジアップ":57,"カーブ":67},"id":"player_366"},{"name":"北浦竜次","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":36,"制球":33,"スタミナ":41},"pitches":{"フォーシーム":45,"シンカー":42,"フォーク":37,"カットボール":39},"id":"player_367"},{"name":"堀田賢慎","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":63,"スタミナ":39},"pitches":{"フォーシーム":75,"フォーク":42,"カットボール":39,"チェンジアップ":70,"カーブ":82},"id":"player_368"},{"name":"大勢","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":71,"制球":67,"スタミナ":29},"pitches":{"フォーシーム":68,"フォーク":86},"id":"player_369"},{"name":"小笠原慎之介","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":62,"制球":69,"スタミナ":78},"pitches":{"フォーシーム":65,"スライダー":30,"カットボール":46,"チェンジアップ":79,"カーブ":76,"スイーパー":40},"id":"player_370"},{"name":"戸郷翔征","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":73,"制球":48,"スタミナ":80},"pitches":{"フォーシーム":69,"フォーク":58,"スライダー":61,"カーブ":79},"id":"player_371"},{"name":"森田駿哉","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":55,"制球":54,"スタミナ":48},"pitches":{"フォーシーム":43,"シンカー":53,"フォーク":82,"スライダー":43,"カットボール":30,"チェンジアップ":71},"id":"player_372"},{"name":"泉圭輔","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":34,"制球":56,"スタミナ":27},"pitches":{"フォーシーム":59,"シンカー":77,"カットボール":74},"id":"player_373"},{"name":"田中将大","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":60,"スタミナ":54},"pitches":{"フォーシーム":44,"シンカー":66,"フォーク":73,"スライダー":72,"カットボール":39,"チェンジアップ":66,"カーブ":45},"id":"player_374"},{"name":"田中瑛斗","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":74,"制球":75,"スタミナ":48},"pitches":{"フォーシーム":63,"シンカー":80,"フォーク":74,"スライダー":47,"カーブ":40,"スイーパー":82},"id":"player_375"},{"name":"田和廉","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":44,"スタミナ":37},"pitches":{"フォーシーム":55,"シンカー":76,"スライダー":30,"カットボール":52},"id":"player_376"},{"name":"竹丸和幸","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":69,"制球":63,"スタミナ":73},"pitches":{"フォーシーム":49,"シンカー":62,"フォーク":44,"スライダー":68,"カットボール":75,"チェンジアップ":78,"カーブ":63},"id":"player_377"},{"name":"船迫大雅","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":60,"制球":44,"スタミナ":35},"pitches":{"フォーシーム":55,"シンカー":58,"スライダー":81},"id":"player_378"},{"name":"西舘勇陽","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":38,"スタミナ":56},"pitches":{"フォーシーム":59,"フォーク":50,"スライダー":64,"カットボール":47,"カーブ":61},"id":"player_379"},{"name":"赤星優志","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":42,"制球":72,"スタミナ":54},"pitches":{"フォーシーム":58,"シンカー":58,"フォーク":57,"スライダー":58,"カットボール":67,"カーブ":55},"id":"player_380"},{"name":"高梨雄平","team":"巨人","type":"投手","positionAbilities":[],"abilities":{"球威":43,"制球":34,"スタミナ":18},"pitches":{"フォーシーム":70,"シンカー":30,"スライダー":74},"id":"player_381"},{"name":"ターノック","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":79,"制球":44,"スタミナ":55},"pitches":{"フォーシーム":84,"シンカー":71,"スライダー":56,"チェンジアップ":45,"カーブ":65},"id":"player_382"},{"name":"ハーン","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":87,"制球":64,"スタミナ":36},"pitches":{"フォーシーム":84,"シンカー":88,"フォーク":68,"スライダー":75},"id":"player_383"},{"name":"中﨑翔太","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":44,"制球":62,"スタミナ":33},"pitches":{"フォーシーム":66,"フォーク":52,"スライダー":46},"id":"player_384"},{"name":"塹江敦哉","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":61,"制球":37,"スタミナ":44},"pitches":{"フォーシーム":58,"フォーク":42,"スライダー":71,"スイーパー":30},"id":"player_385"},{"name":"大瀬良大地","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":68,"スタミナ":43},"pitches":{"フォーシーム":74,"シンカー":55,"フォーク":56,"スライダー":88,"カットボール":66},"id":"player_386"},{"name":"岡本駿","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":59,"スタミナ":58},"pitches":{"フォーシーム":70,"シンカー":73,"フォーク":43,"スライダー":68,"カットボール":65,"チェンジアップ":41},"id":"player_387"},{"name":"島内颯太郎","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":21,"スタミナ":30},"pitches":{"フォーシーム":33,"チェンジアップ":68},"id":"player_388"},{"name":"床田寛樹","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":51,"制球":70,"スタミナ":71},"pitches":{"フォーシーム":64,"シンカー":72,"スライダー":67,"カットボール":58,"チェンジアップ":55,"カーブ":49},"id":"player_389"},{"name":"斉藤優汰","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":44,"制球":51,"スタミナ":57},"pitches":{"フォーシーム":62,"フォーク":53,"スライダー":60,"カットボール":44,"カーブ":74},"id":"player_390"},{"name":"栗林良吏","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":69,"制球":84,"スタミナ":77},"pitches":{"フォーシーム":71,"フォーク":81,"スライダー":33,"カットボール":66,"カーブ":70},"id":"player_391"},{"name":"森下暢仁","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":57,"制球":69,"スタミナ":82},"pitches":{"フォーシーム":74,"フォーク":67,"カットボール":57,"チェンジアップ":69,"カーブ":71},"id":"player_392"},{"name":"森浦大輔","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":89,"制球":80,"スタミナ":39},"pitches":{"フォーシーム":83,"スライダー":52,"カットボール":63,"チェンジアップ":97,"カーブ":45},"id":"player_393"},{"name":"森翔平","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":46,"制球":56,"スタミナ":60},"pitches":{"フォーシーム":41,"シンカー":48,"フォーク":75,"スライダー":65,"カットボール":52,"チェンジアップ":72,"カーブ":30},"id":"player_394"},{"name":"玉村昇悟","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":47,"制球":64,"スタミナ":59},"pitches":{"フォーシーム":58,"シンカー":71,"フォーク":58,"スライダー":74,"カットボール":57,"カーブ":50},"id":"player_395"},{"name":"益田武尚","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":33,"制球":45,"スタミナ":42},"pitches":{"フォーシーム":50,"シンカー":61,"フォーク":30,"スライダー":56},"id":"player_396"},{"name":"菊地ハルン","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":49,"スタミナ":38},"pitches":{"フォーシーム":43,"フォーク":55,"スライダー":58},"id":"player_397"},{"name":"赤木晴哉","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":36,"制球":54,"スタミナ":41},"pitches":{"フォーシーム":71,"フォーク":45,"カットボール":52},"id":"player_398"},{"name":"辻大雅","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":64,"制球":24,"スタミナ":33},"pitches":{"フォーシーム":64,"カットボール":59,"チェンジアップ":49},"id":"player_399"},{"name":"遠藤淳志","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":65,"制球":78,"スタミナ":45},"pitches":{"フォーシーム":64,"スライダー":56,"カットボール":56,"チェンジアップ":63,"カーブ":50},"id":"player_400"},{"name":"鈴木健矢","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":65,"スタミナ":55},"pitches":{"フォーシーム":53,"シンカー":74,"スライダー":39,"カットボール":63,"カーブ":30},"id":"player_401"},{"name":"髙太一","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":80,"制球":51,"スタミナ":48},"pitches":{"フォーシーム":80,"フォーク":68,"スライダー":63,"カットボール":54,"チェンジアップ":64},"id":"player_402"},{"name":"黒原拓未","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":55,"制球":32,"スタミナ":32},"pitches":{"フォーシーム":45,"フォーク":66,"カットボール":65},"id":"player_403"},{"name":"齊藤汰直","team":"広島","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":46,"スタミナ":28},"pitches":{"フォーシーム":50,"シンカー":30},"id":"player_404"},{"name":"上原健太","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":43,"制球":49,"スタミナ":33},"pitches":{"フォーシーム":51,"シンカー":79,"フォーク":55,"スライダー":70,"カットボール":81},"id":"player_405"},{"name":"伊藤大海","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":69,"制球":56,"スタミナ":88},"pitches":{"フォーシーム":72,"シンカー":57,"フォーク":48,"スライダー":53,"カットボール":49,"チェンジアップ":44,"カーブ":54,"スイーパー":76},"id":"player_406"},{"name":"加藤貴之","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":93,"スタミナ":64},"pitches":{"フォーシーム":48,"シンカー":64,"フォーク":70,"スライダー":65,"カットボール":63,"チェンジアップ":62,"カーブ":61},"id":"player_407"},{"name":"北山亘基","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":73,"制球":69,"スタミナ":84},"pitches":{"フォーシーム":79,"フォーク":54,"カットボール":69,"チェンジアップ":59,"カーブ":66},"id":"player_408"},{"name":"堀瑞輝","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":65,"制球":66,"スタミナ":26},"pitches":{"フォーシーム":77,"フォーク":49,"スライダー":77,"カットボール":62},"id":"player_409"},{"name":"孫易磊","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":63,"制球":38,"スタミナ":47},"pitches":{"フォーシーム":54,"フォーク":45,"スライダー":39,"チェンジアップ":82},"id":"player_410"},{"name":"山本拓実","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":63,"制球":35,"スタミナ":40},"pitches":{"フォーシーム":49,"シンカー":69,"スライダー":62,"カットボール":75},"id":"player_411"},{"name":"山﨑福也","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":52,"制球":60,"スタミナ":55},"pitches":{"フォーシーム":56,"シンカー":60,"フォーク":41,"スライダー":45,"カットボール":37,"チェンジアップ":80,"カーブ":39},"id":"player_412"},{"name":"島本浩也","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":55,"制球":45,"スタミナ":29},"pitches":{"フォーシーム":45,"シンカー":57,"フォーク":62,"スライダー":43},"id":"player_413"},{"name":"有原航平","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":52,"制球":61,"スタミナ":82},"pitches":{"フォーシーム":60,"シンカー":43,"フォーク":73,"スライダー":67,"カットボール":63,"チェンジアップ":59},"id":"player_414"},{"name":"柳川大晟","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":83,"制球":54,"スタミナ":40},"pitches":{"フォーシーム":81,"フォーク":79,"カットボール":78},"id":"player_415"},{"name":"玉井大翔","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":44,"制球":58,"スタミナ":48},"pitches":{"フォーシーム":37,"シンカー":62,"カットボール":51},"id":"player_416"},{"name":"生田目翼","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":28,"制球":61,"スタミナ":34},"pitches":{"シンカー":49,"フォーク":54,"カットボール":77},"id":"player_417"},{"name":"田中正義","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":79,"制球":62,"スタミナ":37},"pitches":{"フォーシーム":84,"フォーク":51,"スライダー":64},"id":"player_418"},{"name":"福島蓮","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":73,"制球":55,"スタミナ":57},"pitches":{"フォーシーム":79,"シンカー":37,"フォーク":47,"スライダー":68,"カットボール":73,"カーブ":73},"id":"player_419"},{"name":"福谷浩司","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":28,"制球":57,"スタミナ":37},"pitches":{"フォーシーム":64,"シンカー":53,"フォーク":42},"id":"player_420"},{"name":"細野晴希","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":45,"スタミナ":56},"pitches":{"フォーシーム":70,"シンカー":63,"フォーク":57,"スライダー":64,"カットボール":76,"スイーパー":70},"id":"player_421"},{"name":"達孝太","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":65,"制球":64,"スタミナ":73},"pitches":{"フォーシーム":65,"シンカー":78,"フォーク":63,"スライダー":65,"カットボール":38,"チェンジアップ":56,"カーブ":58,"スイーパー":65},"id":"player_422"},{"name":"金村尚真","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":66,"スタミナ":56},"pitches":{"フォーシーム":52,"シンカー":48,"フォーク":68,"スライダー":73,"カーブ":72},"id":"player_423"},{"name":"齋藤友貴哉","team":"日本ハム","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":17,"スタミナ":29},"pitches":{"フォーシーム":56,"シンカー":48,"フォーク":76},"id":"player_424"},{"name":"ウレーニャ","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":51,"制球":24,"スタミナ":56},"pitches":{"フォーシーム":32,"シンカー":53,"フォーク":65,"スライダー":66,"チェンジアップ":41},"id":"player_425"},{"name":"マルテ","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":61,"スタミナ":32},"pitches":{"フォーシーム":77,"シンカー":69,"スライダー":77},"id":"player_426"},{"name":"中込陽翔","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":48,"スタミナ":29},"pitches":{"フォーシーム":43,"シンカー":58,"スライダー":39},"id":"player_427"},{"name":"九谷瑠","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":82,"制球":63,"スタミナ":45},"pitches":{"フォーシーム":62,"シンカー":54,"フォーク":88,"スライダー":64,"チェンジアップ":73},"id":"player_428"},{"name":"伊藤樹","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":30,"スタミナ":54},"pitches":{"フォーシーム":72,"シンカー":47,"フォーク":46,"スライダー":31,"カットボール":75},"id":"player_429"},{"name":"内星龍","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":45,"スタミナ":46},"pitches":{"フォーシーム":60,"フォーク":59,"カットボール":38},"id":"player_430"},{"name":"前田健太","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":62,"制球":63,"スタミナ":76},"pitches":{"フォーシーム":71,"シンカー":68,"フォーク":63,"スライダー":68,"チェンジアップ":37,"カーブ":72},"id":"player_431"},{"name":"加治屋蓮","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":53,"制球":40,"スタミナ":39},"pitches":{"フォーシーム":35,"フォーク":66,"カットボール":59,"カーブ":56},"id":"player_432"},{"name":"古謝樹","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":59,"制球":69,"スタミナ":73},"pitches":{"フォーシーム":46,"シンカー":67,"フォーク":56,"スライダー":73,"カットボール":60,"カーブ":61},"id":"player_433"},{"name":"宋家豪","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":55,"制球":58,"スタミナ":32},"pitches":{"フォーシーム":83,"シンカー":41,"スライダー":49,"チェンジアップ":54},"id":"player_434"},{"name":"岸孝之","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":59,"スタミナ":63},"pitches":{"フォーシーム":44,"フォーク":44,"スライダー":47,"チェンジアップ":57,"カーブ":88},"id":"player_435"},{"name":"早川隆久","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":72,"制球":78,"スタミナ":77},"pitches":{"フォーシーム":68,"フォーク":87,"スライダー":66,"カットボール":64,"チェンジアップ":73,"カーブ":59},"id":"player_436"},{"name":"柴田大地","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":58,"制球":18,"スタミナ":24},"pitches":{"フォーシーム":48,"フォーク":45,"スライダー":37,"カットボール":78},"id":"player_437"},{"name":"泰勝利","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":66,"制球":15,"スタミナ":40},"pitches":{"フォーシーム":56,"チェンジアップ":77,"カーブ":77},"id":"player_438"},{"name":"津留﨑大成","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":53,"制球":44,"スタミナ":42},"pitches":{"フォーシーム":30,"シンカー":34,"フォーク":35,"スライダー":77,"カットボール":76,"カーブ":75},"id":"player_439"},{"name":"瀧中瞭太","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":34,"制球":57,"スタミナ":64},"pitches":{"フォーシーム":58,"シンカー":42,"フォーク":33,"スライダー":65,"カットボール":56,"カーブ":60},"id":"player_440"},{"name":"田中千晴","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":62,"制球":33,"スタミナ":31},"pitches":{"フォーシーム":31,"フォーク":79},"id":"player_441"},{"name":"荘司康誠","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":66,"スタミナ":72},"pitches":{"フォーシーム":58,"シンカー":30,"フォーク":86,"カットボール":76,"カーブ":70},"id":"player_442"},{"name":"藤井聖","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":32,"制球":75,"スタミナ":60},"pitches":{"フォーシーム":52,"シンカー":35,"スライダー":72,"チェンジアップ":43},"id":"player_443"},{"name":"藤原聡大","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":43,"制球":41,"スタミナ":57},"pitches":{"フォーシーム":52,"フォーク":55,"スライダー":52},"id":"player_444"},{"name":"藤平尚真","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":83,"制球":73,"スタミナ":36},"pitches":{"フォーシーム":83,"フォーク":78,"スライダー":67},"id":"player_445"},{"name":"西垣雅矢","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":52,"制球":35,"スタミナ":31},"pitches":{"フォーシーム":31,"フォーク":72,"スライダー":73,"カットボール":63},"id":"player_446"},{"name":"鈴木翔天","team":"楽天","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":34,"スタミナ":31},"pitches":{"フォーシーム":58,"フォーク":56,"スライダー":56},"id":"player_447"},{"name":"ウィンゲンター","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":82,"制球":41,"スタミナ":29},"pitches":{"フォーシーム":88,"スライダー":72,"チェンジアップ":61},"id":"player_448"},{"name":"ワイナンス","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":43,"スタミナ":58},"pitches":{"フォーシーム":41,"シンカー":61,"スライダー":30,"チェンジアップ":80,"カーブ":41},"id":"player_449"},{"name":"上田大河","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":29,"制球":58,"スタミナ":44},"pitches":{"フォーシーム":60,"フォーク":52,"カットボール":56,"チェンジアップ":37,"カーブ":77},"id":"player_450"},{"name":"中村祐太","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":56,"スタミナ":43},"pitches":{"フォーシーム":74,"フォーク":60,"スライダー":77,"カーブ":78},"id":"player_451"},{"name":"佐藤爽","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":50,"制球":42,"スタミナ":61},"pitches":{"フォーシーム":58,"スライダー":64,"チェンジアップ":41,"カーブ":43},"id":"player_452"},{"name":"佐藤隼輔","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":64,"制球":55,"スタミナ":44},"pitches":{"フォーシーム":50,"シンカー":78,"スライダー":59,"チェンジアップ":75,"スイーパー":77},"id":"player_453"},{"name":"山田陽翔","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":72,"制球":45,"スタミナ":37},"pitches":{"シンカー":79,"カットボール":44},"id":"player_454"},{"name":"岩城颯空","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":51,"スタミナ":39},"pitches":{"フォーシーム":66,"フォーク":31,"スライダー":69,"カーブ":43},"id":"player_455"},{"name":"平良海馬","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":91,"制球":55,"スタミナ":81},"pitches":{"フォーシーム":88,"シンカー":51,"フォーク":88,"スライダー":63,"カットボール":80,"チェンジアップ":35,"カーブ":61,"スイーパー":71},"id":"player_456"},{"name":"森脇亮介","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":63,"スタミナ":30},"pitches":{"フォーシーム":59,"フォーク":61,"カットボール":36,"カーブ":61},"id":"player_457"},{"name":"武内夏暉","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":69,"制球":84,"スタミナ":83},"pitches":{"フォーシーム":85,"シンカー":86,"スライダー":47,"チェンジアップ":48,"カーブ":80},"id":"player_458"},{"name":"浜屋将太","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":48,"スタミナ":29},"pitches":{"フォーシーム":72,"シンカー":93,"フォーク":39,"スライダー":30,"カットボール":43,"カーブ":44},"id":"player_459"},{"name":"渡邉勇太朗","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":56,"スタミナ":68},"pitches":{"フォーシーム":70,"フォーク":47,"スライダー":63,"カットボール":63,"カーブ":83,"スイーパー":90},"id":"player_460"},{"name":"甲斐野央","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":80,"制球":24,"スタミナ":40},"pitches":{"フォーシーム":38,"フォーク":82,"スライダー":82},"id":"player_461"},{"name":"篠原響","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":77,"制球":56,"スタミナ":41},"pitches":{"フォーシーム":75,"スライダー":82,"チェンジアップ":70},"id":"player_462"},{"name":"菅井信也","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":39,"制球":58,"スタミナ":64},"pitches":{"フォーシーム":47,"シンカー":72,"スライダー":48,"チェンジアップ":65,"カーブ":78},"id":"player_463"},{"name":"豆田泰志","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":60,"スタミナ":49},"pitches":{"フォーシーム":70,"フォーク":82,"スライダー":66,"カーブ":48},"id":"player_464"},{"name":"隅田知一郎","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":79,"制球":92,"スタミナ":84},"pitches":{"フォーシーム":77,"フォーク":89,"スライダー":35,"カットボール":55,"チェンジアップ":87,"カーブ":88,"スイーパー":40},"id":"player_465"},{"name":"髙橋光成","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":56,"制球":45,"スタミナ":85},"pitches":{"フォーシーム":44,"シンカー":78,"フォーク":61,"スライダー":43,"カットボール":30,"スイーパー":79},"id":"player_466"},{"name":"黒木優太","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":67,"制球":45,"スタミナ":28},"pitches":{"フォーシーム":44,"フォーク":99,"スライダー":77},"id":"player_467"},{"name":"黒田将矢","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":22,"スタミナ":28},"pitches":{"フォーシーム":37,"フォーク":68,"スライダー":75},"id":"player_468"},{"name":"Ｅ．ラミレス","team":"西武","type":"投手","positionAbilities":[],"abilities":{"球威":55,"制球":56,"スタミナ":38},"pitches":{"フォーシーム":53,"フォーク":70,"カーブ":67},"id":"player_469"},{"name":"セベリーノ","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":45,"スタミナ":37},"pitches":{"フォーシーム":62,"スライダー":82},"id":"player_470"},{"name":"ドリス","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":88,"制球":41,"スタミナ":39},"pitches":{"シンカー":75,"フォーク":84,"スライダー":90},"id":"player_471"},{"name":"モレッタ","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":57,"制球":49,"スタミナ":24},"pitches":{"フォーシーム":34,"スライダー":90},"id":"player_472"},{"name":"下村海翔","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":53,"制球":61,"スタミナ":54},"pitches":{"フォーシーム":42,"フォーク":37,"スライダー":60,"カットボール":84,"カーブ":59},"id":"player_473"},{"name":"伊原陵人","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":48,"制球":60,"スタミナ":54},"pitches":{"フォーシーム":37,"シンカー":63,"フォーク":49,"スライダー":74,"カットボール":60,"チェンジアップ":49},"id":"player_474"},{"name":"伊藤将司","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":60,"スタミナ":63},"pitches":{"フォーシーム":46,"シンカー":73,"スライダー":60,"カットボール":42,"チェンジアップ":77,"カーブ":69},"id":"player_475"},{"name":"及川雅貴","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":40,"制球":64,"スタミナ":37},"pitches":{"フォーシーム":58,"シンカー":74,"スライダー":67,"カットボール":59},"id":"player_476"},{"name":"大竹耕太郎","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":47,"制球":86,"スタミナ":61},"pitches":{"フォーシーム":47,"シンカー":78,"スライダー":35,"カットボール":49,"チェンジアップ":76},"id":"player_477"},{"name":"岡留英貴","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":64,"制球":56,"スタミナ":29},"pitches":{"フォーシーム":42,"スライダー":83},"id":"player_478"},{"name":"岩崎優","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":57,"制球":73,"スタミナ":35},"pitches":{"フォーシーム":72,"スライダー":52,"カットボール":76,"チェンジアップ":73},"id":"player_479"},{"name":"工藤泰成","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":92,"制球":81,"スタミナ":44},"pitches":{"フォーシーム":72,"フォーク":73,"スライダー":40,"カットボール":98},"id":"player_480"},{"name":"才木浩人","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":69,"制球":57,"スタミナ":81},"pitches":{"フォーシーム":70,"フォーク":84,"スライダー":39,"カーブ":52},"id":"player_481"},{"name":"木下里都","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":75,"制球":54,"スタミナ":52},"pitches":{"フォーシーム":72,"シンカー":65,"フォーク":66,"スライダー":50,"カーブ":77},"id":"player_482"},{"name":"村上頌樹","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":54,"制球":82,"スタミナ":86},"pitches":{"フォーシーム":63,"シンカー":66,"フォーク":68,"スライダー":49,"カットボール":75,"カーブ":64},"id":"player_483"},{"name":"桐敷拓馬","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":31,"制球":41,"スタミナ":40},"pitches":{"フォーシーム":36,"シンカー":61,"フォーク":63,"スライダー":55},"id":"player_484"},{"name":"湯浅京己","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":47,"制球":41,"スタミナ":33},"pitches":{"フォーシーム":56,"フォーク":48,"カットボール":71},"id":"player_485"},{"name":"畠世周","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":45,"制球":66,"スタミナ":45},"pitches":{"フォーシーム":41,"スライダー":30,"カットボール":75,"チェンジアップ":54},"id":"player_486"},{"name":"石黒佑弥","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":74,"制球":41,"スタミナ":54},"pitches":{"フォーシーム":68,"カットボール":81},"id":"player_487"},{"name":"神宮僚介","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":70,"制球":66,"スタミナ":39},"pitches":{"フォーシーム":76,"シンカー":68,"スライダー":44},"id":"player_488"},{"name":"西勇輝","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":41,"制球":60,"スタミナ":54},"pitches":{"フォーシーム":44,"シンカー":49,"スライダー":60,"チェンジアップ":44,"カーブ":72},"id":"player_489"},{"name":"門別啓人","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":42,"制球":48,"スタミナ":54},"pitches":{"フォーシーム":52,"フォーク":76,"スライダー":49},"id":"player_490"},{"name":"髙橋遥人","team":"阪神","type":"投手","positionAbilities":[],"abilities":{"球威":78,"制球":86,"スタミナ":78},"pitches":{"フォーシーム":72,"シンカー":95,"フォーク":80,"スライダー":59,"カットボール":66,"チェンジアップ":49,"カーブ":57},"id":"player_491"},{"name":"山本由伸","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":90,"制球":88,"スタミナ":92},"pitches":{"フォーシーム":78,"シンカー":85,"フォーク":82,"スライダー":65,"カットボール":77,"カーブ":88},"id":"player_492"},{"name":"佐々木朗希","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":88,"制球":71,"スタミナ":72},"pitches":{"フォーシーム":82,"フォーク":90,"スライダー":68},"id":"player_493"},{"name":"菊池雄星","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":89,"制球":54,"スタミナ":85},"pitches":{"フォーシーム":80,"フォーク":78,"スライダー":79,"カットボール":74,"カーブ":69},"id":"player_494"},{"name":"今永昇太","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":80,"制球":82,"スタミナ":78},"pitches":{"フォーシーム":86,"シンカー":75,"フォーク":89,"スライダー":55,"カーブ":55,"スイーパー":63},"id":"player_495"},{"name":"ダルビッシュ有","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":71,"制球":88,"スタミナ":71},"pitches":{"フォーシーム":77,"シンカー":76,"フォーク":70,"スライダー":70,"カットボール":69,"チェンジアップ":54,"カーブ":80,"スイーパー":49},"id":"player_496"},{"name":"菅野智之","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":68,"制球":85,"スタミナ":79},"pitches":{"フォーシーム":70,"シンカー":79,"フォーク":75,"スライダー":63,"カットボール":68,"カーブ":68,"スイーパー":74},"id":"player_497"},{"name":"今井達也","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":84,"制球":60,"スタミナ":88},"pitches":{"フォーシーム":82,"シンカー":66,"フォーク":54,"スライダー":91,"チェンジアップ":55},"id":"player_498"},{"name":"千賀滉大","team":"MLB","type":"投手","positionAbilities":[],"abilities":{"球威":85,"制球":58,"スタミナ":79},"pitches":{"フォーシーム":78,"フォーク":88,"スライダー":66,"カットボール":80,"スイーパー":78},"id":"player_499"}];
 const $=id=>document.getElementById(id);
-window.show=id=>{['home','create','join','lobby','draft','finished','match'].forEach(x=>$(x).classList.toggle('hidden',x!==id));$('error').classList.add('hidden')};
+window.show=id=>{
+ ['home','create','join','lobby','draft','finished','match'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+ $('error').classList.add('hidden');
+};
 function err(msg){$('error').textContent=msg;$('error').classList.remove('hidden')}
 
-function initClient(){const url=localStorage.getItem('dbb_supabase_url')||SUPABASE_URL_DEFAULT;const key=localStorage.getItem('dbb_supabase_key')||'';if(!key)return null;try{return createClient(url,key)}catch(e){err('Supabase設定エラー：'+e.message);return null}}
-function ensure(){if(!sb){err('SupabaseのPublishable keyを設定してください。トップ画面の接続設定から入力できます。');return false}return true}
+function initClient(){
+ const url=localStorage.getItem('dbb_supabase_url')||SUPABASE_URL_DEFAULT;
+ const key=localStorage.getItem('dbb_supabase_key')||'';
+ if(!key)return null;
+ try{return createClient(url,key)}
+ catch(e){err('Supabase設定エラー：'+e.message);return null}
+}
+function ensure(){
+ if(!sb){
+  err('SupabaseのPublishable keyを設定してください。トップ画面の接続設定から入力できます。');
+  return false;
+ }
+ return true;
+}
 function code6(){return String(Math.floor(100000+Math.random()*900000))}
 function stateForRow(row){return row?.game_state||null}
 
@@ -54,7 +69,6 @@ async function getRoom(code){
  if(error)throw error;
  return data;
 }
-
 async function saveState(state){
  const {error}=await sb.from('rooms').update({game_state:state}).eq('room_code',roomId);
  if(error)throw error;
@@ -67,7 +81,8 @@ window.createRoom=async()=>{
  let max=Number($('maxPlayers').value),code=code6();
  let data={
   code,host:userId,maxPlayers:max,mode:$('draftMode').value,status:'lobby',
-  round:1,phase:'picking',players:{[userId]:{uid:userId,name,joinedAt:Date.now()}},
+  round:1,phase:'picking',
+  players:{[userId]:{uid:userId,name,joinedAt:Date.now()}},
   playerPool:players,picks:{},teams:{},teamSettings:{},createdAt:Date.now()
  };
  try{
@@ -92,7 +107,8 @@ window.joinRoom=async()=>{
   if(!d.players[userId]&&members.length>=d.maxPlayers)return err('このルームは満員です。');
   if(!d.players[userId]){
    d.players[userId]={uid:userId,name,joinedAt:Date.now()};
-   await sb.from('rooms').update({game_state:d}).eq('room_code',code);
+   const {error}=await sb.from('rooms').update({game_state:d}).eq('room_code',code);
+   if(error)throw error;
   }
   localStorage.setItem('dbb_room',code);
   enter(code);
@@ -144,13 +160,19 @@ function enter(code){
 
 function render(){
  if(!room)return;
- if(room.playerPool&&Array.isArray(room.playerPool))players.splice(0,players.length,...room.playerPool);
+ if(room.playerPool&&Array.isArray(room.playerPool)){
+  players.splice(0,players.length,...room.playerPool);
+ }
  $('roomCodeView').textContent=roomId;
  let members=Object.values(room.players||{});
- $('lobbyPlayers').innerHTML=members.map(p=>`<div class="player ${p.uid===userId?'me':''}">${esc(p.name)}${p.uid===room.host?' <b>HOST</b>':''}</div>`).join('');
+ $('lobbyPlayers').innerHTML=members.map(p=>
+  `<div class="player ${p.uid===userId?'me':''}">${esc(p.name)}${p.uid===room.host?' <b>HOST</b>':''}</div>`
+ ).join('');
  $('startDraftBtn').classList.toggle('hidden',room.host!==userId);
  $('startDraftBtn').disabled=members.length<2;
- ['deleteRoomLobbyBtn','deleteRoomDraftBtn','deleteRoomFinishedBtn'].forEach(id=>$(id)?.classList.toggle('hidden',room.host!==userId));
+ ['deleteRoomLobbyBtn','deleteRoomDraftBtn','deleteRoomFinishedBtn'].forEach(id=>
+  $(id)?.classList.toggle('hidden',room.host!==userId)
+ );
  $('lobbyStatus').textContent=`${members.length} / ${room.maxPlayers} 人参加中`;
  $('lobbyMode').textContent=`ドラフト方式：${room.mode==='professional'?'プロ（野手9人＋投手10人）':'カジュアル（野手9人＋投手3人）'} ※ルーム作成時に決定・開始後変更不可`;
 
@@ -175,10 +197,10 @@ window.leaveRoom=()=>{
  if(syncTimer)clearInterval(syncTimer);
  syncTimer=null;
  localStorage.removeItem('dbb_room');
- roomId=null;room=null;
+ roomId=null;
+ room=null;
  show('home');
 };
-
 window.backHome=()=>leaveRoom();
 
 window.deleteRoom=async()=>{
@@ -195,20 +217,22 @@ window.deleteRoom=async()=>{
 
 window.startDraft=async()=>{
  if(room.host!==userId)return;
- room={...room,status:'draft',round:1,phase:'picking',picks:{},teams:{},teamSettings:{},
- activeUids:Object.keys(room.players||{}),roundResults:null};
- try{await saveState(room)}catch(e){err(e.message)}
+ room={
+  ...room,status:'draft',round:1,phase:'picking',picks:{},teams:{},
+  teamSettings:{},activeUids:Object.keys(room.players||{}),roundResults:null
+ };
+ try{await saveState(room)}
+ catch(e){err(e.message)}
 };
 
 function statClass(v){
  v=Number(v);
- return v>=90?'stat-90':v>=80?'stat-80':v>=70?'stat-70':v>=60?'stat-60':v>=50?'stat-50':v>=40?'stat-40':v>=20?'stat-20':'stat-0';
+ return v>=90?'stat-90':v>=80?'stat-80':v>=70?'stat-70':v>=60?'stat-60':
+  v>=50?'stat-50':v>=40?'stat-40':v>=20?'stat-20':'stat-0';
 }
-
 function statChip(label,value){
  return `<span class="stat-chip ${statClass(value)}">${esc(label)} ${esc(value)}</span>`;
 }
-
 function coloredNumber(value){
  return `<span class="defnum ${statClass(value)}">${esc(value)}</span>`;
 }
@@ -239,7 +263,7 @@ function fielderStatMarkup(p){
 
 function pitcherStats(p){
  let a=p.abilities||{};
- let pv=Object.values(p.pitches||{}).map(v=>Number(v)).filter(v=>Number.isFinite(v));
+ let pv=Object.values(p.pitches||{}).map(v=>Number(v)).filter(Number.isFinite);
  let sortedPitch=pv.slice().sort((x,y)=>y-x);
  let weights=[2.5,2,1.5];
  let weightedSum=sortedPitch.reduce((sum,v,i)=>sum+v*(weights[i]||1),0);
@@ -250,26 +274,38 @@ function pitcherStats(p){
   Number(a['スタミナ']||0),pitch
  ].sort((x,y)=>y-x);
  let ovr=Math.round((vals[0]*2.5+vals[1]*2+vals[2]*1.5+vals[3])/7);
- return {power:Number(a['球威']||0),control:Number(a['制球']||0),stamina:Number(a['スタミナ']||0),pitch,ovr};
+ return {
+  power:Number(a['球威']||0),control:Number(a['制球']||0),
+  stamina:Number(a['スタミナ']||0),pitch,ovr
+ };
 }
 
 function pitcherStatMarkup(p){
  let x=pitcherStats(p);
- let pitchList=Object.entries(p.pitches||{}).map(([k,v])=>`${esc(pitchShort[k]||k)}:${coloredNumber(v)}`).join(' / ');
+ let pitchList=Object.entries(p.pitches||{}).map(([k,v])=>
+  `${esc(pitchShort[k]||k)}:${coloredNumber(v)}`
+ ).join(' / ');
  return `<div class="playerStats">${statChip('威',x.power)}${statChip('制',x.control)}${statChip('ス',x.stamina)}${statChip('球種',x.pitch)}<span class="ovr">OVR ${x.ovr}</span></div><small>${pitchList||'変化球なし'}</small>`;
 }
 
 let poolLayout=1;
 window.setPoolLayout=n=>{poolLayout=n;renderPool()};
-window.toggleDraftRoster=()=>{$('draftRoster').classList.toggle('hidden');renderDraftRoster()};
+window.toggleDraftRoster=()=>{
+ $('draftRoster').classList.toggle('hidden');
+ renderDraftRoster();
+};
 
 function renderDraftRoster(){
  let el=$('draftRoster');
  if(!el||el.classList.contains('hidden')||!room)return;
  let members=Object.values(room.players||{}),picks=room.picks||{};
  el.innerHTML='<h3>指名選手一覧</h3>'+members.map(m=>{
-  let own=room.teams?.[m.uid]||[],current=picks[m.uid]?.playerId?[picks[m.uid]]:[];
-  let list=[...own.map(x=>players.find(p=>p.id===x.id)||x),...current.map(x=>players.find(p=>p.id===x.playerId)||x)];
+  let own=room.teams?.[m.uid]||[];
+  let current=picks[m.uid]?.playerId?[picks[m.uid]]:[];
+  let list=[
+   ...own.map(x=>players.find(p=>p.id===x.id)||x),
+   ...current.map(x=>players.find(p=>p.id===x.playerId)||x)
+  ];
   return `<details class="result"><summary><b>${esc(m.name)}</b>（${list.length}人）</summary>${list.map(p=>{
    let stat=p.type==='野手'?fielderStatMarkup(p):pitcherStatMarkup(p);
    return `<details class="player"><summary>${esc(p.name)}　${esc(p.team||'')}（${esc(p.type||'')}）</summary>${stat}</details>`;
@@ -306,8 +342,7 @@ window.renderPool=()=>{
    }
   }else{
    if(posFilters.length&&!posFilters.includes('P'))return false;
-   let st=pitcherStats(p);
-   let vals={pitchPower:st.power,control:st.control,stamina:st.stamina,pitchAvg:st.pitch};
+   let st=pitcherStats(p),vals={pitchPower:st.power,control:st.control,stamina:st.stamina,pitchAvg:st.pitch};
    for(let [k,[lo,hi]] of Object.entries(ranges).slice(4)){
     let val=vals[k];
     if(lo!==null&&val<lo||hi!==null&&val>hi)return false;
@@ -338,20 +373,19 @@ window.renderPool=()=>{
 };
 
 const pitchShort={
- 'フォーシーム':'4-S','ストレート':'4-S','ツーシーム':'2-S','カーブ':'CU','カットボール':'Cut',
- 'スライダー':'SL','スイーパー':'Swp','シンカー':'Sin','スプリット':'SFF','スプリットフィンガー':'SFF',
- 'フォーク':'FO','フォークボール':'FO','チェンジアップ':'CH'
+ 'フォーシーム':'4-S','ストレート':'4-S','ツーシーム':'2-S','カーブ':'CU',
+ 'カットボール':'Cut','スライダー':'SL','スイーパー':'Swp','シンカー':'Sin',
+ 'スプリット':'SFF','スプリットフィンガー':'SFF','フォーク':'FO',
+ 'フォークボール':'FO','チェンジアップ':'CH'
 };
 
 function rosterCounts(uid){
  let t=room.teams?.[uid]||[];
  return {fielders:t.filter(x=>x.type==='野手').length,pitchers:t.filter(x=>x.type==='投手').length};
 }
-
 function rosterTargets(){
  return room.mode==='professional'?{fielders:9,pitchers:10}:{fielders:9,pitchers:3};
 }
-
 function canPickType(uid,kind){
  let c=rosterCounts(uid),target=rosterTargets();
  return kind==='野手'?c.fielders<target.fielders:c.pitchers<target.pitchers;
@@ -370,7 +404,9 @@ window.choose=async id=>{
  let p=players.find(x=>x.id===id);
  const pick={playerId:id,playerName:p.name,team:p.team,type:p.type,submittedAt:Date.now()};
  try{
-  const {error}=await sb.rpc('dbb_submit_pick',{p_room_code:roomId,p_user_id:userId,p_pick:pick});
+  const {error}=await sb.rpc('dbb_submit_pick',{
+   p_room_code:roomId,p_user_id:userId,p_pick:pick
+  });
   if(error){
    room.picks={...(room.picks||{}),[userId]:pick};
    await saveState(room);
@@ -391,12 +427,13 @@ function renderRoundResults(results){
 }
 
 function renderDraft(){
- let activeUids=room.activeUids||Object.keys(room.players||{}),
- members=activeUids.map(uid=>room.players[uid]).filter(Boolean),
- picks=room.picks||{},
- submitted=activeUids.filter(uid=>picks[uid]?.playerId).length,
- round=room.round||1;
+ let activeUids=room.activeUids||Object.keys(room.players||{});
+ let members=activeUids.map(uid=>room.players[uid]).filter(Boolean);
+ let picks=room.picks||{};
+ let submitted=activeUids.filter(uid=>picks[uid]?.playerId).length;
+ let round=room.round||1;
  let target=room.mode==='professional'?19:12;
+
  $('draftTitle').textContent=`第${round}巡目 指名`;
  $('draftRound').textContent=`ROUND ${round} ・ ${Object.values(room.teams||{}).flat().length} / ${target*members.length}人獲得`;
  $('progressBar').style.width=(submitted/members.length*100)+'%';
@@ -404,13 +441,19 @@ function renderDraft(){
  $('myPickStatus').textContent=picks[userId]?.playerName?`あなたの指名：${picks[userId].playerName}（回答済み）`:'選手カードを押して指名してください。';
  $('pool').classList.toggle('hidden',!!picks[userId]?.playerId||!members.some(p=>p.uid===userId));
  renderPool();
- $('roundResults').innerHTML=room.phase==='revealing'?`<div class="revealbox"><h3>🎴 全員の指名を一斉公開！</h3><div class="revealgrid">${members.map(m=>{
-  let x=picks[m.uid];
-  return `<div class="revealcard"><b>${esc(m.name)}</b><div>${esc(x?.playerName||'')}</div><small>${esc(x?.team||'')}</small><div class="tag">${x?.type==='野手'?'野手':'投手'}</div></div>`;
- }).join('')}</div><div style="margin-top:10px;font-size:16px;font-weight:800">重複している指名があれば、このあと抽選！</div></div>`:room.phase==='lottery'?`<div class="lotterybox"><h3>🎰 重複指名 抽選中！</h3><div class="lotteryspin">🎲</div><div class="lotterycards">${members.map(m=>{
-  let x=picks[m.uid];
-  return `<div class="lotterycard"><b>${esc(m.name)}</b><div>${esc(x?.playerName||'')}</div><small>${esc(x?.team||'')}</small><div>抽選中…</div></div>`;
- }).join('')}</div><div style="margin-top:10px">当選者を決定しています…</div></div>`:room.roundResults?renderRoundResults(room.roundResults):'';
+
+ $('roundResults').innerHTML=room.phase==='revealing'
+  ?`<div class="revealbox"><h3>🎴 全員の指名を一斉公開！</h3><div class="revealgrid">${members.map(m=>{
+    let x=picks[m.uid];
+    return `<div class="revealcard"><b>${esc(m.name)}</b><div>${esc(x?.playerName||'')}</div><small>${esc(x?.team||'')}</small><div class="tag">${x?.type==='野手'?'野手':'投手'}</div></div>`;
+   }).join('')}</div><div style="margin-top:10px;font-size:16px;font-weight:800">重複している指名があれば、このあと抽選！</div></div>`
+  :room.phase==='lottery'
+   ?`<div class="lotterybox"><h3>🎰 重複指名 抽選中！</h3><div class="lotteryspin">🎲</div><div class="lotterycards">${members.map(m=>{
+     let x=picks[m.uid];
+     return `<div class="lotterycard"><b>${esc(m.name)}</b><div>${esc(x?.playerName||'')}</div><small>${esc(x?.team||'')}</small><div>抽選中…</div></div>`;
+    }).join('')}</div><div style="margin-top:10px">当選者を決定しています…</div></div>`
+   :room.roundResults?renderRoundResults(room.roundResults):'';
+
  if(activeUids.length>0&&submitted>=activeUids.length&&room.host===userId&&['picking','revealing','lottery'].includes(room.phase))resolveRound();
 }
 
@@ -418,63 +461,99 @@ async function resolveRound(){
  if(!['picking','revealing','lottery'].includes(room.phase)||resolvingRound)return;
  resolvingRound=true;
  try{
-  let current=room,mem=Object.values(current.players||{}),active=current.activeUids||mem.map(p=>p.uid),picks=current.picks||{};
+  let current=room,mem=Object.values(current.players||{});
+  let active=current.activeUids||mem.map(p=>p.uid);
+  let picks=current.picks||{};
   if(active.length===0||active.some(uid=>!picks[uid]?.playerId))return;
+
   if(current.phase==='picking'){
    let revealState={...current,phase:'revealing'};
    room=revealState;
    await saveState(revealState);
    renderDraft();
-   await new Promise(r=>setTimeout(r,3800));
+   await wait(3800);
    current=room;
   }else if(current.phase==='revealing'){
    renderDraft();
-   await new Promise(r=>setTimeout(r,3800));
+   await wait(3800);
    current=room;
   }
-  picks=current.picks||picks;active=current.activeUids||active;mem=Object.values(current.players||{});
+
+  picks=current.picks||picks;
+  active=current.activeUids||active;
+  mem=Object.values(current.players||{});
   if(active.length===0||active.some(uid=>!picks[uid]?.playerId))return;
+
   let groups={};
-  for(let uid of active){let id=picks[uid].playerId;(groups[id]??=[]).push(uid)}
+  for(let uid of active){
+   let id=picks[uid].playerId;
+   (groups[id]??=[]).push(uid);
+  }
   let hasDuplicate=Object.values(groups).some(uids=>uids.length>1);
+
   if(current.phase==='revealing'&&hasDuplicate){
    let lotteryState={...current,phase:'lottery'};
    room=lotteryState;
    await saveState(lotteryState);
    renderDraft();
-   await new Promise(r=>setTimeout(r,3200));
+   await wait(3200);
    current=room;
   }else if(current.phase==='revealing'&&!hasDuplicate){
-   await new Promise(r=>setTimeout(r,900));
+   await wait(900);
    current=room;
   }else if(current.phase==='lottery'){
    renderDraft();
-   await new Promise(r=>setTimeout(r,3200));
+   await wait(3200);
    current=room;
   }
-  picks=current.picks||picks;active=current.activeUids||active;mem=Object.values(current.players||{});
+
+  picks=current.picks||picks;
+  active=current.activeUids||active;
+  mem=Object.values(current.players||{});
   if(active.length===0||active.some(uid=>!picks[uid]?.playerId))return;
+
   groups={};
-  for(let uid of active){let id=picks[uid].playerId;(groups[id]??=[]).push(uid)}
+  for(let uid of active){
+   let id=picks[uid].playerId;
+   (groups[id]??=[]).push(uid);
+  }
+
   let results=[],teams=current.teams||{},losers=[];
-  for(let [pid,uids]of Object.entries(groups)){
-   let winner=uids[Math.floor(Math.random()*uids.length)],info=picks[winner];
+  for(let [pid,uids] of Object.entries(groups)){
+   let winner=uids[Math.floor(Math.random()*uids.length)];
+   let info=picks[winner];
    teams[winner]=teams[winner]||[];
-   teams[winner].push({id:pid,name:info.playerName,team:info.team,type:info.type||players.find(p=>p.id===pid)?.type,round:current.round});
+   teams[winner].push({
+    id:pid,name:info.playerName,team:info.team,
+    type:info.type||players.find(p=>p.id===pid)?.type,round:current.round
+   });
    for(let uid of uids){
-    results.push({uid,userName:current.players[uid]?.name||'参加者',playerName:info.playerName,won:uid===winner,winnerUid:winner,winnerName:current.players[winner]?.name||'参加者'});
+    results.push({
+     uid,userName:current.players[uid]?.name||'参加者',
+     playerName:info.playerName,won:uid===winner,winnerUid:winner,
+     winnerName:current.players[winner]?.name||'参加者'
+    });
     if(uid!==winner)losers.push(uid);
    }
   }
-  let target=current.mode==='professional'?{fielders:9,pitchers:10}:{fielders:9,pitchers:3};
+
+  let target=current.mode==='professional'
+   ?{fielders:9,pitchers:10}
+   :{fielders:9,pitchers:3};
+
   let isComplete=uid=>{
    let t=teams[uid]||[];
-   return t.filter(x=>x.type==='野手').length>=target.fielders&&t.filter(x=>x.type==='投手').length>=target.pitchers;
+   return t.filter(x=>x.type==='野手').length>=target.fielders
+    &&t.filter(x=>x.type==='投手').length>=target.pitchers;
   };
+
   let allDone=mem.every(p=>isComplete(p.uid));
   let nextActive=losers.length?losers:mem.filter(p=>!isComplete(p.uid)).map(p=>p.uid);
   let nextRound=losers.length?current.round:current.round+1;
-  let next={...current,teams,roundResults:results,picks:{},activeUids:nextActive,round:nextRound,status:allDone?'finished':'draft',phase:'picking'};
+  let next={
+   ...current,teams,roundResults:results,picks:{},activeUids:nextActive,
+   round:nextRound,status:allDone?'finished':'draft',phase:'picking'
+  };
   room=next;
   await saveState(next);
   render();
@@ -485,53 +564,84 @@ async function resolveRound(){
 function renderFinished(){
  let members=Object.values(room.players||{}),mode=room.mode||'casual';
  $('finalTeams').innerHTML=`<div class="status ok">モード：${mode==='professional'?'プロ（野手9・投手10）':'カジュアル（野手9・投手3）'}</div>`+members.map(m=>{
-  let t=room.teams?.[m.uid]||[],f=t.filter(x=>x.type==='野手'),p=t.filter(x=>x.type==='投手');
+  let t=room.teams?.[m.uid]||[];
+  let f=t.filter(x=>x.type==='野手'),p=t.filter(x=>x.type==='投手');
   return `<div class="result"><b>${esc(m.name)}</b><div class="muted">野手 ${f.length}/9 ・ 投手 ${p.length}/${mode==='professional'?10:3}</div><div>${t.map(x=>esc(x.name)).join('、')}</div></div>`;
  }).join('');
  renderTeamSetup();
- if(room.host!==userId){$('matchSetup').classList.add('hidden')}
+ if(room.host!==userId)$('matchSetup').classList.add('hidden');
 }
 
 function renderTeamSetup(){
- const mine=room.teams?.[userId]||[],fielders=mine.filter(p=>p.type==='野手'),pitchers=mine.filter(p=>p.type==='投手');
- const saved=room.teamSettings?.[userId]||{},posList=['C','1B','2B','3B','SS','LF','CF','RF','DH'];
- const pitchRoleList=room.mode==='professional'?['先発1','先発2','先発3','先発4','先発5','中継ぎエース','接戦時','ビハインド時','敗戦処理','抑え']:['先発','中継ぎ','抑え'];
+ const mine=room.teams?.[userId]||[];
+ const fielders=mine.filter(p=>p.type==='野手');
+ const pitchers=mine.filter(p=>p.type==='投手');
+ const saved=room.teamSettings?.[userId]||{};
+ const posList=['C','1B','2B','3B','SS','LF','CF','RF','DH'];
+ const pitchRoleList=room.mode==='professional'
+  ?['先発1','先発2','先発3','先発4','先発5','中継ぎエース','接戦時','ビハインド時','敗戦処理','抑え']
+  :['先発','中継ぎ','抑え'];
+
  if(!teamSetupDraft||teamSetupDraft.owner!==userId){
   let oldLineup=saved.lineup||[],oldPositions=saved.positions||{};
   let lineup9,position9,roles;
+
   if(oldLineup.length===9&&oldLineup.every(Boolean)){
-   lineup9=oldLineup.slice();position9=posList.slice();
-   for(let [pos,pid] of Object.entries(oldPositions)){let row=lineup9.indexOf(pid);if(row>=0&&posList.includes(pos))position9[row]=pos;}
+   lineup9=oldLineup.slice();
+   position9=posList.slice();
+   for(let [pos,pid] of Object.entries(oldPositions)){
+    let row=lineup9.indexOf(pid);
+    if(row>=0&&posList.includes(pos))position9[row]=pos;
+   }
    roles={...(saved.roles||{})};
   }else{
    let remaining=fielders.slice(),chosen=[];
-   const score=(p,formula)=>{let a=p.abilities||{},m=Number(a['ミート']||0),pow=Number(a['パワー']||0),sp=Number(a['走力']||0);return formula(m,pow,sp)};
-   const take=(fn)=>{
+   const score=(p,formula)=>{
+    let a=p.abilities||{};
+    let m=Number(a['ミート']||0),pow=Number(a['パワー']||0),sp=Number(a['走力']||0);
+    return formula(m,pow,sp);
+   };
+   const take=fn=>{
     if(!remaining.length)return '';
     remaining.sort((a,b)=>fn(b)-fn(a));
-    let p=remaining.shift();chosen.push(p.id);return p.id;
+    let p=remaining.shift();
+    chosen.push(p.id);
+    return p.id;
    };
+
    let order=Array(9).fill('');
-   order[3]=take(p=>score(p,(m,pow,sp)=>m+pow));
+   order[3]=take(p=>score(p,(m,pow)=>m+pow));
    order[0]=take(p=>score(p,(m,pow,sp)=>m+pow*.5+sp*.75));
    order[1]=take(p=>score(p,(m,pow,sp)=>m+pow+sp*.5));
-   order[2]=take(p=>score(p,(m,pow,sp)=>m+pow));
-   order[4]=take(p=>score(p,(m,pow,sp)=>m*.5+pow));
-   order[5]=take(p=>score(p,(m,pow,sp)=>m*.5+pow*1.25));
-   let last=remaining.slice().sort((a,b)=>score(b,(m,pow,sp)=>m+pow+sp*.25)-score(a,(m,pow,sp)=>m+pow+sp*.25));
+   order[2]=take(p=>score(p,(m,pow)=>m+pow));
+   order[4]=take(p=>score(p,(m,pow)=>m*.5+pow));
+   order[5]=take(p=>score(p,(m,pow)=>m*.5+pow*1.25));
+
+   let last=remaining.slice().sort((a,b)=>
+    score(b,(m,pow,sp)=>m+pow+sp*.25)-score(a,(m,pow,sp)=>m+pow+sp*.25)
+   );
    for(let i=6;i<9;i++)order[i]=last[i-6]?.id||'';
    lineup9=order;
-   let posOrder=['C','SS','2B','CF','3B','1B','RF','LF'],assign={},used=new Set(),pool=lineup9.map(id=>fielders.find(p=>p.id===id)).filter(Boolean);
+
+   let posOrder=['C','SS','2B','CF','3B','1B','RF','LF'];
+   let assign={},used=new Set();
+   let pool=lineup9.map(id=>fielders.find(p=>p.id===id)).filter(Boolean);
    const eligible=(p,pos)=>(p.positionAbilities||[]).some(x=>x.position===pos);
+
    let changed=true;
    while(changed){
     changed=false;
     for(let pos of posOrder){
      if(assign[pos])continue;
      let candidates=pool.filter(p=>!used.has(p.id)&&eligible(p,pos));
-     if(candidates.length===1){assign[pos]=candidates[0].id;used.add(candidates[0].id);changed=true;}
+     if(candidates.length===1){
+      assign[pos]=candidates[0].id;
+      used.add(candidates[0].id);
+      changed=true;
+     }
     }
    }
+
    for(let pos of posOrder){
     if(assign[pos])continue;
     let candidates=pool.filter(p=>!used.has(p.id)&&eligible(p,pos)).sort((a,b)=>{
@@ -539,18 +649,34 @@ function renderTeamSetup(){
      let bv=(b.positionAbilities||[]).find(x=>x.position===pos)?.value||0;
      return bv-av;
     });
-    if(candidates.length){assign[pos]=candidates[0].id;used.add(candidates[0].id);}
+    if(candidates.length){
+     assign[pos]=candidates[0].id;
+     used.add(candidates[0].id);
+    }
    }
-   let unfilled=posOrder.filter(pos=>!assign[pos]),unused=pool.filter(p=>!used.has(p.id));
+
+   let unfilled=posOrder.filter(pos=>!assign[pos]);
+   let unused=pool.filter(p=>!used.has(p.id));
    for(let pos of unfilled){
-    if(unused.length){let ix=Math.floor(Math.random()*unused.length),p=unused.splice(ix,1)[0];assign[pos]=p.id;used.add(p.id);}
+    if(unused.length){
+     let ix=Math.floor(Math.random()*unused.length);
+     let p=unused.splice(ix,1)[0];
+     assign[pos]=p.id;
+     used.add(p.id);
+    }
    }
+
    assign.DH=pool.find(p=>!used.has(p.id))?.id||'';
    position9=lineup9.map(id=>posList.find(pos=>assign[pos]===id)||'DH');
-   let pstats=p=>{let st=pitcherStats(p);return {st:st.stamina,non:(st.power+st.control+st.pitch)/3,ovr:st.ovr}};
+
+   let pstats=p=>{
+    let st=pitcherStats(p);
+    return {st:st.stamina,non:(st.power+st.control+st.pitch)/3,ovr:st.ovr};
+   };
    let sortedBySt=pitchers.slice().sort((a,b)=>pstats(b).st-pstats(a).st);
    let sortedNon=pitchers.slice().sort((a,b)=>pstats(b).non-pstats(a).non);
    roles={};
+
    if(room.mode==='professional'){
     let starters=sortedBySt.slice(0,5).sort((a,b)=>pstats(b).ovr-pstats(a).ovr);
     ['先発1','先発2','先発3','先発4','先発5'].forEach((r,i)=>roles[r]=starters[i]?.id||'');
@@ -559,11 +685,13 @@ function renderTeamSetup(){
    }else{
     roles['先発']=sortedBySt[0]?.id||'';
     let rel=sortedNon.filter(p=>p.id!==roles['先発']);
-    roles['抑え']=rel[0]?.id||'';roles['中継ぎ']=rel[1]?.id||'';
+    roles['抑え']=rel[0]?.id||'';
+    roles['中継ぎ']=rel[1]?.id||'';
    }
   }
   teamSetupDraft={owner:userId,lineup:lineup9,positions:position9,roles};
  }
+
  let d=teamSetupDraft;
  let html='<h3>打順・守備位置</h3><div class="rosterRows">';
  for(let i=0;i<9;i++){
@@ -635,7 +763,9 @@ window.showMatchSetup=()=>{
  $('matchFormat').disabled=room.host!==userId;
  if(saved.opponentUid)$('opponentSelect').value=saved.opponentUid;
  if(saved.format)$('matchFormat').value=saved.format;
- $('matchStatus').textContent=room.host===userId?(saved.opponentUid?`保存済み：${saved.format==='best5'?'5戦3勝制':'1試合'}`:'対戦相手と試合形式を選んで保存してください。'):'ホストが対戦設定を行います。';
+ $('matchStatus').textContent=room.host===userId
+  ?(saved.opponentUid?`保存済み：${saved.format==='best5'?'5戦3勝制':'1試合'}`:'対戦相手と試合形式を選んで保存してください。')
+  :'ホストが対戦設定を行います。';
  el.scrollIntoView({behavior:'smooth',block:'start'});
 };
 
@@ -653,11 +783,7 @@ window.saveMatchSettings=async()=>{
 function matchPlayer(uid,id){
  return (room.playerPool||players).find(p=>p.id===id)||(room.teams?.[uid]||[]).find(p=>p.id===id)||null;
 }
-
-function matchTeamName(uid){
- return room.players?.[uid]?.name||'チーム';
-}
-
+function matchTeamName(uid){return room.players?.[uid]?.name||'チーム'}
 function matchSetupReady(uid){
  let t=room.teams?.[uid]||[],st=room.teamSettings?.[uid];
  return !!(st?.lineup?.length===9&&st.lineup.every(Boolean)&&st.positions&&Object.keys(st.positions).length===9&&t.filter(p=>p.type==='投手').length);
@@ -680,12 +806,13 @@ window.startMatch=async()=>{
   lines:{[home]:Array(9).fill(null),[away]:Array(9).fill(null)},
   pitchCount:{[home]:0,[away]:0},
   pitchers:{[home]:firstPitcher(home),[away]:firstPitcher(away)},
-  balls:0,strikes:0,log:['試合開始！'],lastResult:'プレイボール！',done:false,startedAt:Date.now()
+  balls:0,strikes:0,log:['試合開始！'],lastResult:'プレイボール！',
+  done:false,startedAt:Date.now()
  };
  room.status='match';
+ matchAuto=true;
  try{
   await saveState(room);
-  matchAuto=true;
   render();
   scheduleNextMatch();
  }catch(e){err('試合開始に失敗：'+e.message)}
@@ -693,13 +820,14 @@ window.startMatch=async()=>{
 
 function getMatchPitcher(uid){
  let id=room.matchState.pitchers[uid];
- return matchPlayer(uid,id)||matchPlayer(uid,(room.teamSettings?.[uid]?.roles||{})['先発'])||{
+ let starter=room.teamSettings?.[uid]?.roles?.['先発']
+  ||room.teamSettings?.[uid]?.roles?.['先発1'];
+ return matchPlayer(uid,id)||matchPlayer(uid,starter)||{
   name:'投手',abilities:{球威:50,制球:50,スタミナ:50},pitches:{}
  };
 }
 
 function clampMatch(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
-
 function matchPositionMap(uid){
  let st=room.teamSettings?.[uid]||{},out={};
  for(let [pos,id] of Object.entries(st.positions||{})){if(id)out[pos]=matchPlayer(uid,id)}
@@ -737,9 +865,7 @@ function ballTarget(type,angle){
 
 function getDefender(uid,pos){
  let map=matchPositionMap(uid);
- let aliases={
-  P:['P'],C:['C'],'1B':['1B'],'2B':['2B'],'3B':['3B'],'SS':['SS'],'LF':['LF'],'CF':['CF'],'RF':['RF']
- };
+ let aliases={P:['P'],C:['C'],'1B':['1B'],'2B':['2B'],'3B':['3B'],SS:['SS'],LF:['LF'],CF:['CF'],RF:['RF']};
  for(let key of aliases[pos]||[pos])if(map[key])return map[key];
  return null;
 }
@@ -748,21 +874,40 @@ function simulateBattedBall(g,defUid,batter,pitcher){
  let ba=batter.abilities||{};
  let type=chooseBallType(batter,pitcher);
  let direction=clampMatch((Math.random()*2-1)*58,-58,58);
- let angle=type==='ゴロ'?clampMatch(2+Math.random()*13,2,15):type==='ライナー'?clampMatch(9+Math.random()*19,9,28):clampMatch(25+Math.random()*42,25,67);
- let speed=clampMatch(72+Number(ba['パワー']||50)*.48+Math.random()*34+(Number(ba['ミート']||50)-50)*.12,65,145);
+ let angle=type==='ゴロ'
+  ?clampMatch(2+Math.random()*13,2,15)
+  :type==='ライナー'
+   ?clampMatch(9+Math.random()*19,9,28)
+   :clampMatch(25+Math.random()*42,25,67);
+ let speed=clampMatch(
+  72+Number(ba['パワー']||50)*.48+Math.random()*34+(Number(ba['ミート']||50)-50)*.12,
+  65,145
+ );
  let target=ballTarget(type,direction);
  let fielder=getDefender(defUid,target);
  let fdef=fielder?.positionAbilities?.find(x=>x.position===target)?.value??(fielder?.abilities?.['守備']??45);
  let fielding=Number(fdef)||45;
  let runner=Number(ba['走力']||50);
- let difficulty=clampMatch(Math.round(28+Math.abs(direction)*.48+(speed-90)*.42+(angle-18)*.28+(type==='ライナー'?10:0)+(type==='フライ'?4:0)),5,95);
- let reaction=clampMatch((fielding-50)*.48+(Number(fielder?.abilities?.['走力']||50)-50)*.18+(50-difficulty)*.38,-35,35);
+ let difficulty=clampMatch(
+  Math.round(28+Math.abs(direction)*.48+(speed-90)*.42+(angle-18)*.28+(type==='ライナー'?10:0)+(type==='フライ'?4:0)),
+  5,95
+ );
+ let reaction=clampMatch(
+  (fielding-50)*.48+(Number(fielder?.abilities?.['走力']||50)-50)*.18+(50-difficulty)*.38,
+  -35,35
+ );
  let hitProb=clampMatch(.34-reaction*.007+(speed-95)*.0015,.10,.68);
  let isHit=Math.random()<hitProb;
- let distance=type==='ゴロ'?clampMatch((speed-65)*.22+Math.random()*8,2,28):type==='ライナー'?clampMatch((speed-65)*.48+Math.random()*18,12,65):clampMatch((speed-65)*.72+angle*.42+Math.random()*24,25,115);
+ let distance=type==='ゴロ'
+  ?clampMatch((speed-65)*.22+Math.random()*8,2,28)
+  :type==='ライナー'
+   ?clampMatch((speed-65)*.48+Math.random()*18,12,65)
+   :clampMatch((speed-65)*.72+angle*.42+Math.random()*24,25,115);
  let result;
- if(type==='フライ'&&angle>=43&&speed>=112&&distance>94&&Number(ba['パワー']||50)>=65&&Math.random()<clampMatch(.08+(Number(ba['パワー']||50)-65)*.006,.08,.32))result='本塁打';
- else if(isHit){
+
+ if(type==='フライ'&&angle>=43&&speed>=112&&distance>94&&Number(ba['パワー']||50)>=65&&Math.random()<clampMatch(.08+(Number(ba['パワー']||50)-65)*.006,.08,.32)){
+  result='本塁打';
+ }else if(isHit){
   let runBoost=(runner-50)*.16;
   if(type==='ゴロ'){
    if(Math.abs(direction)>47&&distance+runBoost>23&&runner>78&&Math.random()<.16)result='三塁打';
@@ -772,8 +917,15 @@ function simulateBattedBall(g,defUid,batter,pitcher){
   else if(distance+runBoost>68)result='二塁打';
   else result='単打';
   if(type==='フライ'&&distance>105&&angle>37&&Number(ba['パワー']||50)>78)result='本塁打';
- }else result=type==='ゴロ'?'ゴロアウト':type==='フライ'?'フライアウト':'ライナーアウト';
- return {result,type,direction:Math.round(direction),angle:Math.round(angle),speed:Math.round(speed),target,difficulty,fielder:fielder?.name||target,fielding:Math.round(fielding)};
+ }else{
+  result=type==='ゴロ'?'ゴロアウト':type==='フライ'?'フライアウト':'ライナーアウト';
+ }
+
+ return {
+  result,type,direction:Math.round(direction),angle:Math.round(angle),
+  speed:Math.round(speed),target,difficulty,
+  fielder:fielder?.name||target,fielding:Math.round(fielding)
+ };
 }
 
 async function simPlateAppearance(g,batUid,pitUid,batter,pitcher,onPitch=async()=>{}){
@@ -787,32 +939,58 @@ async function simPlateAppearance(g,batUid,pitUid,batter,pitcher,onPitch=async()
  let b=0,st=0,thrown=0,terminal=null,ball=null;
 
  while(!terminal&&thrown<16){
-  thrown++;g.pitchCount[pitUid]++;
-  const fatigue=clampMatch(1-Math.max(0,(g.pitchCount[pitUid]-45)/180)*(100-stamina)*.0018,.82,1);
-  const zoneChance=clampMatch(.57+(control-50)*.0018+(pitchSkill-50)*.0005,.40,.74);
+  thrown++;
+  g.pitchCount[pitUid]++;
+  const fatigue=clampMatch(
+   1-Math.max(0,(g.pitchCount[pitUid]-45)/180)*(100-stamina)*.0018,
+   .82,1
+  );
+  const zoneChance=clampMatch(
+   .57+(control-50)*.0018+(pitchSkill-50)*.0005,
+   .40,.74
+  );
   const zone=Math.random()<zoneChance;
-  const swingChance=zone?clampMatch(.50+(contact-50)*.0012+(stuff-50)*.0004,.36,.68):clampMatch(.12+(contact-50)*.0007-(control-50)*.0004,.05,.24);
+  const swingChance=zone
+   ?clampMatch(.50+(contact-50)*.0012+(stuff-50)*.0004,.36,.68)
+   :clampMatch(.12+(contact-50)*.0007-(control-50)*.0004,.05,.24);
   let label='';
 
   if(Math.random()<swingChance){
-   const contactChance=clampMatch((zone?.76:.48)+(contact-50)*.0018-(stuff-50)*.0012+(pitchSkill-50)*.0005,.22,.88)*fatigue;
+   const contactChance=clampMatch(
+    (zone?.76:.48)+(contact-50)*.0018-(stuff-50)*.0012+(pitchSkill-50)*.0005,
+    .22,.88
+   )*fatigue;
    if(Math.random()<contactChance){
     ball=simulateBattedBall(g,pitUid,batter,pitcher);
     terminal=ball.result;
     label='インプレー';
    }else{
     const foul=zone&&Math.random()<.32;
-    if(foul){if(st<2)st++;label='ファウル'}
-    else{st++;label=st>=3?'空振り三振':'空振り';if(st>=3)terminal='三振'}
+    if(foul){
+     if(st<2)st++;
+     label='ファウル';
+    }else{
+     st++;
+     label=st>=3?'空振り三振':'空振り';
+     if(st>=3)terminal='三振';
+    }
    }
   }else if(zone){
-   st++;label=st>=3?'見逃し三振':'ストライク';if(st>=3)terminal='三振';
+   st++;
+   label=st>=3?'見逃し三振':'ストライク';
+   if(st>=3)terminal='三振';
   }else{
-   b++;label=b>=4?'四球':'ボール';if(b>=4)terminal='四球';
+   b++;
+   label=b>=4?'四球':'ボール';
+   if(b>=4)terminal='四球';
   }
-  g.balls=b;g.strikes=st;
+
+  g.balls=b;
+  g.strikes=st;
   await onPitch({balls:b,strikes:st,outs:g.outs,label});
+  await wait(550);
  }
+
  if(!terminal)terminal='三振';
  return {result:terminal,pitches:thrown,balls:b,strikes:st,ball};
 }
@@ -820,6 +998,7 @@ async function simPlateAppearance(g,batUid,pitUid,batter,pitcher,onPitch=async()
 function advanceRunners(g,result,batter){
  let runs=0,old=g.bases.slice(),speedOf=p=>Number(p?.abilities?.['走力']||50);
  g.bases=[null,null,null];
+
  if(result==='四球'){
   let forced=!!old[0]&&!!old[1]&&!!old[2];
   if(forced)runs++;
@@ -829,6 +1008,7 @@ function advanceRunners(g,result,batter){
   g.bases[0]=batter;
   return runs;
  }
+
  if(result==='単打'){
   if(old[2])runs++;
   if(old[1]){
@@ -856,7 +1036,10 @@ function advanceRunners(g,result,batter){
  }else{
   g.outs++;
   let dp=false;
-  if(g.outs<3&&result==='ゴロアウト'&&old[0]&&Math.random()<clampMatch(.30-(speedOf(old[0])-50)*.002,.12,.42)){g.outs++;dp=true}
+  if(g.outs<3&&result==='ゴロアウト'&&old[0]&&Math.random()<clampMatch(.30-(speedOf(old[0])-50)*.002,.12,.42)){
+   g.outs++;
+   dp=true;
+  }
   if(g.outs<3&&result==='フライアウト'&&old[2]&&Math.random()<clampMatch(.25+(speedOf(old[2])-50)*.003,.08,.55))runs++;
   if(g.outs<3){
    if(result==='ゴロアウト'&&!dp){
@@ -867,19 +1050,25 @@ function advanceRunners(g,result,batter){
     if(old[2]&&runs===0)g.bases[2]=old[2];
     if(old[1])g.bases[1]=old[1];
     if(old[0])g.bases[0]=old[0];
-   }else if(result==='ライナーアウト'){g.bases=old}
+   }else if(result==='ライナーアウト'){
+    g.bases=old;
+   }
   }
  }
  return runs;
 }
 
 function advanceHalf(g){
- g.outs=0;g.bases=[null,null,null];g.balls=0;g.strikes=0;
+ g.outs=0;
+ g.bases=[null,null,null];
+ g.balls=0;
+ g.strikes=0;
  if(g.half===0){
   g.half=1;
   if(g.inning>=9&&g.runs[g.home]>g.runs[g.away])g.done=true;
  }else{
-  g.half=0;g.inning++;
+  g.half=0;
+  g.inning++;
   if(g.inning>9&&g.runs[g.home]!==g.runs[g.away])g.done=true;
   if(g.inning>12&&g.runs[g.home]===g.runs[g.away])g.done=true;
  }
@@ -909,7 +1098,7 @@ function scheduleNextMatch(){
 }
 
 window.toggleMatchAuto=()=>{
- if(room?.host!==userId)return err('自動進行はホストが操作してください');
+ if(room?.host!==userId)return err('自動進行はホストが操作してください。');
  matchAuto=!matchAuto;
  clearTimeout(matchAutoTimer);
  renderMatch();
@@ -919,50 +1108,71 @@ window.toggleMatchAuto=()=>{
 function renderCountDots(id,count,total,type){
  const el=$(id);
  if(!el)return;
- el.innerHTML=Array.from({length:total},(_,i)=>`<i class="count-dot ${type} ${i<count?'on':''}"></i>`).join('');
+ el.innerHTML=Array.from(
+  {length:total},
+  (_,i)=>`<i class="count-dot ${type} ${i<count?'on':''}"></i>`
+ ).join('');
 }
 
 window.advanceMatch=async()=>{
  let g=room?.matchState;
  if(!g||g.done||matchBusy)return;
  if(room.host!==userId)return err('試合進行はホストが操作してください。');
+
  matchBusy=true;
  clearTimeout(matchAutoTimer);
  const nextButton=$('nextBatterBtn');
  if(nextButton)nextButton.disabled=true;
+
  try{
-  let offense=g.half===0?g.home:g.away,defense=g.half===0?g.away:g.home;
-  let setup=room.teamSettings[offense],idx=g.battingIndex[offense]%9;
-  let batter=matchPlayer(offense,setup.lineup[idx]),pitcher=getMatchPitcher(defense);
-  if(!batter)return err('打者データが見つかりません。');
+  let offense=g.half===0?g.home:g.away;
+  let defense=g.half===0?g.away:g.home;
+  let setup=room.teamSettings[offense];
+  let idx=g.battingIndex[offense]%9;
+  let batter=matchPlayer(offense,setup.lineup[idx]);
+  let pitcher=getMatchPitcher(defense);
+  if(!batter)throw new Error('打者データが見つかりません。');
+
   let pa=await simPlateAppearance(g,offense,defense,batter,pitcher,async pitch=>{
-   g.balls=pitch.balls;g.strikes=pitch.strikes;g.lastResult=pitch.label;
+   g.balls=pitch.balls;
+   g.strikes=pitch.strikes;
+   g.lastResult=pitch.label;
    room.matchState=g;
    await saveState(room);
    renderMatch();
   });
+
   let runs=advanceRunners(g,pa.result,batter);
   g.runs[offense]+=runs;
   g.battingIndex[offense]=(idx+1)%9;
+
   let halfText=`${g.inning}回${g.half===0?'表':'裏'}`;
   let displayResult=concisePlateResult(pa);
   let line=`${halfText} ${idx+1}番 ${batter.name}：${displayResult}`+(runs?`　${runs}点`:'');
+
   g.lastResult=displayResult;
-  g.log.unshift(line);g.log=g.log.slice(0,30);
-  g.balls=0;g.strikes=0;
+  g.log.unshift(line);
+  g.log=g.log.slice(0,30);
+  g.balls=0;
+  g.strikes=0;
+
   if(g.outs>=3){
    g.log.unshift(`${halfText} 攻撃終了`);
    advanceHalf(g);
   }
+
   if(g.done){
-   g.log.unshift(`試合終了：${matchTeamName(g.runs[g.home]>g.runs[g.away]?g.home:g.away)}の勝利`);
+   let winner=g.runs[g.home]===g.runs[g.away]?null:g.runs[g.home]>g.runs[g.away]?g.home:g.away;
+   g.log.unshift(winner?`試合終了：${matchTeamName(winner)}の勝利`:'試合終了：引き分け');
    matchAuto=false;
   }
+
   room.matchState=g;
   await saveState(room);
   renderMatch();
- }catch(e){err(e.message||'試合状況の保存に失敗しました')}
- finally{
+ }catch(e){
+  err(e.message||'試合状況の保存に失敗しました。');
+ }finally{
   matchBusy=false;
   if(room?.status==='match'){
    if(nextButton)nextButton.disabled=!!room.matchState?.done||room.host!==userId;
@@ -972,37 +1182,61 @@ window.advanceMatch=async()=>{
 };
 
 function renderMatch(){
- let g=room?.matchState;if(!g)return;
- let offense=g.half===0?g.home:g.away,defense=g.half===0?g.away:g.home;
- let setup=room.teamSettings[offense],idx=g.battingIndex[offense]%9;
- let batter=matchPlayer(offense,setup.lineup[idx]),pitcher=getMatchPitcher(defense);
+ let g=room?.matchState;
+ if(!g)return;
+
+ let offense=g.half===0?g.home:g.away;
+ let defense=g.half===0?g.away:g.home;
+ let setup=room.teamSettings[offense];
+ let idx=g.battingIndex[offense]%9;
+ let batter=matchPlayer(offense,setup.lineup[idx]);
+ let pitcher=getMatchPitcher(defense);
+
  $('matchInning').textContent=`${g.inning}回${g.half===0?'表':'裏'}`;
- $('matchScoreboard').innerHTML=[g.home,g.away].map(uid=>`<div class="match-team-score"><div><small>${esc(matchTeamName(uid))}${uid===g.home?'（先攻）':'（後攻）'}</small><b>${esc(uid===g.home?'HOME':'AWAY')}</b></div><strong>${g.runs[uid]}</strong></div>`).join('');
+ $('matchScoreboard').innerHTML=[g.home,g.away].map(uid=>
+  `<div class="match-team-score"><div><small>${esc(matchTeamName(uid))}${uid===g.home?'（先攻）':'（後攻）'}</small><b>${esc(uid===g.home?'HOME':'AWAY')}</b></div><strong>${g.runs[uid]}</strong></div>`
+ ).join('');
+
  $('matchBatterOrder').textContent=`第${idx+1}打者　${setup.positions?.[setup.lineup[idx]]||Object.keys(setup.positions||{}).find(k=>setup.positions[k]===setup.lineup[idx])||''}`;
  $('matchBatterName').textContent=batter?.name||'—';
- $('matchBatterStats').textContent='';
+
+ // HTML側に既存のhiddenクラスがあっても、現在の投手欄は表示する。
+ document.querySelector('#match .match-pitcher-line')?.classList.remove('hidden');
  $('matchPitcherName').textContent=pitcher?.name||'投手';
  $('matchPitchCount').textContent=g.pitchCount?.[defense]||0;
+
+ $('matchBatterStats').textContent='';
  renderCountDots('matchBalls',g.balls||0,4,'ball');
  renderCountDots('matchStrikes',g.strikes||0,3,'strike');
  renderCountDots('matchOuts',g.outs||0,3,'out');
+
  $('matchDiamond').innerHTML=`<div class="match-diamond"><i class="base second ${g.bases[1]?'on':''}"></i><i class="base third ${g.bases[2]?'on':''}"></i><i class="base first ${g.bases[0]?'on':''}"></i><i class="base home"></i></div>`;
- $('matchLastResult').textContent=g.done?`試合終了：${g.runs[g.home]===g.runs[g.away]?'引き分け':matchTeamName(g.runs[g.home]>g.runs[g.away]?g.home:g.away)+'の勝利'}`:g.lastResult;
+ $('matchLastResult').textContent=g.done
+  ?`試合終了：${g.runs[g.home]===g.runs[g.away]?'引き分け':matchTeamName(g.runs[g.home]>g.runs[g.away]?g.home:g.away)+'の勝利'}`
+  :g.lastResult;
  $('matchLog').innerHTML=g.log.map(x=>`<div>${esc(x)}</div>`).join('');
+
  $('nextBatterBtn').disabled=g.done||room.host!==userId;
  $('nextBatterBtn').textContent=g.done?'試合終了':'次の打者へ';
+
  const autoButton=$('matchAutoBtn');
  if(autoButton){
   autoButton.textContent=matchAuto?'自動進行を停止':'自動進行を再開';
   autoButton.disabled=room.host!==userId;
  }
- $('matchControlNote').textContent=room.host===userId?'ホスト画面で投球ごとのカウントと試合進行を同期します。':'ホストが試合を進行しています。投球ごとのカウントが同期されます。';
+
+ $('matchControlNote').textContent=room.host===userId
+  ?'投球ごとにカウントを表示します。自動進行はボタンで停止・再開できます。'
+  :'ホストが試合を進行しています。投手名と投球ごとのカウントは自動で同期されます。';
 }
 
 function esc(s){
- return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ return String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+ }[c]));
 }
 
+// Settings UI: Publishable key is intended for browser use with appropriate Supabase RLS policies.
 window.saveSupabaseSettings=()=>{
  let key=$('sbKey').value.trim();
  if(!key)return err('Publishable keyを入力してください。');
@@ -1015,15 +1249,20 @@ window.saveSupabaseSettings=()=>{
 window.testSupabase=async()=>{
  if(!ensure())return;
  try{
-  const {data,error}=await sb.from('rooms').select('room_code').limit(1);
+  const {error}=await sb.from('rooms').select('room_code').limit(1);
   if(error)throw error;
   $('settingsStatus').textContent='接続成功！Supabaseのroomsテーブルにアクセスできました。';
- }catch(e){$('settingsStatus').textContent='接続失敗：'+e.message}
+ }catch(e){
+  $('settingsStatus').textContent='接続失敗：'+e.message;
+ }
 };
 
 sb=initClient();
-if(localStorage.getItem('dbb_supabase_key'))$('sbKey').value=localStorage.getItem('dbb_supabase_key');
+if(localStorage.getItem('dbb_supabase_key')){
+ $('sbKey').value=localStorage.getItem('dbb_supabase_key');
+}
 if(sb)$('settingsStatus').textContent='Publishable keyが保存済みです。';
+
 const savedRoom=localStorage.getItem('dbb_room');
 if(savedRoom&&sb)loadRoomForReconnect(savedRoom);
 
