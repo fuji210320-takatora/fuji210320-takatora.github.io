@@ -8,7 +8,7 @@
 
 .stat-chip{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:5px;color:#fff!important;font-weight:800;font-size:12px;margin:2px 3px 2px 0}.stat-chip *{color:#fff!important}.stat-90{background:#c99a18}.stat-80{background:#e65b9a}.stat-70{background:#d93d3d}.stat-60{background:#f08024}.stat-50{background:#e5c51c}.stat-40{background:#26964c}.stat-20{background:#2879d0}.stat-0{background:#777}.defnum{display:inline-block;padding:1px 5px;border-radius:4px;color:#fff;font-weight:800;font-size:12px}.ovr{display:inline-block;background:#172536;color:#fff;border-radius:5px;padding:3px 7px;font-weight:900;font-size:12px;margin-left:4px}.pickview{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.filterGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.positionChecks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.positionChecks label{margin:2px 0;font-weight:500;display:flex;gap:4px;align-items:center}.positionChecks input{width:auto;padding:0}.rangeRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pick .playerStats{margin:5px 0}.rosterStatline{font-size:12px;line-height:1.7;margin:3px 0 8px}.pick.owned{opacity:.55;filter:grayscale(.25);cursor:not-allowed;border-style:dashed}.pick.owned::after{content:'指名済み';display:inline-block;margin-left:5px;color:#b42323;font-weight:800}
 h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,select.roleSel{padding:9px;font-size:13px}.rosterRows{display:flex;flex-direction:column;gap:8px}.rosterRow{display:grid;grid-template-columns:38px minmax(78px,100px) minmax(0,1fr);gap:8px;align-items:center}.battingOrder{font-weight:800;text-align:center;background:#edf2f7;border-radius:8px;padding:10px}.rosterRow select{min-width:0;padding:9px;font-size:13px}@media(max-width:420px){.rosterRow{grid-template-columns:30px 76px minmax(0,1fr);gap:5px}.rosterRow select{padding:8px;font-size:12px}}</style></head>
-<body><header class="top"><div class="brand">⚾ DREAM <span>BASEBALL</span> BATTLE</div><div class="sub">ONLINE DRAFT BATTLE · PROTOTYPE 0.16</div></header>
+<body><header class="top"><div class="brand">⚾ DREAM <span>BASEBALL</span> BATTLE</div><div class="sub">ONLINE DRAFT BATTLE · PROTOTYPE 0.17</div></header>
 <main class="wrap">
 <section id="home" class="panel hero"><div class="tag">PRIVATE ROOM / 2–6 PLAYERS</div><h1>ドリームベースボールバトル</h1><p>仲間と集まって、ドラフトで最強チームを作ろう。</p><div class="actions"><button class="btn gold" onclick="show('create')">ルームを作る</button><button class="btn" onclick="show('join')">ルームに参加する</button></div><p class="muted" style="margin-top:20px">別々の端末から同じルームに参加できます（Supabase設定が必要です）。</p></section>
 <section class="panel" id="connectionSettings"><h2 class="title">Supabase接続設定</h2><p class="muted">Publishable key（sb_publishable_...）を入力。URLは設定済みです。</p><label>Publishable key</label><input id="sbKey" placeholder="sb_publishable_..." autocomplete="off"><div class="actions" style="justify-content:flex-start;margin-top:12px"><button class="btn" onclick="saveSupabaseSettings()">設定を保存</button><button class="btn light" onclick="testSupabase()">接続テスト</button></div><p id="settingsStatus" class="status">未設定</p></section>
@@ -120,13 +120,48 @@ function renderFinished(){
 function renderTeamSetup(){
  const mine=room.teams?.[userId]||[],fielders=mine.filter(p=>p.type==='野手'),pitchers=mine.filter(p=>p.type==='投手');
  const saved=room.teamSettings?.[userId]||{},posList=['C','1B','2B','3B','SS','LF','CF','RF','DH'];
- const pitchRoleList=room.mode==='professional'?['先発1','先発2','先発3','先発4','先発5','中継ぎ1','中継ぎ2','中継ぎ3','中継ぎ4','抑え']:['先発','中継ぎ1','中継ぎ2'];
+ const pitchRoleList=room.mode==='professional'?['先発1','先発2','先発3','先発4','先発5','中継ぎエース','接戦時','ビハインド時','敗戦処理','抑え']:['先発','中継ぎ','抑え'];
  if(!teamSetupDraft||teamSetupDraft.owner!==userId){
-  let oldLineup=saved.lineup||fielders.slice(0,9).map(x=>x.id),oldPositions=saved.positions||{};
-  let lineup9=Array.from({length:9},(_,i)=>oldLineup[i]||fielders[i]?.id||''),position9=posList.slice();
-  // 旧保存形式（守備位置→選手ID）を打順行の位置へ移し替える
-  for(let [pos,pid] of Object.entries(oldPositions)){let row=lineup9.indexOf(pid);if(row>=0&&posList.includes(pos))position9[row]=pos;}
-  teamSetupDraft={owner:userId,lineup:lineup9,positions:position9,roles:{...(saved.roles||{})}};
+  let oldLineup=saved.lineup||[],oldPositions=saved.positions||{};
+  let lineup9,position9,roles;
+  if(oldLineup.length===9&&oldLineup.every(Boolean)){
+   lineup9=oldLineup.slice();position9=posList.slice();
+   // 旧保存形式（守備位置→選手ID）を打順行の位置へ移し替える
+   for(let [pos,pid] of Object.entries(oldPositions)){let row=lineup9.indexOf(pid);if(row>=0&&posList.includes(pos))position9[row]=pos;}
+   roles={...(saved.roles||{})};
+  }else{
+   // 打順を指定スコアで自動設定
+   let remaining=fielders.slice(),chosen=[];
+   const score=(p,formula)=>{let a=p.abilities||{},m=Number(a['ミート']||0),pow=Number(a['パワー']||0),sp=Number(a['走力']||0);return formula(m,pow,sp)};
+   const take=(fn)=>{if(!remaining.length)return '';remaining.sort((a,b)=>fn(b)-fn(a));let p=remaining.shift();chosen.push(p.id);return p.id};
+   let order=Array(9).fill('');order[3]=take(p=>score(p,(m,pow,sp)=>m+pow));
+   order[0]=take(p=>score(p,(m,pow,sp)=>m+pow*.5+sp*.75));
+   order[1]=take(p=>score(p,(m,pow,sp)=>m+pow+sp*.5));
+   order[2]=take(p=>score(p,(m,pow,sp)=>m+pow));
+   order[4]=take(p=>score(p,(m,pow,sp)=>m*.5+pow));
+   order[5]=take(p=>score(p,(m,pow,sp)=>m*.5+pow*1.25));
+   let last=remaining.slice().sort((a,b)=>score(b,(m,pow,sp)=>m+pow+sp*.25)-score(a,(m,pow,sp)=>m+pow+sp*.25));
+   for(let i=6;i<9;i++)order[i]=last[i-6]?.id||'';
+   lineup9=order;
+   // 守備：候補が一人しかいない位置を繰り返し優先して埋める
+   let posOrder=['C','SS','2B','CF','3B','1B','RF','LF'],assign={},used=new Set(),pool=lineup9.map(id=>fielders.find(p=>p.id===id)).filter(Boolean);
+   const eligible=(p,pos)=>(p.positionAbilities||[]).some(x=>x.position===pos);
+   let changed=true;while(changed){changed=false;for(let pos of posOrder){if(assign[pos])continue;let candidates=pool.filter(p=>!used.has(p.id)&&eligible(p,pos));if(candidates.length===1){assign[pos]=candidates[0].id;used.add(candidates[0].id);changed=true;}}}
+   for(let pos of posOrder){if(assign[pos])continue;let candidates=pool.filter(p=>!used.has(p.id)&&eligible(p,pos)).sort((a,b)=>{let av=(a.positionAbilities||[]).find(x=>x.position===pos)?.value||0,bv=(b.positionAbilities||[]).find(x=>x.position===pos)?.value||0;return bv-av});if(candidates.length){assign[pos]=candidates[0].id;used.add(candidates[0].id);}}
+   let unfilled=posOrder.filter(pos=>!assign[pos]),unused=pool.filter(p=>!used.has(p.id));for(let pos of unfilled){if(unused.length){let ix=Math.floor(Math.random()*unused.length),p=unused.splice(ix,1)[0];assign[pos]=p.id;used.add(p.id);}}
+   assign.DH=pool.find(p=>!used.has(p.id))?.id||'';
+   position9=lineup9.map(id=>posList.find(pos=>assign[pos]===id)||'DH');
+   // 投手自動起用
+   let pstats=p=>{let st=pitcherStats(p);return {st:st.stamina,non:(st.power+st.control+st.pitch)/3,ovr:st.ovr}};
+   let sortedBySt=pitchers.slice().sort((a,b)=>pstats(b).st-pstats(a).st);
+   let sortedNon=pitchers.slice().sort((a,b)=>pstats(b).non-pstats(a).non);
+   roles={};
+   if(room.mode==='professional'){
+    let starters=sortedBySt.slice(0,5).sort((a,b)=>pstats(b).ovr-pstats(a).ovr);['先発1','先発2','先発3','先発4','先発5'].forEach((r,i)=>roles[r]=starters[i]?.id||'');
+    let relievers=sortedNon.filter(p=>!starters.some(s=>s.id===p.id));['抑え','中継ぎエース','接戦時','ビハインド時','敗戦処理'].forEach((r,i)=>roles[r]=relievers[i]?.id||'');
+   }else{roles['先発']=sortedBySt[0]?.id||'';let rel=sortedNon.filter(p=>p.id!==roles['先発']);roles['抑え']=rel[0]?.id||'';roles['中継ぎ']=rel[1]?.id||'';}
+  }
+  teamSetupDraft={owner:userId,lineup:lineup9,positions:position9,roles};
  }
  let d=teamSetupDraft;
  let html='<h3>打順・守備位置</h3><div class="rosterRows">';
@@ -136,7 +171,7 @@ function renderTeamSetup(){
   let selectedFielder=fielders.find(x=>x.id===d.lineup[i]);let selectedFielderFull=selectedFielder?players.find(x=>x.id===selectedFielder.id)||selectedFielder:null;let mini=selectedFielderFull?fielderStatMarkup(selectedFielderFull):'';html+=`<div class="rosterRow"><span class="battingOrder">${i+1}</span><select class="positionSel" aria-label="${i+1}番守備位置" onchange="changeRosterPosition(${i},this.value)">${posOpts}</select><select class="lineupSel" aria-label="${i+1}番選手" onchange="changeRosterPlayer(${i},this.value)"><option value="">選手を選択</option>${pOpts}</select></div><div class="rosterStatline">${mini}</div>`;
  }
  html+='</div><h3>投手起用</h3><div class="grid2">';
- for(let role of pitchRoleList){let ch=d.roles[role]||'',options=pitchers.map(p=>`<option value="${p.id}" ${ch===p.id?'selected':''}>${esc(p.name)}</option>`).join('');html+=`<div><label>${role}</label><select class="roleSel" data-role="${role}"><option value="">未設定</option>${options}</select></div>`}
+ for(let role of pitchRoleList){let ch=d.roles[role]||'',options=pitchers.map(p=>`<option value="${p.id}" ${ch===p.id?'selected':''}>${esc(p.name)}</option>`).join('');html+=`<div><label>${role}</label><select class="roleSel" data-role="${role}" onchange="changePitcherRole(this.dataset.role,this.value)"><option value="">未設定</option>${options}</select></div>`}
  html+='</div>';
  if(!mine.length)html='<div class="status warn">自分のチーム選手が取得できません。</div>';
  $('teamSetup').innerHTML=html;
@@ -147,6 +182,7 @@ window.changeRosterPlayer=(index,value)=>{
  if(other>=0&&other!==index){teamSetupDraft.lineup[other]=old;}
  teamSetupDraft.lineup[index]=value;renderTeamSetup();
 };
+window.changePitcherRole=(role,value)=>{if(!teamSetupDraft)return;let roles=teamSetupDraft.roles||{},other=Object.keys(roles).find(r=>r!==role&&roles[r]===value);if(other){roles[other]=roles[role]||'';}roles[role]=value;renderTeamSetup();};
 window.changeRosterPosition=(index,value)=>{
  if(!teamSetupDraft)return;
  const old=teamSetupDraft.positions[index],other=teamSetupDraft.positions.indexOf(value);
