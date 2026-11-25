@@ -1251,3 +1251,132 @@ window.advanceMatch=async()=>{
   }
  }
 };
+function renderMatch(){
+ let g=room?.matchState;
+ if(!g)return;
+
+ let offense=g.half===0?g.home:g.away;
+ let defense=g.half===0?g.away:g.home;
+ let setup=room.teamSettings[offense];
+ let idx=g.battingIndex[offense]%9;
+ let batter=matchPlayer(offense,setup.lineup[idx]);
+ let pitcher=getMatchPitcher(defense);
+ let inningText=`${g.inning}回${g.half===0?'表':'裏'}`;
+
+ document.querySelectorAll('[id="matchInning"]').forEach(el=>{
+  el.textContent=inningText;
+ });
+
+ $('matchScoreboard').innerHTML=[g.home,g.away].map(uid=>
+  `<div class="match-team-score">
+   <div>
+    <small>${esc(matchTeamName(uid))}${uid===g.home?'（先攻）':'（後攻）'}</small>
+    <b>${esc(uid===g.home?'HOME':'AWAY')}</b>
+   </div>
+   <strong>${g.runs[uid]}</strong>
+  </div>`
+ ).join('');
+
+ $('matchBatterOrder').textContent=
+  `第${idx+1}打者　${setup.positions?.[setup.lineup[idx]]||
+  Object.keys(setup.positions||{}).find(k=>setup.positions[k]===setup.lineup[idx])||''}`;
+ $('matchBatterName').textContent=batter?.name||'—';
+
+ document.querySelector('#match .match-pitcher-line')?.classList.remove('hidden');
+ $('matchPitcherName').textContent=pitcher?.name||'投手';
+ $('matchPitchCount').textContent=g.pitchCount?.[defense]||0;
+
+ renderCountDots('matchBalls',g.balls||0,4,'ball');
+ renderCountDots('matchStrikes',g.strikes||0,3,'strike');
+ renderCountDots('matchOuts',g.outs||0,3,'out');
+
+ $('matchDiamond').innerHTML=`
+  <div class="match-diamond">
+   <i class="base second ${g.bases[1]?'on':''}"></i>
+   <i class="base third ${g.bases[2]?'on':''}"></i>
+   <i class="base first ${g.bases[0]?'on':''}"></i>
+   <i class="base home"></i>
+  </div>`;
+
+ $('matchLastResult').textContent=g.done
+  ?`試合終了：${g.runs[g.home]===g.runs[g.away]
+    ?'引き分け'
+    :matchTeamName(g.runs[g.home]>g.runs[g.away]?g.home:g.away)+'の勝利'}`
+  :g.lastResult;
+
+ $('matchLog').innerHTML=g.log.map(x=>`<div>${esc(x)}</div>`).join('');
+ $('matchLog').classList.remove('hidden');
+
+ $('nextBatterBtn').disabled=g.done||room.host!==userId;
+ $('nextBatterBtn').textContent=g.done?'試合終了':'次の打者へ';
+
+ const autoButton=$('matchAutoBtn');
+ if(autoButton){
+  autoButton.textContent=matchAuto?'自動進行を停止':'自動進行を再開';
+  autoButton.disabled=room.host!==userId;
+ }
+
+ $('matchControlNote').textContent=room.host===userId
+  ?'投球ごとにカウントを表示します。打席終了後に結果を表示し、3アウトで回と表裏が進みます。'
+  :'ホストが試合を進行しています。投手名、カウント、回と表裏は自動で同期されます。';
+}
+
+function esc(s){
+ return String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+ }[c]));
+}
+
+window.saveSupabaseSettings=()=>{
+ let key=$('sbKey').value.trim();
+ if(!key)return err('Publishable keyを入力してください。');
+ localStorage.setItem('dbb_supabase_url',SUPABASE_URL_DEFAULT);
+ localStorage.setItem('dbb_supabase_key',key);
+ sb=initClient();
+ $('settingsStatus').textContent='設定を保存しました。接続テストを押してください。';
+};
+
+window.testSupabase=async()=>{
+ if(!ensure())return;
+ try{
+  const {error}=await sb.from('rooms').select('room_code').limit(1);
+  if(error)throw error;
+  $('settingsStatus').textContent='接続成功！Supabaseのroomsテーブルにアクセスできました。';
+ }catch(e){
+  $('settingsStatus').textContent='接続失敗：'+e.message;
+ }
+};
+
+sb=initClient();
+
+if(localStorage.getItem('dbb_supabase_key')){
+ $('sbKey').value=localStorage.getItem('dbb_supabase_key');
+}
+if(sb){
+ $('settingsStatus').textContent='Publishable keyが保存済みです。';
+}
+
+const savedRoom=localStorage.getItem('dbb_room');
+if(savedRoom&&sb){
+ loadRoomForReconnect(savedRoom);
+}
+
+async function loadRoomForReconnect(code){
+ try{
+  let row=await getRoom(code);
+  if(row?.game_state?.players?.[userId]){
+   enter(code);
+  }else{
+   localStorage.removeItem('dbb_room');
+  }
+ }catch(e){
+  console.warn(e);
+ }
+}
+</script>
+</body>
+</html>
