@@ -7,7 +7,7 @@
 :root{--navy:#10243c;--blue:#1d4e7a;--gold:#e8b957;--bg:#eef2f6;--ink:#172536;--muted:#66778a;--line:#d9e1e9;--green:#21865b;--red:#bd4545}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}.top{background:linear-gradient(120deg,#0c1e33,#214e75);color:white;padding:18px max(18px,calc((100% - 980px)/2));box-shadow:0 3px 14px #10243c22}.brand{font-weight:900;font-size:20px;letter-spacing:.04em}.brand span{color:var(--gold)}.sub{font-size:11px;color:#c7d6e5;margin-top:3px}.wrap{max-width:980px;margin:24px auto;padding:0 16px}.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:22px;box-shadow:0 6px 24px #19324a0b;margin-bottom:16px}.hero{background:linear-gradient(135deg,#fff,#f4f8fc);text-align:center;padding:36px 22px}.hero h1{font-size:clamp(25px,5vw,39px);margin:8px 0;color:var(--navy)}.hero p{color:var(--muted);margin:0 0 22px}.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:12px 18px;background:var(--blue);color:white;font-weight:750;cursor:pointer;font-size:14px}.btn.gold{background:var(--gold);color:#30250e}.btn.light{background:#eaf0f6;color:var(--navy)}.btn.red{background:var(--red)}.btn:disabled{opacity:.4;cursor:not-allowed}input,select{width:100%;padding:12px;border:1px solid #cbd6e1;border-radius:9px;font:inherit;background:#fff}label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}.row{display:flex;gap:12px;align-items:end}.row>*{flex:1}.hidden{display:none!important}.muted{color:var(--muted);font-size:13px}.title{font-size:22px;font-weight:850;color:var(--navy);margin:0 0 5px}.tag{display:inline-block;background:#eaf1f8;color:#285477;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:800}.roomcode{font-size:34px;font-weight:900;letter-spacing:.18em;color:var(--blue);text-align:center;padding:12px}.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:12px}.player{padding:10px;border:1px solid var(--line);border-radius:9px;background:#fbfcfd;font-size:13px}.player.me{border-color:var(--gold);background:#fffaf0}.status{padding:12px;border-radius:10px;background:#f0f5fa;margin:12px 0;font-size:13px}.status.ok{background:#eaf7f0;color:#176443}.status.warn{background:#fff5e5;color:#805719}.cards{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}.cards.twoCol{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:520px){.cards.twoCol{grid-template-columns:1fr}}.pick{border:1px solid var(--line);border-radius:11px;padding:13px;text-align:left;background:white;cursor:pointer}.pick.selected{border:2px solid var(--gold);background:#fffaf0}.pick b{display:block}.pick small{color:var(--muted)}.pick:disabled{opacity:.55;cursor-not-allowed}.roundbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.progress{height:8px;background:#e7edf3;border-radius:20px;overflow:hidden;margin:12px 0}.progress div{height:100%;background:var(--gold);transition:width .2s}.revealbox{background:linear-gradient(135deg,#10243c,#214e75);color:#fff;border-radius:14px;padding:18px;text-align:center;margin:12px 0;animation:revealPop .45s ease-out}.revealbox h3{margin:0 0 10px;font-size:20px}.revealgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.revealcard{background:#fff;color:#172536;border-radius:10px;padding:12px;animation:cardFlip .55s ease-out}.revealcard b{display:block;font-size:15px}.revealcard small{color:#66778a}.revealcard .tag{margin-top:6px}@keyframes revealPop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}@keyframes cardFlip{0%{opacity:0;transform:rotateY(90deg)}65%{transform:rotateY(-8deg)}100%{opacity:1;transform:rotateY(0)}}.lotterybox{background:linear-gradient(135deg,#281746,#603c91);color:#fff;border-radius:14px;padding:20px;text-align:center;margin:12px 0;animation:revealPop .4s ease-out}.lotterybox h3{margin:0 0 12px;font-size:22px}.lotterycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.lotterycard{position:relative;overflow:hidden;isolation:isolate;background:#fffdf6;color:#172536;border-radius:10px;padding:12px;animation:lotteryPulse 1s ease-in-out infinite alternate}.lotterycard>*{position:relative;z-index:1}.lotterycard::before,.lotterycard::after{content:"";position:absolute;z-index:2;top:0;bottom:0;width:51%;background:linear-gradient(135deg,#fffdf2,#f0dfb6);border:1px solid #d5bd85;animation-duration:1.15s;animation-timing-function:cubic-bezier(.2,.8,.2,1);animation-fill-mode:forwards}.lotterycard::before{left:0;transform-origin:left center;box-shadow:inset -8px 0 12px #80652a22;animation-name:paperOpenLeft}.lotterycard::after{right:0;transform-origin:right center;box-shadow:inset 8px 0 12px #80652a22;animation-name:paperOpenRight}.lotterycard b{display:block}.lotterycard small{color:#66778a}.lotteryspin{font-size:34px;display:inline-block;animation:spin 1s linear infinite;margin:6px 0}@keyframes lotteryPulse{from{transform:scale(.98);box-shadow:0 0 0 0 #e8b95744}to{transform:scale(1.03);box-shadow:0 0 0 5px #e8b95722}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes paperOpenLeft{0%{transform:perspective(500px) rotateY(0);opacity:1}100%{transform:perspective(500px) rotateY(-105deg);opacity:0}}@keyframes paperOpenRight{0%{transform:perspective(500px) rotateY(0);opacity:1}100%{transform:perspective(500px) rotateY(105deg);opacity:0}}.result{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0}.winner{border-color:#8ac6a7;background:#f1faf5}.loser{border-color:#e8b7b7;background:#fff6f6}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.foot{text-align:center;color:#8290a0;font-size:11px;padding:18px}@media(max-width:600px){.panel{padding:16px}.row,.grid2{display:block}.row>*{margin-bottom:8px}.actions .btn{flex:1}}
 
 .stat-chip{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:5px;color:#fff!important;font-weight:800;font-size:12px;margin:2px 3px 2px 0}.stat-chip *{color:#fff!important}.stat-90{background:#c99a18}.stat-80{background:#e65b9a}.stat-70{background:#d93d3d}.stat-60{background:#f08024}.stat-50{background:#e5c51c}.stat-40{background:#26964c}.stat-20{background:#2879d0}.stat-0{background:#777}.defnum{display:inline-block;padding:1px 5px;border-radius:4px;color:#fff;font-weight:800;font-size:12px}.ovr{display:inline-block;background:#172536;color:#fff;border-radius:5px;padding:3px 7px;font-weight:900;font-size:12px;margin-left:4px}.pickview{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.filterGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.positionChecks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.positionChecks label{margin:2px 0;font-weight:500;display:flex;gap:4px;align-items:center}.positionChecks input{width:auto;padding:0}.rangeRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pick .playerStats{margin:5px 0}.rosterStatline{font-size:12px;line-height:1.7;margin:3px 0 8px}.pick.owned{opacity:.55;filter:grayscale(.25);cursor:not-allowed;border-style:dashed}.pick.owned::after{content:'指名済み';display:inline-block;margin-left:5px;color:#b42323;font-weight:800}
-h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,select.roleSel{padding:9px;font-size:13px}.rosterRows{display:flex;flex-direction:column;gap:8px}.rosterRow{display:grid;grid-template-columns:38px minmax(78px,100px) minmax(0,1fr);gap:8px;align-items:center}.battingOrder{font-weight:800;text-align:center;background:#edf2f7;border-radius:8px;padding:10px}.rosterRow select{min-width:0;padding:9px;font-size:13px}@media(max-width:420px){.rosterRow{grid-template-columns:30px 76px minmax(0,1fr);gap:5px}.rosterRow select{padding:8px;font-size:12px}}
+h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,select.roleSel{padding:9px;font-size:13px}.combo-list{display:grid;gap:6px;margin:8px 0 16px}.combo-item{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:9px 11px;border:1px solid #d8e4ef;border-radius:8px;background:#f5f9fc;font-size:12px}.combo-item b{color:#1d4e7a;white-space:nowrap}.combo-item span{text-align:right;color:#43576b}.rosterRows{display:flex;flex-direction:column;gap:8px}.rosterRow{display:grid;grid-template-columns:38px minmax(78px,100px) minmax(0,1fr);gap:8px;align-items:center}.battingOrder{font-weight:800;text-align:center;background:#edf2f7;border-radius:8px;padding:10px}.rosterRow select{min-width:0;padding:9px;font-size:13px}@media(max-width:420px){.rosterRow{grid-template-columns:30px 76px minmax(0,1fr);gap:5px}.rosterRow select{padding:8px;font-size:12px}}
 .match-scoreboard{display:flex;flex-direction:column;gap:5px;margin:0;min-width:0}.match-team-score{background:#10243c;color:#fff;border-radius:8px;padding:7px 9px;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}.match-team-score small{display:block;color:#c7d6e5;font-size:11px;overflow-wrap:anywhere}.match-team-score strong{font-size:22px;color:#f2c96d;flex:none}.match-main{display:grid;grid-template-columns:1.05fr .95fr;gap:10px}.match-current,.match-diamond-wrap{background:#f2f5f8;border-radius:12px;padding:14px}.match-player-name{font-size:23px;font-weight:900;color:#10243c;margin:4px 0}.match-pitcher-line{font-size:12px;margin-top:12px}.match-diamond-wrap{text-align:center}.match-inning-label{font-size:18px;font-weight:900;color:#10243c;margin:0 0 2px}.match-diamond-wrap .match-result{margin:8px 0 0;font-size:16px;padding:8px}.match-bottom-info{display:grid;grid-template-columns:minmax(88px,.75fr) minmax(0,1.25fr);gap:8px;align-items:center;max-width:390px;margin:2px auto 0}.match-counts{display:flex;flex-direction:column;align-items:flex-start;gap:7px;font-size:13px}.match-count-item{display:flex;align-items:center;gap:7px;min-height:18px}.match-count-item>span{font-weight:900;width:13px;text-align:left;color:#34485d}.match-count-item .count-dots{min-width:0}.match-count-item .count-dot{width:10px;height:10px}.match-diamond-wrap .match-result{margin:8px 0 0;font-size:16px;padding:8px}.match-diamond{width:130px;height:105px;margin:4px auto;position:relative}.match-diamond:before{content:'';position:absolute;width:68px;height:68px;left:31px;top:18px;transform:rotate(45deg);background:#398451;border:2px solid #23613a}.base{position:absolute;width:15px;height:15px;background:#fff;transform:rotate(45deg);border:1px solid #9aa7b3;z-index:1}.base.on{background:#f0c34e;border-color:#a77b19}.base.second{top:5px;left:57px}.base.third{top:48px;left:12px}.base.first{top:48px;right:12px}.base.home{bottom:0;left:57px}.match-counts{display:flex;justify-content:center;gap:18px;font-size:14px}.match-counts b{font-size:19px;margin-left:4px}.count-dots{display:inline-flex;gap:4px;vertical-align:middle}.count-dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid #aeb8c2;background:#fff}.count-dot.on.ball{background:#45a66f;border-color:#28794b}.count-dot.on.strike{background:#f0bd42;border-color:#b48419}.count-dot.on.out{background:#d64c4c;border-color:#a92c2c}.match-result{padding:13px;background:#fff8e8;border:1px solid #ead49e;border-radius:10px;font-weight:850;text-align:center;margin:12px 0}.match-log{max-height:150px;overflow:auto;background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:9px;font-size:12px;line-height:1.7}.match-log div{border-bottom:1px solid #e5eaf0;padding:4px 0}.match-inning-row{display:grid;grid-template-columns:minmax(80px,1fr) repeat(9,22px) 30px;gap:3px;align-items:center;font-size:11px;text-align:center;margin:4px 0}.match-inning-row .team-label{text-align:left;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.match-inning-row b{font-size:13px}.match-inning-head{color:#718096}.match-gameover{background:#eaf7f0;color:#176443;padding:12px;border-radius:10px;text-align:center;font-weight:900;margin:10px 0}@media(max-width:520px){.match-main{grid-template-columns:1fr}.match-bottom-info{grid-template-columns:minmax(82px,.7fr) minmax(0,1.3fr);max-width:360px}.match-team-score{padding:6px 7px}.match-team-score small{font-size:10px}.match-inning-row{grid-template-columns:minmax(66px,1fr) repeat(9,17px) 25px;font-size:10px}.match-scoreboard{gap:5px}.match-team-score{padding:9px}}
 @media(prefers-reduced-motion:reduce){.lotterycard::before,.lotterycard::after{animation-duration:.01ms}}
 </style></head>
@@ -746,6 +746,18 @@ function renderTeamSetup(){
   let mini=selectedFielderFull?fielderStatMarkup(selectedFielderFull):'';
   html+=`<div class="rosterRow"><span class="battingOrder">${i+1}</span><select class="positionSel" aria-label="${i+1}番守備位置" onchange="changeRosterPosition(${i},this.value)">${posOpts}</select><select class="lineupSel" aria-label="${i+1}番選手" onchange="changeRosterPlayer(${i},this.value)"><option value="">選手を選択</option>${pOpts}</select></div><div class="rosterStatline">${mini}</div>`;
  }
+ html+='</div>';
+ const activeCombos=getLineupCombos(d.lineup,d.positions);
+ const catcherId=d.lineup[d.positions.indexOf('C')],catcher=rawMatchPlayer(catcherId);
+ const starterId=d.roles['先発']||d.roles['先発1'],starter=rawMatchPlayer(starterId);
+ if(catcher&&starter&&catcher.team===starter.team){
+  const avg=(Number(starter.abilities?.['制球']||0)+Number(starter.abilities?.['球威']||0))/2,cdef=assignedDefenseValue(catcher,'C');
+  if(avg>75&&cdef>70)activeCombos.push({name:'天才バッテリー',effect:'相手打者のミート・パワー -10'});
+  else if(avg>70&&cdef>60)activeCombos.push({name:'優秀バッテリー',effect:'相手打者のミート・パワー -5'});
+  activeCombos.push({name:`${starter.team}バッテリー`,effect:'相手打者のミート・パワー -5'});
+ }
+ html+='<h3>発動コンボ</h3><div class="combo-list">';
+ html+=activeCombos.length?activeCombos.map(c=>`<div class="combo-item"><b>${esc(c.name)}</b><span>${esc(c.effect)}</span></div>`).join(''):'<div class="muted">現在発動するコンボはありません。</div>';
  html+='</div><h3>投手起用</h3><div class="grid2">';
  for(let role of pitchRoleList){
   let ch=d.roles[role]||'';
@@ -826,6 +838,97 @@ window.saveMatchSettings=async()=>{
  }catch(e){err('対戦設定保存失敗：'+e.message)}
 };
 
+function rawMatchPlayer(id){
+ return (room.playerPool||players).find(p=>p.id===id)||(room.teams||{})&&Object.values(room.teams).flat().find(p=>p.id===id)||null;
+}
+function assignedDefenseValue(player,pos){
+ return Number(player?.positionAbilities?.find(x=>x.position===pos)?.value ?? player?.abilities?.['守備力'] ?? player?.abilities?.['守備'] ?? 45);
+}
+function getLineupCombos(lineup,positions){
+ const ids=(lineup||[]).filter(Boolean),ps=ids.map(rawMatchPlayer).filter(Boolean),active=[];
+ const teamCounts={};
+ ps.forEach(p=>{if(p.team&&p.team!=='MLB')teamCounts[p.team]=(teamCounts[p.team]||0)+1;});
+ for(const [team,count] of Object.entries(teamCounts)){
+  if(count>=8)active.push({name:`${team}魂`,effect:'該当選手の全能力 +8'});
+  else if(count>=5)active.push({name:`${team}愛`,effect:'該当選手の全能力 +3'});
+ }
+ const byOrder=ids.map(rawMatchPlayer);
+ const clean=byOrder.slice(2,5);
+ if(clean.length===3&&clean.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>150))active.push({name:'超強力クリーンナップ',effect:'3〜5番打者の打席時、相手投手の能力 -5'});
+ else if(clean.length===3&&clean.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>120))active.push({name:'強力クリーンナップ',effect:'3〜5番打者の打席時、相手投手の能力 -2'});
+ const posMap={};(positions||[]).forEach((pos,i)=>{if(ids[i])posMap[pos]=rawMatchPlayer(ids[i]);});
+ const infield=['1B','2B','3B','SS'].map(pos=>({pos,p:posMap[pos]}));
+ if(infield.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=60))active.push({name:'華麗な内野守備陣',effect:'内野手の守備力 +7'});
+ else if(infield.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=50))active.push({name:'堅実な内野守備陣',effect:'内野手の守備力 +3'});
+ const outfield=['LF','CF','RF'].map(pos=>({pos,p:posMap[pos]}));
+ if(outfield.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=60))active.push({name:'華麗な外野守備陣',effect:'外野手の守備力 +7'});
+ else if(outfield.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=50))active.push({name:'堅実な外野守備陣',effect:'外野手の守備力 +3'});
+ const center=['C','2B','SS','CF'].map(pos=>({pos,p:posMap[pos]}));
+ if(center.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=70))active.push({name:'見事なセンターライン',effect:'捕手・二塁手・遊撃手・中堅手の守備力 +6'});
+ else if(center.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=60))active.push({name:'充実したセンターライン',effect:'捕手・二塁手・遊撃手・中堅手の守備力 +3'});
+ return active;
+}
+function lineupTeamBonus(uid,id){
+ const st=room.teamSettings?.[uid]||{},ps=(st.lineup||[]).map(rawMatchPlayer).filter(Boolean);
+ const target=rawMatchPlayer(id);if(!target||!target.team||target.team==='MLB')return 0;
+ const count=ps.filter(p=>p.team===target.team).length;
+ return count>=8?8:count>=5?3:0;
+}
+function getDefenseComboBonus(uid,pos){
+ const st=room.teamSettings?.[uid]||{},map=st.positions||{};
+ const lineup=st.lineup||[],positions=lineup.map(id=>Object.keys(map).find(k=>map[k]===id)||'');
+ const active=getLineupCombos(lineup,positions);
+ let bonus=0;
+ if(['1B','2B','3B','SS'].includes(pos)){
+  const c=active.find(x=>x.name==='華麗な内野守備陣'||x.name==='堅実な内野守備陣');if(c)bonus+=c.name==='華麗な内野守備陣'?7:3;
+ }
+ if(['LF','CF','RF'].includes(pos)){
+  const c=active.find(x=>x.name==='華麗な外野守備陣'||x.name==='堅実な外野守備陣');if(c)bonus+=c.name==='華麗な外野守備陣'?7:3;
+ }
+ if(['C','2B','SS','CF'].includes(pos)){
+  const c=active.find(x=>x.name==='見事なセンターライン'||x.name==='充実したセンターライン');if(c)bonus+=c.name==='見事なセンターライン'?6:3;
+ }
+ return bonus;
+}
+function applyAbilityBonus(player,bonus){
+ if(!player)return player;
+ const copy={...player,abilities:{...(player.abilities||{})},positionAbilities:(player.positionAbilities||[]).map(x=>({...x}))};
+ if(bonus)for(const key of Object.keys(copy.abilities))copy.abilities[key]=Number(copy.abilities[key]||0)+bonus;
+ if(bonus)copy.positionAbilities=copy.positionAbilities.map(x=>({...x,value:Number(x.value||0)+bonus}));
+ return copy;
+}
+function getBatterForMatch(uid,id){return applyAbilityBonus(matchPlayer(uid,id),lineupTeamBonus(uid,id));}
+function getPitcherDebuffForBatter(batUid,batterIndex,pitcher,defUid){
+ const setup=room.teamSettings?.[batUid]||{},ids=setup.lineup||[];
+ const trio=ids.slice(2,5).map(rawMatchPlayer);
+ let debuff=0;
+ if(batterIndex>=2&&batterIndex<=4&&trio.length===3&&trio.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>150))debuff=5;
+ else if(batterIndex>=2&&batterIndex<=4&&trio.length===3&&trio.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>120))debuff=2;
+ const catcherId=room.teamSettings?.[defUid]?.positions?.C;
+ const catcher=rawMatchPlayer(catcherId);
+ const actualPitcher=rawMatchPlayer(pitcher?.id);
+ if(catcher&&actualPitcher&&catcher.team===actualPitcher.team){
+  const avg=(Number(pitcher.abilities?.['制球']||0)+Number(pitcher.abilities?.['球威']||0))/2;
+  if(avg>75&&assignedDefenseValue(catcher,'C')>70){} // battery tier is applied to batter below
+ }
+ const result={...pitcher,abilities:{...(pitcher?.abilities||{})},pitches:{...(pitcher?.pitches||{})}};
+ for(const key of Object.keys(result.abilities))result.abilities[key]=Math.max(0,Number(result.abilities[key]||0)-debuff);
+ for(const key of Object.keys(result.pitches))result.pitches[key]=Math.max(0,Number(result.pitches[key]||0)-debuff);
+ return {pitcher:result,cleanupDebuff:debuff};
+}
+function applyBatteryDebuffToBatter(defUid,pitcher,batter){
+ const catcherId=room.teamSettings?.[defUid]?.positions?.C,catcher=rawMatchPlayer(catcherId);
+ const pitcherRaw=rawMatchPlayer(pitcher?.id);
+ if(!catcher||!pitcherRaw||catcher.team!==pitcherRaw.team)return batter;
+ const avg=(Number(pitcher.abilities?.['制球']||0)+Number(pitcher.abilities?.['球威']||0))/2;
+ const cdef=assignedDefenseValue(catcher,'C');
+ // 同球団バッテリーの単体コンボ(-5)は、上位・下位バッテリーコンボと重複する。
+ const penalty=5+(avg>75&&cdef>70?10:avg>70&&cdef>60?5:0);
+ if(!penalty)return batter;
+ const copy={...batter,abilities:{...(batter.abilities||{})}};
+ for(const key of ['ミート','パワー'])copy.abilities[key]=Math.max(0,Number(copy.abilities[key]||0)-penalty);
+ return copy;
+}
 function matchPlayer(uid,id){
  return (room.playerPool||players).find(p=>p.id===id)||(room.teams?.[uid]||[]).find(p=>p.id===id)||null;
 }
@@ -885,7 +988,10 @@ function clampMatch(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
 function matchPositionMap(uid){
  let st=room.teamSettings?.[uid]||{},out={};
  for(let [pos,id] of Object.entries(st.positions||{})){
-  if(id)out[pos]=matchPlayer(uid,id);
+  if(id){const raw=matchPlayer(uid,id);out[pos]=applyAbilityBonus(raw,lineupTeamBonus(uid,id));
+   const defenseBonus=getDefenseComboBonus(uid,pos);
+   if(defenseBonus){out[pos].positionAbilities=(out[pos].positionAbilities||[]).map(x=>({...x,value:Number(x.value||0)+defenseBonus}));}
+  }
  }
  return out;
 }
@@ -962,7 +1068,12 @@ function simulateBattedBall(g,defUid,batter,pitcher){
   (fielding-50)*.48+(Number(fielder?.abilities?.['走力']||50)-50)*.18+
   (50-difficulty)*.38,-35,35
  );
- let hitProb=clampMatch(.34-reaction*.007+(speed-95)*.0015,.10,.68);
+ // 内野ゴロは外野へ抜けるゴロより安打になりにくくする。
+ // 俊足打者には一定の補正を残し、内野安打が完全になくならないようにする。
+ const infieldGrounder=type==='ゴロ'&&['P','C','1B','2B','3B','SS'].includes(target);
+ let hitProb=infieldGrounder
+  ?clampMatch(.22-reaction*.006+(speed-95)*.0012,.055,.48)
+  :clampMatch(.34-reaction*.007+(speed-95)*.0015,.10,.68);
  let isHit=Math.random()<hitProb;
  let distance=type==='ゴロ'
   ?clampMatch((speed-65)*.22+Math.random()*8,2,28)
@@ -1389,8 +1500,12 @@ window.advanceMatch=async()=>{
   let defense=g.half===0?g.away:g.home;
   let setup=room.teamSettings[offense];
   let idx=g.battingIndex[offense]%9;
-  let batter=matchPlayer(offense,setup.lineup[idx]);
+  let batter=getBatterForMatch(offense,setup.lineup[idx]);
   let pitcher=getMatchPitcher(defense);
+  const originalPitcher=pitcher;
+  const pitcherAdjusted=getPitcherDebuffForBatter(offense,idx,pitcher,defense);
+  pitcher=pitcherAdjusted.pitcher;
+  batter=applyBatteryDebuffToBatter(defense,originalPitcher,batter);
 
   if(!batter)throw new Error('打者データが見つかりません。');
 
@@ -1478,7 +1593,7 @@ function renderMatch(){
  let defense=g.half===0?g.away:g.home;
  let setup=room.teamSettings[offense];
  let idx=g.battingIndex[offense]%9;
- let batter=matchPlayer(offense,setup.lineup[idx]);
+ let batter=getBatterForMatch(offense,setup.lineup[idx]);
  let pitcher=getMatchPitcher(defense);
  let inningText=`${g.inning}回${g.half===0?'表':'裏'}`;
 
