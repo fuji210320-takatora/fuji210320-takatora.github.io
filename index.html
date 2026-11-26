@@ -57,7 +57,7 @@ h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,selec
 <section id="match" class="panel hidden">
 <div class="roundbar"><div><span class="tag">LIVE MATCH</span><h2 class="title">対戦中</h2></div></div>
 <div class="match-main">
-<div class="match-current"><div class="muted" id="matchBatterOrder">第1打者</div><div class="match-player-name" id="matchBatterName">打者</div><div id="matchBatterStats" class="muted hidden"></div><div class="match-pitcher-line">投手：<b id="matchPitcherName">投手</b>　投球数 <b id="matchPitchCount">0</b></div></div>
+<div class="match-current"><div class="muted" id="matchBatterOrder">第1打者</div><div class="match-player-name" id="matchBatterName">打者</div><div id="matchBatterStats" class="muted hidden"></div><div class="match-pitcher-line">投手：<b id="matchPitcherName">投手</b>　投球数 <b id="matchPitchCount">0</b>　疲労 <b id="matchPitchFatigue">0</b></div></div>
 <div class="match-diamond-wrap">
  <div class="match-inning-label" id="matchInning">1回表</div>
  <div id="matchDiamond"></div>
@@ -958,8 +958,14 @@ window.startMatch=async()=>{
   battingIndex:{[home]:0,[away]:0},
   runs:{[home]:0,[away]:0},
   lines:{[home]:Array(9).fill(null),[away]:Array(9).fill(null)},
+  // チーム合計投球数と投手個人ごとの投球数を分けて管理する。
   pitchCount:{[home]:0,[away]:0},
+  pitchCounts:{
+   [home]:{[firstPitcher(home)]:0},
+   [away]:{[firstPitcher(away)]:0}
+  },
   pitchers:{[home]:firstPitcher(home),[away]:firstPitcher(away)},
+  usedPitchers:{[home]:[firstPitcher(home)],[away]:[firstPitcher(away)]},
   balls:0,strikes:0,
   log:['試合開始！'],lastResult:'プレイボール！',
   done:false,startedAt:Date.now()
@@ -978,13 +984,91 @@ function getMatchPitcher(uid){
  let roles=room.teamSettings?.[uid]?.roles||{};
  let starter=roles['先発']||roles['先発1'];
  return matchPlayer(uid,id)||matchPlayer(uid,starter)||{
-  name:'投手',
-  abilities:{球威:50,制球:50,スタミナ:50},
-  pitches:{}
+  id:'unknown_pitcher',name:'投手',
+  abilities:{球威:50,制球:50,スタミナ:50},pitches:{}
  };
 }
 
 function clampMatch(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
+
+// 投手個人の投球数とスタミナから疲労による能力低下を算出する。
+// スタミナが高いほど疲労開始が遅く、同じ投球数でも能力低下が小さい。
+function pitcherFatiguePoints(pitcher,pitchesThrown){
+ const stamina=clampMatch(Number(pitcher?.abilities?.['スタミナ']??50),0,100);
+ const fatigueStart=20+stamina*.55;
+ const lossPerPitch=.10+(100-stamina)*.0007;
+ return clampMatch(Math.max(0,pitchesThrown-fatigueStart)*lossPerPitch,0,22);
+}
+function pitcherWithFatigue(pitcher,pitchesThrown){
+ const loss=pitcherFatiguePoints(pitcher,pitchesThrown);
+ const copy={...pitcher,abilities:{...(pitcher?.abilities||{})},pitches:{...(pitcher?.pitches||{})}};
+ ['球威','制球'].forEach(k=>{
+  if(copy.abilities[k]!==undefined)copy.abilities[k]=Math.max(0,Number(copy.abilities[k]||0)-loss);
+ });
+ for(const k of Object.keys(copy.pitches))copy.pitches[k]=Math.max(0,Number(copy.pitches[k]||0)-loss);
+ copy.fatigueLoss=loss;
+ return copy;
+}
+function pitcherCountFor(g,uid,pitcherId){
+ return Number(g?.pitchCounts?.[uid]?.[pitcherId]||0);
+}
+function isStartingPitcher(uid,pitcherId){
+ const roles=room.teamSettings?.[uid]?.roles||{};
+ return ['先発','先発1','先発2','先発3','先発4','先発5'].some(k=>roles[k]===pitcherId);
+}
+function pitcherPullLimit(uid,pitcher){
+ const stamina=clampMatch(Number(pitcher?.abilities?.['スタミナ']??50),0,100);
+ // 先発は概ね45〜110球、救援は概ね18〜48球を目安に交代を判断。
+ return isStartingPitcher(uid,pitcher.id)?75+stamina*.45:18+stamina*.30;
+}
+function bullpenRolePriority(uid,g){
+ const roles=room.teamSettings?.[uid]?.roles||{};
+ const opponent=uid===g.home?g.away:g.home;
+ const lead=Number(g.runs?.[uid]||0)-Number(g.runs?.[opponent]||0);
+ if(room.mode==='professional'){
+  if(g.inning>=9&&lead>0&&lead<=3)return ['抑え','中継ぎエース','接戦時','ビハインド時','敗戦処理'];
+  if(lead<=-4)return ['敗戦処理','ビハインド時','接戦時','中継ぎエース','抑え'];
+  if(lead<0)return ['ビハインド時','中継ぎエース','接戦時','敗戦処理','抑え'];
+  return ['中継ぎエース','接戦時','抑え','ビハインド時','敗戦処理'];
+ }
+ if(g.inning>=9&&lead>0&&lead<=3)return ['抑え','中継ぎ'];
+ return ['中継ぎ','抑え'];
+}
+function maybeAutoChangePitcher(uid,g){
+ const currentId=g.pitchers?.[uid];
+ const current=matchPlayer(uid,currentId);
+ if(!current)return false;
+ const count=pitcherCountFor(g,uid,currentId);
+ const fatigue=pitcherFatiguePoints(current,count);
+ if(count<pitcherPullLimit(uid,current)&&fatigue<8)return false;
+ const roles=room.teamSettings?.[uid]?.roles||{};
+ const used=new Set(g.usedPitchers?.[uid]||[currentId]);
+ const priorities=bullpenRolePriority(uid,g);
+ let selected=null,selectedRole='';
+ for(const role of priorities){
+  const id=roles[role];
+  if(id&&!used.has(id)&&id!==currentId){selected=matchPlayer(uid,id);if(selected){selectedRole=role;break;}}
+ }
+ // 起用枠に候補がない場合は、未登板の投手から能力とスタミナのバランスで選ぶ。
+ if(!selected){
+  const roster=(room.teams?.[uid]||[]).filter(p=>p.type==='投手'&&!used.has(p.id));
+  roster.sort((a,b)=>{
+   const score=p=>(Number(p.abilities?.['球威']||0)+Number(p.abilities?.['制球']||0)+Number(p.abilities?.['スタミナ']||0)) / 3;
+   return score(b)-score(a);
+  });
+  selected=roster[0]||null;
+  if(selected)selectedRole='救援';
+ }
+ if(!selected)return false;
+ g.pitchers[uid]=selected.id;
+ g.pitchCounts[uid]=g.pitchCounts[uid]||{};
+ if(g.pitchCounts[uid][selected.id]===undefined)g.pitchCounts[uid][selected.id]=0;
+ g.usedPitchers[uid]=[...(g.usedPitchers?.[uid]||[]),selected.id];
+ g.log.unshift(`投手交代：${current.name} → ${selected.name}（${selectedRole}）`);
+ g.log=g.log.slice(0,30);
+ g.lastResult=`投手交代：${selected.name}`;
+ return true;
+}
 function matchPositionMap(uid){
  let st=room.teamSettings?.[uid]||{},out={};
  for(let [pos,id] of Object.entries(st.positions||{})){
@@ -1125,22 +1209,22 @@ function simulateBattedBall(g,defUid,batter,pitcher){
 }
 
 async function simPlateAppearance(g,batUid,pitUid,batter,pitcher,onPitch=async()=>{}){
- const ba=batter.abilities||{},pa=pitcher.abilities||{};
- const pitches=Object.values(pitcher.pitches||{}).map(Number).filter(Number.isFinite);
- const pitchSkill=pitches.length?pitches.reduce((a,b)=>a+b,0)/pitches.length:50;
+ const ba=batter.abilities||{};
  const contact=Number(ba['ミート']||50);
- const control=Number(pa['制球']||50);
- const stuff=Number(pa['球威']||50);
- const stamina=Number(pa['スタミナ']||50);
  let b=0,st=0,thrown=0,terminal=null,ball=null;
 
  while(!terminal&&thrown<16){
   thrown++;
-  g.pitchCount[pitUid]++;
-  const fatigue=clampMatch(
-   1-Math.max(0,(g.pitchCount[pitUid]-45)/180)*(100-stamina)*.0018,
-   .82,1
-  );
+  g.pitchCount[pitUid]=(g.pitchCount[pitUid]||0)+1;
+  g.pitchCounts=g.pitchCounts||{};
+  g.pitchCounts[pitUid]=g.pitchCounts[pitUid]||{};
+  g.pitchCounts[pitUid][pitcher.id]=(g.pitchCounts[pitUid][pitcher.id]||0)+1;
+  const effectivePitcher=pitcherWithFatigue(pitcher,g.pitchCounts[pitUid][pitcher.id]);
+  const pa=effectivePitcher.abilities||{};
+  const pitches=Object.values(effectivePitcher.pitches||{}).map(Number).filter(Number.isFinite);
+  const pitchSkill=pitches.length?pitches.reduce((a,b)=>a+b,0)/pitches.length:50;
+  const control=Number(pa['制球']||50);
+  const stuff=Number(pa['球威']||50);
   const zoneChance=clampMatch(
    .57+(control-50)*.0018+(pitchSkill-50)*.0005,
    .40,.74
@@ -1154,9 +1238,9 @@ async function simPlateAppearance(g,batUid,pitUid,batter,pitcher,onPitch=async()
    const contactChance=clampMatch(
     (zone?.76:.48)+(contact-50)*.0018-(stuff-50)*.0012+(pitchSkill-50)*.0005,
     .22,.88
-   )*fatigue;
+   );
    if(Math.random()<contactChance){
-    ball=simulateBattedBall(g,pitUid,batter,pitcher);
+    ball=simulateBattedBall(g,pitUid,batter,effectivePitcher);
     terminal=ball.result;
    }else{
     const foul=zone&&Math.random()<.32;
@@ -1501,6 +1585,8 @@ window.advanceMatch=async()=>{
   let setup=room.teamSettings[offense];
   let idx=g.battingIndex[offense]%9;
   let batter=getBatterForMatch(offense,setup.lineup[idx]);
+  // 疲労・投球数を打席間で判定し、必要なら救援投手へ交代する。
+  maybeAutoChangePitcher(defense,g);
   let pitcher=getMatchPitcher(defense);
   const originalPitcher=pitcher;
   const pitcherAdjusted=getPitcherDebuffForBatter(offense,idx,pitcher,defense);
@@ -1615,7 +1701,9 @@ function renderMatch(){
 
  document.querySelector('#match .match-pitcher-line')?.classList.remove('hidden');
  $('matchPitcherName').textContent=pitcher?.name||'投手';
- $('matchPitchCount').textContent=g.pitchCount?.[defense]||0;
+ const currentPitchCount=pitcherCountFor(g,defense,pitcher?.id);
+ $('matchPitchCount').textContent=currentPitchCount;
+ $('matchPitchFatigue').textContent=pitcherFatiguePoints(pitcher,currentPitchCount).toFixed(1);
 
  renderCountDots('matchBalls',g.balls||0,4,'ball');
  renderCountDots('matchStrikes',g.strikes||0,3,'strike');
@@ -1648,7 +1736,7 @@ function renderMatch(){
  }
 
  $('matchControlNote').textContent=room.host===userId
-  ?'投球ごとにカウントを表示します。打席終了後に結果を表示し、3アウトで回と表裏が進みます。'
+  ?'投球ごとにカウントを表示します。投手の投球数・スタミナに応じて打席間に自動継投し、3アウトで回と表裏が進みます。'
   :'ホストが試合を進行しています。投手名、カウント、回と表裏は自動で同期されます。';
 }
 
