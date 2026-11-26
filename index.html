@@ -15,7 +15,7 @@ h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,selec
 <main class="wrap">
 <section id="home" class="panel hero"><div class="tag">PRIVATE ROOM / 2–6 PLAYERS</div><h1>ドリームベースボールバトル</h1><p>仲間と集まって、ドラフトで最強チームを作ろう。</p><div class="actions"><button class="btn gold" onclick="show('create')">ルームを作る</button><button class="btn" onclick="show('join')">ルームに参加する</button></div><p class="muted" style="margin-top:20px">別々の端末から同じルームに参加できます（Supabase設定が必要です）。</p></section>
 <section class="panel" id="connectionSettings"><h2 class="title">Supabase接続設定</h2><p class="muted">Publishable key（sb_publishable_...）を入力。URLは設定済みです。</p><label>Publishable key</label><input id="sbKey" placeholder="sb_publishable_..." autocomplete="off"><div class="actions" style="justify-content:flex-start;margin-top:12px"><button class="btn" onclick="saveSupabaseSettings()">設定を保存</button><button class="btn light" onclick="testSupabase()">接続テスト</button></div><p id="settingsStatus" class="status">未設定</p></section>
-<section id="create" class="panel hidden"><h2 class="title">ルームを作成</h2><p class="muted">あなたがホストになります。ルーム番号を参加者に共有してください。</p><label>プレイヤー名</label><input id="hostName" maxlength="12" placeholder="例：たろう"><label>参加人数（自分を含む）</label><select id="maxPlayers"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select><label>対戦モード</label><select id="draftMode"><option value="casual">カジュアル（野手9人＋投手3人）</option><option value="professional">プロ（野手9人＋投手10人）</option></select><div class="actions" style="justify-content:flex-start;margin-top:18px"><button class="btn gold" onclick="createRoom()">ルームを作成</button><button class="btn light" onclick="show('home')">戻る</button></div></section>
+<section id="create" class="panel hidden"><h2 class="title">ルームを作成</h2><p class="muted">あなたがホストになります。ルーム番号を参加者に共有してください。</p><label>プレイヤー名</label><input id="hostName" maxlength="12" placeholder="例：たろう"><label>人間の参加人数（自分を含む）</label><select id="maxPlayers"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select><label>CPU人数</label><select id="cpuCount"><option value="0">0人</option><option value="1">1人</option><option value="2">2人</option><option value="3">3人</option><option value="4">4人</option><option value="5">5人</option></select><label>対戦モード</label><select id="draftMode"><option value="casual">カジュアル（野手9人＋投手3人）</option><option value="professional">プロ（野手9人＋投手10人）</option></select><div class="actions" style="justify-content:flex-start;margin-top:18px"><button class="btn gold" onclick="createRoom()">ルームを作成</button><button class="btn light" onclick="show('home')">戻る</button></div></section>
 <section id="join" class="panel hidden"><h2 class="title">ルームに参加</h2><p class="muted">ホストから受け取った6桁の番号を入力してください。</p><label>プレイヤー名</label><input id="joinName" maxlength="12" placeholder="例：はなこ"><label>ルーム番号</label><input id="joinCode" inputmode="numeric" maxlength="6" placeholder="123456"><div class="actions" style="justify-content:flex-start;margin-top:18px"><button class="btn" onclick="joinRoom()">参加する</button><button class="btn light" onclick="show('home')">戻る</button></div></section>
 <section id="lobby" class="panel hidden"><div class="roundbar"><div><span class="tag">LOBBY</span><h2 class="title">参加者</h2></div><button class="btn light" onclick="copyRoom()">番号をコピー</button></div><div class="roomcode" id="roomCodeView">------</div><div class="muted" style="text-align:center">この番号を一緒に遊ぶ人に共有</div><div class="status ok">選手データ499人はルーム作成時に共有済みです。参加者側でExcelを読み込む必要はありません。</div><div id="lobbyPlayers" class="players"></div><div id="lobbyMode" class="status warn"></div><div id="lobbyStatus" class="status">参加者を待っています。</div><div class="actions"><button id="startDraftBtn" class="btn gold" onclick="startDraft()">ドラフト開始</button><button class="btn light" onclick="leaveRoom()">退出</button><button id="deleteRoomLobbyBtn" class="btn red hidden" onclick="deleteRoom()">ルーム削除</button></div></section>
 <section id="draft" class="panel hidden"><div class="roundbar"><div><span class="tag">LIVE DRAFT</span><h2 class="title" id="draftTitle">第1巡目 指名</h2></div><div class="tag" id="draftRound">ROUND 1</div></div><div class="progress"><div id="progressBar" style="width:0%"></div></div><div id="draftMessage" class="status">選手を指名してください。</div><div class="status ok">Excel由来の選手データを内蔵：499人（野手230人・投手269人）。ホストがルームを作成すると全員に同じ選手一覧が共有されます。</div>
@@ -52,7 +52,7 @@ h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,selec
 <p class="muted">自分の獲得選手で打順・守備位置・投手起用を設定します。選手や守備位置を変更すると自動で入れ替わり、重複を防ぎます。設定は同じルームに保存されます。</p>
 <div id="teamSetup"></div>
 <div class="actions" style="margin-top:16px"><button class="btn gold" onclick="saveTeamSetup()">編成を保存</button><button class="btn" onclick="showMatchSetup()">対戦設定へ</button><button class="btn light" onclick="backHome()">トップへ戻る</button><button id="deleteRoomFinishedBtn" class="btn red hidden" onclick="deleteRoom()">ルーム削除</button></div>
-<div id="matchSetup" class="hidden"><hr><h2 class="title">対戦設定</h2><label>対戦相手</label><select id="opponentSelect"></select><div id="matchFormatWrap"><label>試合形式</label><select id="matchFormat"><option value="single">1試合</option><option value="best5">5試合制</option></select></div><div class="actions" style="margin-top:12px"><button class="btn gold" onclick="saveMatchSettings()">設定を保存</button><button class="btn" onclick="startMatch()">試合開始</button></div><div id="matchStatus" class="status"></div></div>
+<div id="matchSetup" class="hidden"><hr><h2 class="title">対戦設定</h2><label>対戦相手</label><select id="opponentSelect"></select><div id="matchFormatWrap"><label>試合形式</label><select id="matchFormat"><option value="single">1試合</option><option value="best5">3本先取（最大5試合）</option></select></div><div class="actions" style="margin-top:12px"><button class="btn gold" onclick="saveMatchSettings()">設定を保存</button><button class="btn" onclick="startMatch()">試合開始</button></div><div id="matchStatus" class="status"></div></div>
 </section>
 <section id="match" class="panel hidden">
 <div class="roundbar"><div><span class="tag">LIVE MATCH</span><h2 class="title">対戦中</h2><div id="matchSeriesStatus" class="muted"></div></div></div>
@@ -121,9 +121,11 @@ window.createRoom=async()=>{
  if(!ensure())return;
  let name=$('hostName').value.trim();
  if(!name)return err('プレイヤー名を入力してください。');
- let max=Number($('maxPlayers').value),code=code6();
+ let max=Number($('maxPlayers').value),cpuCount=Number($('cpuCount').value||0),code=code6();
+ if(max+cpuCount>6)return err('人間とCPUを合わせて6人以内にしてください。');
+ if(max<1)return err('人間の参加人数は1人以上にしてください。');
  let data={
-  code,host:userId,maxPlayers:max,mode:$('draftMode').value,status:'lobby',
+  code,host:userId,maxPlayers:max,cpuCount,mode:$('draftMode').value,status:'lobby',
   round:1,phase:'picking',
   players:{[userId]:{uid:userId,name,joinedAt:Date.now()}},
   playerPool:players,picks:{},teams:{},teamSettings:{},createdAt:Date.now()
@@ -216,12 +218,12 @@ function render(){
   `<div class="player ${p.uid===userId?'me':''}">${esc(p.name)}${p.uid===room.host?' <b>HOST</b>':''}</div>`
  ).join('');
  $('startDraftBtn').classList.toggle('hidden',room.host!==userId);
- $('startDraftBtn').disabled=members.length<2;
+ $('startDraftBtn').disabled=members.length<2&&Number(room.cpuCount||0)<1;
  ['deleteRoomLobbyBtn','deleteRoomDraftBtn','deleteRoomFinishedBtn'].forEach(id=>
   $(id)?.classList.toggle('hidden',room.host!==userId)
  );
- $('lobbyStatus').textContent=`${members.length} / ${room.maxPlayers} 人参加中`;
- $('lobbyMode').textContent=`ドラフト方式：${room.mode==='professional'?'プロ（野手9人＋投手10人）':'カジュアル（野手9人＋投手3人）'} ※ルーム作成時に決定・開始後変更不可`;
+ $('lobbyStatus').textContent=`人間 ${members.length} / ${room.maxPlayers} 人 ＋ CPU ${Number(room.cpuCount||0)} 人`;
+ $('lobbyMode').textContent=`ドラフト方式：${room.mode==='professional'?'プロ（野手9人＋投手10人）':'カジュアル（野手9人＋投手3人）'} ／ CPU ${Number(room.cpuCount||0)}人 ※ルーム作成時に決定`;
 
  if(room.status==='lobby')show('lobby');
  else if(room.status==='draft'){show('draft');renderDraft()}
@@ -264,11 +266,20 @@ window.deleteRoom=async()=>{
 
 window.startDraft=async()=>{
  if(room.host!==userId)return;
+ const humans=Object.values(room.players||{}).filter(p=>!p.isCpu);
+ const cpuCount=Number(room.cpuCount||0);
+ if(humans.length<2&&cpuCount<1)return err('人間の参加者が2人未満の場合は、CPUを1人以上設定してください。');
+ if(humans.length+cpuCount>6)return err('人間とCPUを合わせて6人以内にしてください。');
+ const participants={...(room.players||{})};
+ for(let i=1;i<=cpuCount;i++){
+  const uid=`cpu_${i}`;
+  participants[uid]={uid,name:`CPU ${i}`,isCpu:true,joinedAt:Date.now()};
+ }
  room={
-  ...room,status:'draft',round:1,phase:'picking',picks:{},teams:{},
-  teamSettings:{},activeUids:Object.keys(room.players||{}),roundResults:null
+  ...room,players:participants,status:'draft',round:1,phase:'picking',picks:{},teams:{},
+  teamSettings:{},cpuDraftPlans:{},activeUids:Object.keys(participants),roundResults:null
  };
- try{await saveState(room)}
+ try{await saveState(room);render()}
  catch(e){err(e.message)}
 };
  function statClass(v){
@@ -287,17 +298,8 @@ function fielderStats(p){
  let a=p.abilities||{},defs=p.positionAbilities||[];
  let def=Math.max(0,...defs.map(x=>Number(x.value)||0));
  let meat=Number(a['ミート']||0),power=Number(a['パワー']||0),speed=Number(a['走力']||0);
- let ranked=[
-  {key:'meat',value:meat},{key:'power',value:power},
-  {key:'speed',value:speed},{key:'defense',value:def}
- ].sort((x,y)=>y.value-x.value);
- let weights={
-  meat:[2.8,2.4,1.8,1.2],power:[3.1,2.5,1.9,1.1],
-  speed:[2.1,1.8,1.2,1],defense:[2.5,2.1,1.6,1.1]
- };
- let weightTotal=ranked.reduce((sum,item,i)=>sum+weights[item.key][i],0);
- let weighted=ranked.reduce((sum,item,i)=>sum+item.value*weights[item.key][i],0);
- let ovr=weightTotal?Math.round(weighted/weightTotal):0;
+ // 新OVR：ミート×2.5 + パワー×3.2 + 走力×0.8 + 守備×1.5 を係数合計8で割る。
+ let ovr=Math.round((meat*2.5+power*3.2+speed*.8+def*1.5)/8);
  return {meat,power,speed,defense:def,ovr};
 }
 
@@ -500,16 +502,107 @@ function renderDraft(){
  }).join('')}</div><div style="margin-top:10px">当選者を決定しています…</div></div>`
  :room.roundResults?renderRoundResults(room.roundResults):'';
 
- if(activeUids.length>0&&submitted>=activeUids.length&&room.host===userId&&['picking','revealing','lottery'].includes(room.phase))resolveRound();
+ if(room.host===userId&&activeUids.some(uid=>room.players?.[uid]?.isCpu)&&room.phase==='picking')resolveRound();
+ else if(activeUids.length>0&&submitted>=activeUids.length&&room.host===userId&&['picking','revealing','lottery'].includes(room.phase))resolveRound();
+}
+
+function cpuFieldAssignment(roster){
+ const fielders=(roster||[]).filter(x=>x.type==='野手').map(x=>rawMatchPlayer(x.id)||x).filter(Boolean);
+ const positions=['C','1B','2B','3B','SS','LF','CF','RF'];
+ const eligible=(p,pos)=>(p.positionAbilities||[]).some(x=>x.position===pos);
+ const ordered=positions.map(pos=>({pos,count:fielders.filter(p=>eligible(p,pos)).length}))
+  .sort((a,b)=>a.count-b.count||positions.indexOf(a.pos)-positions.indexOf(b.pos));
+ const assigned={},used=new Set();
+ for(const {pos} of ordered){
+  const candidates=fielders.filter(p=>!used.has(p.id)&&eligible(p,pos)).sort((a,b)=>{
+   const av=Number(a.positionAbilities?.find(x=>x.position===pos)?.value||0);
+   const bv=Number(b.positionAbilities?.find(x=>x.position===pos)?.value||0);
+   return bv-av;
+  });
+  if(candidates.length){assigned[pos]=candidates[0].id;used.add(candidates[0].id);}
+ }
+ const dh=fielders.filter(p=>!used.has(p.id)).sort((a,b)=>fielderStats(b).ovr-fielderStats(a).ovr)[0];
+ if(dh){assigned.DH=dh.id;used.add(dh.id);}
+ return {assigned,remaining:positions.concat('DH').filter(pos=>!assigned[pos]),used:[...used]};
+}
+function cpuPlayerOvr(p){return p?.type==='野手'?fielderStats(p).ovr:pitcherStats(p).ovr;}
+function cpuCanFillRemaining(p,plan){
+ if(p.type==='投手')return true;
+ const remain=plan?.remaining||['C','1B','2B','3B','SS','LF','CF','RF','DH'];
+ if(remain.includes('DH'))return true;
+ return remain.some(pos=>(p.positionAbilities||[]).some(x=>x.position===pos));
+}
+function cpuMakePick(current,uid){
+ const roster=current.teams?.[uid]||[];
+ const mode=current.mode==='professional'?'professional':'casual';
+ const targetPitchers=mode==='professional'?10:3;
+ const fCount=roster.filter(p=>p.type==='野手').length;
+ const pCount=roster.filter(p=>p.type==='投手').length;
+ const owned=new Set(Object.values(current.teams||{}).flat().map(p=>p.id));
+ const submitted=new Set(Object.values(current.picks||{}).map(p=>p?.playerId).filter(Boolean));
+ let candidates=(current.playerPool||players).filter(p=>!owned.has(p.id)&&!submitted.has(p.id));
+ if((current.round||1)<=3){
+  // 1〜3巡目は残存する全投手・野手のOVR上位6人からランダム。
+ }else{
+  const plan=cpuFieldAssignment(roster);
+  const canTakePitcher=pCount<targetPitchers;
+  const canTakeFielder=fCount<9;
+  candidates=candidates.filter(p=>p.type==='投手'?canTakePitcher:(canTakeFielder&&cpuCanFillRemaining(p,plan)));
+  // 守備適性のある候補が枯渇した場合に限り、残り枠を埋めるためDH扱いの野手を許容。
+  if(!candidates.length&&canTakeFielder)candidates=(current.playerPool||players).filter(p=>p.type==='野手'&&!owned.has(p.id)&&!submitted.has(p.id));
+ }
+ candidates.sort((a,b)=>cpuPlayerOvr(b)-cpuPlayerOvr(a));
+ const top=candidates.slice(0,6);
+ if(!top.length)return null;
+ const p=top[Math.floor(Math.random()*top.length)];
+ return {playerId:p.id,playerName:p.name,team:p.team,type:p.type,submittedAt:Date.now(),cpu:true};
+}
+function cpuBuildTeamSettings(uid,roster,mode){
+ const plan=cpuFieldAssignment(roster),fielders=(roster||[]).filter(p=>p.type==='野手').map(x=>rawMatchPlayer(x.id)||x).filter(Boolean);
+ const assigned={...plan.assigned};
+ // 適性の不足があるデータでも9人の守備位置を必ず埋めるため、残った選手を未充足位置へ配置。
+ const posOrder=['C','1B','2B','3B','SS','LF','CF','RF','DH'];
+ const used=new Set(Object.values(assigned));
+ for(const pos of posOrder){if(assigned[pos])continue;const p=fielders.filter(x=>!used.has(x.id)).sort((a,b)=>{
+  const av=Number(a.positionAbilities?.find(x=>x.position===pos)?.value||0);
+  const bv=Number(b.positionAbilities?.find(x=>x.position===pos)?.value||0);
+  return bv-av||fielderStats(b).ovr-fielderStats(a).ovr;
+ })[0];if(p){assigned[pos]=p.id;used.add(p.id);}}
+ const lineupPlayers=posOrder.map(pos=>fielders.find(p=>p.id===assigned[pos])).filter(Boolean);
+ lineupPlayers.sort((a,b)=>{
+  const score=p=>{const a=p.abilities||{};return Number(a['ミート']||0)+Number(a['パワー']||0)*.9+Number(a['走力']||0)*.25;};
+  return score(b)-score(a);
+ });
+ const lineup=lineupPlayers.slice(0,9).map(p=>p.id),positions={};
+ for(const [pos,id] of Object.entries(assigned))if(lineup.includes(id))positions[pos]=id;
+ const pitchers=(roster||[]).filter(p=>p.type==='投手').map(x=>rawMatchPlayer(x.id)||x).filter(Boolean);
+ const pstats=p=>{const x=pitcherStats(p);return {st:x.stamina,ovr:x.ovr,rel:(x.power+x.control+x.pitch)/3};};
+ const roles={};
+ if(mode==='professional'){
+  const bySt=pitchers.slice().sort((a,b)=>pstats(b).st-pstats(a).st);
+  const starters=bySt.slice(0,5).sort((a,b)=>pstats(b).ovr-pstats(a).ovr);
+  ['先発1','先発2','先発3','先発4','先発5'].forEach((r,i)=>roles[r]=starters[i]?.id||'');
+  const rel=pitchers.filter(p=>!starters.some(x=>x.id===p.id)).sort((a,b)=>pstats(b).rel-pstats(a).rel);
+  ['中継ぎエース','接戦時','ビハインド時','敗戦処理','抑え'].forEach((r,i)=>roles[r]=rel[i]?.id||'');
+ }else{
+  const bySt=pitchers.slice().sort((a,b)=>pstats(b).st-pstats(a).st);
+  roles['先発']=bySt[0]?.id||'';
+  const rel=pitchers.filter(p=>p.id!==roles['先発']).sort((a,b)=>pstats(b).rel-pstats(a).rel);
+  roles['中継ぎ']=rel[0]?.id||'';roles['抑え']=rel[1]?.id||'';
+ }
+ return {lineup,positions,roles,autoCpu:true,updatedAt:Date.now()};
 }
 
 async function resolveRound(){
- if(!['picking','revealing','lottery'].includes(room.phase)||resolvingRound)return;
+ if(room?.host!==userId||!['picking','revealing','lottery'].includes(room.phase)||resolvingRound)return;
  resolvingRound=true;
  try{
   let current=room,mem=Object.values(current.players||{});
   let active=current.activeUids||mem.map(p=>p.uid);
-  let picks=current.picks||{};
+  let picks={...(current.picks||{})};
+  let cpuChanged=false;
+  if(current.phase==='picking')for(const uid of active){if(current.players?.[uid]?.isCpu&&!picks[uid]?.playerId){const choice=cpuMakePick({...current,picks},uid);if(choice){picks[uid]=choice;cpuChanged=true;}}}
+  if(cpuChanged){current={...current,picks};room=current;await saveState(current);}
   if(active.length===0||active.some(uid=>!picks[uid]?.playerId))return;
 
   if(current.phase==='picking'){
@@ -594,10 +687,16 @@ async function resolveRound(){
   };
 
   let allDone=mem.every(p=>isComplete(p.uid));
+  let cpuDraftPlans={...(current.cpuDraftPlans||{})},teamSettings={...(current.teamSettings||{})};
+  for(const member of mem.filter(p=>p.isCpu)){
+   const roster=teams[member.uid]||[],plan=cpuFieldAssignment(roster);
+   cpuDraftPlans[member.uid]=plan;
+   if(isComplete(member.uid))teamSettings[member.uid]=cpuBuildTeamSettings(member.uid,roster,current.mode);
+  }
   let nextActive=losers.length?losers:mem.filter(p=>!isComplete(p.uid)).map(p=>p.uid);
   let nextRound=losers.length?current.round:current.round+1;
   let next={
-   ...current,teams,roundResults:results,picks:{},
+   ...current,teams,teamSettings,cpuDraftPlans,roundResults:results,picks:{},
    activeUids:nextActive,round:nextRound,
    status:allDone?'finished':'draft',phase:'picking'
   };
@@ -824,7 +923,7 @@ window.saveTeamSetup=async()=>{
  if(saved.opponentUid)$('opponentSelect').value=saved.opponentUid;
  if(saved.format&&room.mode==='professional')$('matchFormat').value=saved.format;
  $('matchStatus').textContent=room.host===userId
-  ?(saved.opponentUid?`保存済み：${saved.format==='best5'?'5試合制':'1試合'}`:'対戦相手と試合形式を選んで保存してください。')
+  ?(saved.opponentUid?`保存済み：${saved.format==='best5'?'3本先取（最大5試合）':'1試合'}`:'対戦相手と試合形式を選んで保存してください。')
   :'ホストが対戦設定を行います。';
  el.scrollIntoView({behavior:'smooth',block:'start'});
 };
@@ -965,7 +1064,7 @@ async function initializeMatchGame(gameNumber){
  const home=room.host,away=room.matchSettings.opponentUid;
  const starter=uid=>{const roles=room.teamSettings[uid]?.roles||{};return room.matchSeries?.format==='best5'?(roles[`先発${gameNumber}`]||''):(roles['先発']||roles['先発1']||Object.values(roles).find(Boolean)||'');};
  const hp=starter(home),ap=starter(away);
- if(!hp||!ap)return err(`第${gameNumber}戦の先発投手が設定されていません。プロの5試合制では先発1〜5を設定してください。`);
+ if(!hp||!ap)return err(`第${gameNumber}戦の先発投手が設定されていません。プロの3本先取では、先発1〜5をそれぞれ別の投手に設定してください。`);
  room.matchState={home,away,inning:1,half:0,outs:0,bases:[null,null,null],battingIndex:{[home]:0,[away]:0},runs:{[home]:0,[away]:0},lines:{[home]:Array(9).fill(null),[away]:Array(9).fill(null)},pitchCount:{[home]:0,[away]:0},pitchCounts:{[home]:{[hp]:0},[away]:{[ap]:0}},pitchers:{[home]:hp,[away]:ap},usedPitchers:{[home]:[hp],[away]:[ap]},balls:0,strikes:0,log:[`第${gameNumber}戦 試合開始！`],lastResult:'プレイボール！',done:false,startedAt:Date.now(),seriesRecorded:false};
  room.status='match';matchAuto=true;
  try{await saveState(room);render();scheduleNextMatch();}catch(e){err('試合開始に失敗：'+e.message)}
@@ -973,14 +1072,14 @@ async function initializeMatchGame(gameNumber){
 window.continueSeriesGame=async()=>{
  if(room.host!==userId)return err('次の試合の開始はホストが行ってください。');
  const x=room.matchSeries;if(!x||x.finished||!room.matchState?.done)return;
- const n=x.gameNumber+1;if(n>5)return;
+ const n=x.gameNumber+1;if(n>5||x.wins[x.home]>=3||x.wins[x.away]>=3)return;
  x.gameNumber=n;await initializeMatchGame(n);
 };
 function recordSeriesResult(g){
  const x=room.matchSeries;if(!x||x.format!=='best5'||g.seriesRecorded)return;
  const winner=g.runs[g.home]===g.runs[g.away]?null:(g.runs[g.home]>g.runs[g.away]?g.home:g.away);
  if(winner)x.wins[winner]=(x.wins[winner]||0)+1;g.seriesRecorded=true;
- if(x.gameNumber>=5)x.finished=true;
+ if(x.wins[g.home]>=3||x.wins[g.away]>=3||x.gameNumber>=5)x.finished=true;
  g.log.unshift(`シリーズ ${x.wins[g.home]}勝-${x.wins[g.away]}勝${x.finished?'（終了）':''}`);
  if(x.finished)g.log.unshift(x.wins[g.home]===x.wins[g.away]?'シリーズ引き分け':`シリーズ優勝：${matchTeamName(x.wins[g.home]>x.wins[g.away]?g.home:g.away)}`);
 }
@@ -1709,8 +1808,8 @@ function renderMatch(){
  $('matchBatterName').textContent=batter?.name||'—';
  const series=room.matchSeries,seriesEl=$('matchSeriesStatus'),nextBtn=$('nextSeriesGameBtn');
  if(series&&series.format==='best5'){
-  seriesEl.textContent=`第${series.gameNumber}戦 ／ ${matchTeamName(g.home)} ${series.wins[g.home]}勝 - ${series.wins[g.away]}勝 ${matchTeamName(g.away)}`;
-  const canNext=g.done&&!series.finished&&series.gameNumber<5&&room.host===userId;
+  seriesEl.textContent=`3本先取・第${series.gameNumber}戦 ／ ${matchTeamName(g.home)} ${series.wins[g.home]}勝 - ${series.wins[g.away]}勝 ${matchTeamName(g.away)}`;
+  const canNext=g.done&&!series.finished&&series.gameNumber<5&&series.wins[g.home]<3&&series.wins[g.away]<3&&room.host===userId;
   nextBtn.classList.toggle('hidden',!canNext);nextBtn.textContent=`第${series.gameNumber+1}戦へ`;
  }else{seriesEl.textContent='';nextBtn.classList.add('hidden');}
 
