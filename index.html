@@ -158,9 +158,15 @@ window.joinRoom=async()=>{
  }catch(e){err('参加できません：'+e.message)}
 };
 
+let matchRunToken=0;
 async function loadRoom(){
+ // 打席処理中のポーリング／Realtime読込で、進行中の試合状態を古いDBデータに戻さない。
+ if(matchBusy&&room?.status==='match')return;
+ const requestMatchToken=matchRunToken;
  try{
   const row=await getRoom(roomId);
+  // 読込開始後に打席処理が始まった場合も、その読込結果は反映しない。
+  if(requestMatchToken!==matchRunToken || (matchBusy&&room?.status==='match'))return;
   if(!row){
    const deletedCode=roomId;
    leaveRoom();
@@ -1373,6 +1379,7 @@ window.advanceMatch=async()=>{
  if(room.host!==userId)return err('試合進行はホストが操作してください。');
 
  matchBusy=true;
+ matchRunToken++;
  clearTimeout(matchAutoTimer);
  const nextButton=$('nextBatterBtn');
  if(nextButton)nextButton.disabled=true;
@@ -1407,10 +1414,10 @@ window.advanceMatch=async()=>{
   }
 
   let pa=await simPlateAppearance(g,offense,defense,batter,pitcher,async pitch=>{
+   // 投球ごとの途中保存は行わない。表示だけ更新し、打席確定後にまとめて保存する。
    g.balls=pitch.balls;
    g.strikes=pitch.strikes;
    room.matchState=g;
-   await saveState(room);
    renderMatch();
   });
 
