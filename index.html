@@ -52,10 +52,10 @@ h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,selec
 <p class="muted">自分の獲得選手で打順・守備位置・投手起用を設定します。選手や守備位置を変更すると自動で入れ替わり、重複を防ぎます。設定は同じルームに保存されます。</p>
 <div id="teamSetup"></div>
 <div class="actions" style="margin-top:16px"><button class="btn gold" onclick="saveTeamSetup()">編成を保存</button><button class="btn" onclick="showMatchSetup()">対戦設定へ</button><button class="btn light" onclick="backHome()">トップへ戻る</button><button id="deleteRoomFinishedBtn" class="btn red hidden" onclick="deleteRoom()">ルーム削除</button></div>
-<div id="matchSetup" class="hidden"><hr><h2 class="title">対戦設定</h2><label>対戦相手</label><select id="opponentSelect"></select><label>試合形式</label><select id="matchFormat"><option value="single">1試合</option><option value="best5">5戦3勝制</option></select><div class="actions" style="margin-top:12px"><button class="btn gold" onclick="saveMatchSettings()">設定を保存</button><button class="btn" onclick="startMatch()">試合開始</button></div><div id="matchStatus" class="status"></div></div>
+<div id="matchSetup" class="hidden"><hr><h2 class="title">対戦設定</h2><label>対戦相手</label><select id="opponentSelect"></select><div id="matchFormatWrap"><label>試合形式</label><select id="matchFormat"><option value="single">1試合</option><option value="best5">5試合制</option></select></div><div class="actions" style="margin-top:12px"><button class="btn gold" onclick="saveMatchSettings()">設定を保存</button><button class="btn" onclick="startMatch()">試合開始</button></div><div id="matchStatus" class="status"></div></div>
 </section>
 <section id="match" class="panel hidden">
-<div class="roundbar"><div><span class="tag">LIVE MATCH</span><h2 class="title">対戦中</h2></div></div>
+<div class="roundbar"><div><span class="tag">LIVE MATCH</span><h2 class="title">対戦中</h2><div id="matchSeriesStatus" class="muted"></div></div></div>
 <div class="match-main">
 <div class="match-current"><div class="muted" id="matchBatterOrder">第1打者</div><div class="match-player-name" id="matchBatterName">打者</div><div id="matchBatterStats" class="muted hidden"></div><div class="match-pitcher-line">投手：<b id="matchPitcherName">投手</b>　投球数 <b id="matchPitchCount">0</b>　疲労 <b id="matchPitchFatigue">0</b></div></div>
 <div class="match-diamond-wrap">
@@ -73,7 +73,7 @@ h3{margin:18px 0 8px;color:var(--navy)}select.lineupSel,select.positionSel,selec
 </div>
 </div>
 <div class="match-log hidden" id="matchLog"></div>
-<div class="actions" style="margin-top:14px"><button class="btn gold" id="nextBatterBtn" onclick="advanceMatch()">次の打者へ</button><button class="btn" id="matchAutoBtn" onclick="toggleMatchAuto()">自動進行を停止</button><button class="btn light" onclick="show('finished')">チーム編成へ戻る</button></div>
+<div class="actions" style="margin-top:14px"><button class="btn gold" id="nextBatterBtn" onclick="advanceMatch()">次の打者へ</button><button class="btn" id="matchAutoBtn" onclick="toggleMatchAuto()">自動進行を停止</button><button class="btn gold hidden" id="nextSeriesGameBtn" onclick="continueSeriesGame()">次の試合へ</button><button class="btn light" onclick="show('finished')">チーム編成へ戻る</button></div>
 <div class="muted" id="matchControlNote" style="margin-top:10px">投球ごとのカウントと試合進行を同期します。</div>
 </section>
 <div id="error" class="status warn hidden"></div>
@@ -747,7 +747,7 @@ function renderTeamSetup(){
   html+=`<div class="rosterRow"><span class="battingOrder">${i+1}</span><select class="positionSel" aria-label="${i+1}番守備位置" onchange="changeRosterPosition(${i},this.value)">${posOpts}</select><select class="lineupSel" aria-label="${i+1}番選手" onchange="changeRosterPlayer(${i},this.value)"><option value="">選手を選択</option>${pOpts}</select></div><div class="rosterStatline">${mini}</div>`;
  }
  html+='</div>';
- const activeCombos=getLineupCombos(d.lineup,d.positions);
+ const activeCombos=getLineupCombos(d.lineup,d.positions,userId);
  const catcherId=d.lineup[d.positions.indexOf('C')],catcher=rawMatchPlayer(catcherId);
  const starterId=d.roles['先発']||d.roles['先発1'],starter=rawMatchPlayer(starterId);
  if(catcher&&starter&&catcher.team===starter.team){
@@ -818,20 +818,23 @@ window.saveTeamSetup=async()=>{
  $('opponentSelect').innerHTML=opts||'<option value="">対戦相手なし</option>';
  const saved=room.matchSettings||{};
  $('opponentSelect').disabled=room.host!==userId;
- $('matchFormat').disabled=room.host!==userId;
+ $('matchFormat').disabled=room.host!==userId||room.mode!=='professional';
+ $('matchFormatWrap').classList.toggle('hidden',room.mode!=='professional');
+ if(room.mode==='casual')$('matchFormat').value='single';
  if(saved.opponentUid)$('opponentSelect').value=saved.opponentUid;
- if(saved.format)$('matchFormat').value=saved.format;
+ if(saved.format&&room.mode==='professional')$('matchFormat').value=saved.format;
  $('matchStatus').textContent=room.host===userId
-  ?(saved.opponentUid?`保存済み：${saved.format==='best5'?'5戦3勝制':'1試合'}`:'対戦相手と試合形式を選んで保存してください。')
+  ?(saved.opponentUid?`保存済み：${saved.format==='best5'?'5試合制':'1試合'}`:'対戦相手と試合形式を選んで保存してください。')
   :'ホストが対戦設定を行います。';
  el.scrollIntoView({behavior:'smooth',block:'start'});
 };
 
 window.saveMatchSettings=async()=>{
  if(room.host!==userId)return err('対戦設定はホストが保存してください。');
- let opponentUid=$('opponentSelect').value,format=$('matchFormat').value;
+ let opponentUid=$('opponentSelect').value,format=room.mode==='professional'?$('matchFormat').value:'single';
  if(!opponentUid)return err('対戦相手を選択してください。');
  room.matchSettings={opponentUid,format,updatedAt:Date.now()};
+ room.matchSeries=null;
  try{
   await saveState(room);
   $('matchStatus').textContent='対戦設定を保存しました。両チームの編成保存後、ホストが試合開始できます。';
@@ -842,20 +845,27 @@ function rawMatchPlayer(id){
  return (room.playerPool||players).find(p=>p.id===id)||(room.teams||{})&&Object.values(room.teams).flat().find(p=>p.id===id)||null;
 }
 function assignedDefenseValue(player,pos){
+ if(player?.type==='投手')return 60;
  return Number(player?.positionAbilities?.find(x=>x.position===pos)?.value ?? player?.abilities?.['守備力'] ?? player?.abilities?.['守備'] ?? 45);
 }
-function getLineupCombos(lineup,positions){
- const ids=(lineup||[]).filter(Boolean),ps=ids.map(rawMatchPlayer).filter(Boolean),active=[];
+function getTeamRoster(uid){return room.teams?.[uid]||[];}
+function getLineupCombos(lineup,positions,uid=null){
+ const ids=(lineup||[]).filter(Boolean),active=[],roster=uid?getTeamRoster(uid):ids.map(rawMatchPlayer).filter(Boolean);
  const teamCounts={};
- ps.forEach(p=>{if(p.team&&p.team!=='MLB')teamCounts[p.team]=(teamCounts[p.team]||0)+1;});
+ roster.forEach(p=>{if(p.team&&p.team!=='MLB')teamCounts[p.team]=(teamCounts[p.team]||0)+1;});
  for(const [team,count] of Object.entries(teamCounts)){
-  if(count>=8)active.push({name:`${team}魂`,effect:'該当選手の全能力 +8'});
-  else if(count>=5)active.push({name:`${team}愛`,effect:'該当選手の全能力 +3'});
+  if(count>=8)active.push({name:`${team}魂`,effect:'同球団の投手・野手全員の能力 +8'});
+  else if(count>=5)active.push({name:`${team}愛`,effect:'同球団の投手・野手全員の能力 +3'});
  }
- const byOrder=ids.map(rawMatchPlayer);
- const clean=byOrder.slice(2,5);
+ if(roster.some(p=>p.team==='MLB'))active.push({name:'海外の記憶',effect:'投手・野手全員の能力 +1'});
+ const byOrder=ids.map(rawMatchPlayer),clean=byOrder.slice(2,5);
  if(clean.length===3&&clean.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>150))active.push({name:'超強力クリーンナップ',effect:'3〜5番打者の打席時、相手投手の能力 -5'});
  else if(clean.length===3&&clean.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>120))active.push({name:'強力クリーンナップ',effect:'3〜5番打者の打席時、相手投手の能力 -2'});
+ const battingTeams=new Set();
+ for(let i=0;i<=byOrder.length-3;i++){const t=byOrder.slice(i,i+3);if(t.length===3&&t.every(p=>p&&p.team&&p.team!=='MLB'&&p.team===t[0].team))battingTeams.add(t[0].team);}
+ for(const team of battingTeams)active.push({name:`${team}打線`,effect:'連続する該当球団の打者のミート・パワー +4'});
+ const lower=byOrder.slice(6,9);
+ if(lower.length===3&&lower.every(Boolean)&&lower.reduce((sum,p)=>sum+Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0),0)>120)active.push({name:'恐怖の下位打線',effect:'7〜9番打者の打席時、相手投手の球威・制球 -5'});
  const posMap={};(positions||[]).forEach((pos,i)=>{if(ids[i])posMap[pos]=rawMatchPlayer(ids[i]);});
  const infield=['1B','2B','3B','SS'].map(pos=>({pos,p:posMap[pos]}));
  if(infield.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=60))active.push({name:'華麗な内野守備陣',effect:'内野手の守備力 +7'});
@@ -866,54 +876,50 @@ function getLineupCombos(lineup,positions){
  const center=['C','2B','SS','CF'].map(pos=>({pos,p:posMap[pos]}));
  if(center.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=70))active.push({name:'見事なセンターライン',effect:'捕手・二塁手・遊撃手・中堅手の守備力 +6'});
  else if(center.every(x=>x.p&&assignedDefenseValue(x.p,x.pos)>=60))active.push({name:'充実したセンターライン',effect:'捕手・二塁手・遊撃手・中堅手の守備力 +3'});
+ if(uid){const pc={};roster.filter(p=>p.type==='投手').forEach(p=>{if(p.team)pc[p.team]=(pc[p.team]||0)+1;});for(const [team,count] of Object.entries(pc))if(count>=3)active.push({name:`${team}投手陣`,effect:'該当球団の投手の能力 +2'});}
  return active;
 }
-function lineupTeamBonus(uid,id){
- const st=room.teamSettings?.[uid]||{},ps=(st.lineup||[]).map(rawMatchPlayer).filter(Boolean);
- const target=rawMatchPlayer(id);if(!target||!target.team||target.team==='MLB')return 0;
- const count=ps.filter(p=>p.team===target.team).length;
- return count>=8?8:count>=5?3:0;
+function rosterGlobalBonus(uid,id){
+ const roster=getTeamRoster(uid),target=rawMatchPlayer(id);if(!target)return 0;
+ let bonus=roster.some(p=>p.team==='MLB')?1:0;
+ if(target.team&&target.team!=='MLB'){const n=roster.filter(p=>p.team===target.team).length;bonus+=n>=8?8:n>=5?3:0;}
+ if(target.type==='投手'&&target.team&&roster.filter(p=>p.type==='投手'&&p.team===target.team).length>=3)bonus+=2;
+ return bonus;
+}
+function battingOrderBonus(uid,id,index){
+ const ids=room.teamSettings?.[uid]?.lineup||[],p=rawMatchPlayer(id);if(!p||index<0)return 0;
+ for(let i=0;i<=ids.length-3;i++){const t=ids.slice(i,i+3).map(rawMatchPlayer);if(t.length===3&&t.every(x=>x&&x.team===p.team)&&p.team!=='MLB'&&index>=i&&index<=i+2)return 4;}
+ return 0;
 }
 function getDefenseComboBonus(uid,pos){
- const st=room.teamSettings?.[uid]||{},map=st.positions||{};
- const lineup=st.lineup||[],positions=lineup.map(id=>Object.keys(map).find(k=>map[k]===id)||'');
- const active=getLineupCombos(lineup,positions);
- let bonus=0;
- if(['1B','2B','3B','SS'].includes(pos)){
-  const c=active.find(x=>x.name==='華麗な内野守備陣'||x.name==='堅実な内野守備陣');if(c)bonus+=c.name==='華麗な内野守備陣'?7:3;
- }
- if(['LF','CF','RF'].includes(pos)){
-  const c=active.find(x=>x.name==='華麗な外野守備陣'||x.name==='堅実な外野守備陣');if(c)bonus+=c.name==='華麗な外野守備陣'?7:3;
- }
- if(['C','2B','SS','CF'].includes(pos)){
-  const c=active.find(x=>x.name==='見事なセンターライン'||x.name==='充実したセンターライン');if(c)bonus+=c.name==='見事なセンターライン'?6:3;
- }
+ const st=room.teamSettings?.[uid]||{},map=st.positions||{},lineup=st.lineup||[];
+ const positions=lineup.map(id=>Object.keys(map).find(k=>map[k]===id)||''),active=getLineupCombos(lineup,positions,uid);let bonus=0;
+ if(['1B','2B','3B','SS'].includes(pos)){const c=active.find(x=>x.name==='華麗な内野守備陣'||x.name==='堅実な内野守備陣');if(c)bonus+=c.name==='華麗な内野守備陣'?7:3;}
+ if(['LF','CF','RF'].includes(pos)){const c=active.find(x=>x.name==='華麗な外野守備陣'||x.name==='堅実な外野守備陣');if(c)bonus+=c.name==='華麗な外野守備陣'?7:3;}
+ if(['C','2B','SS','CF'].includes(pos)){const c=active.find(x=>x.name==='見事なセンターライン'||x.name==='充実したセンターライン');if(c)bonus+=c.name==='見事なセンターライン'?6:3;}
  return bonus;
 }
 function applyAbilityBonus(player,bonus){
  if(!player)return player;
- const copy={...player,abilities:{...(player.abilities||{})},positionAbilities:(player.positionAbilities||[]).map(x=>({...x}))};
- if(bonus)for(const key of Object.keys(copy.abilities))copy.abilities[key]=Number(copy.abilities[key]||0)+bonus;
- if(bonus)copy.positionAbilities=copy.positionAbilities.map(x=>({...x,value:Number(x.value||0)+bonus}));
+ const copy={...player,abilities:{...(player.abilities||{})},pitches:{...(player.pitches||{})},positionAbilities:(player.positionAbilities||[]).map(x=>({...x}))};
+ if(bonus){for(const k of Object.keys(copy.abilities))copy.abilities[k]=Number(copy.abilities[k]||0)+bonus;for(const k of Object.keys(copy.pitches))copy.pitches[k]=Number(copy.pitches[k]||0)+bonus;copy.positionAbilities=copy.positionAbilities.map(x=>({...x,value:Number(x.value||0)+bonus}));}
  return copy;
 }
-function getBatterForMatch(uid,id){return applyAbilityBonus(matchPlayer(uid,id),lineupTeamBonus(uid,id));}
+function getBatterForMatch(uid,id,index=-1){
+ const player=applyAbilityBonus(matchPlayer(uid,id),rosterGlobalBonus(uid,id));
+ const battingBonus=battingOrderBonus(uid,id,index);
+ if(battingBonus&&player){player.abilities={...(player.abilities||{})};for(const key of ['ミート','パワー'])player.abilities[key]=Number(player.abilities[key]||0)+battingBonus;}
+ return player;
+}
 function getPitcherDebuffForBatter(batUid,batterIndex,pitcher,defUid){
- const setup=room.teamSettings?.[batUid]||{},ids=setup.lineup||[];
- const trio=ids.slice(2,5).map(rawMatchPlayer);
+ const ids=room.teamSettings?.[batUid]?.lineup||[],trio=ids.slice(2,5).map(rawMatchPlayer),lower=ids.slice(6,9).map(rawMatchPlayer);
  let debuff=0;
  if(batterIndex>=2&&batterIndex<=4&&trio.length===3&&trio.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>150))debuff=5;
  else if(batterIndex>=2&&batterIndex<=4&&trio.length===3&&trio.every(p=>p&&Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0)>120))debuff=2;
- const catcherId=room.teamSettings?.[defUid]?.positions?.C;
- const catcher=rawMatchPlayer(catcherId);
- const actualPitcher=rawMatchPlayer(pitcher?.id);
- if(catcher&&actualPitcher&&catcher.team===actualPitcher.team){
-  const avg=(Number(pitcher.abilities?.['制球']||0)+Number(pitcher.abilities?.['球威']||0))/2;
-  if(avg>75&&assignedDefenseValue(catcher,'C')>70){} // battery tier is applied to batter below
- }
  const result={...pitcher,abilities:{...(pitcher?.abilities||{})},pitches:{...(pitcher?.pitches||{})}};
- for(const key of Object.keys(result.abilities))result.abilities[key]=Math.max(0,Number(result.abilities[key]||0)-debuff);
- for(const key of Object.keys(result.pitches))result.pitches[key]=Math.max(0,Number(result.pitches[key]||0)-debuff);
+ for(const k of Object.keys(result.abilities))result.abilities[k]=Math.max(0,Number(result.abilities[k]||0)-debuff);
+ for(const k of Object.keys(result.pitches))result.pitches[k]=Math.max(0,Number(result.pitches[k]||0)-debuff);
+ if(batterIndex>=6&&batterIndex<=8&&lower.length===3&&lower.every(Boolean)&&lower.reduce((sum,p)=>sum+Number(p.abilities?.['ミート']||0)+Number(p.abilities?.['パワー']||0),0)>120){for(const k of ['球威','制球'])result.abilities[k]=Math.max(0,Number(result.abilities[k]||0)-5);}
  return {pitcher:result,cleanupDebuff:debuff};
 }
 function applyBatteryDebuffToBatter(defUid,pitcher,batter){
@@ -945,48 +951,49 @@ window.startMatch=async()=>{
  const opponent=room.matchSettings?.opponentUid;
  if(!opponent||!room.players?.[opponent])return err('対戦相手を設定してください。');
  if(!matchSetupReady(userId)||!matchSetupReady(opponent))return err('両チームの打順・守備位置・投手起用を保存してください。');
-
- const home=room.host,away=opponent;
- const firstPitcher=uid=>{
-  let st=room.teamSettings[uid];
-  let id=st.roles?.['先発']||st.roles?.['先発1']||Object.values(st.roles||{}).find(Boolean);
-  return id||'';
- };
-
- room.matchState={
-  home,away,inning:1,half:0,outs:0,bases:[null,null,null],
-  battingIndex:{[home]:0,[away]:0},
-  runs:{[home]:0,[away]:0},
-  lines:{[home]:Array(9).fill(null),[away]:Array(9).fill(null)},
-  // チーム合計投球数と投手個人ごとの投球数を分けて管理する。
-  pitchCount:{[home]:0,[away]:0},
-  pitchCounts:{
-   [home]:{[firstPitcher(home)]:0},
-   [away]:{[firstPitcher(away)]:0}
-  },
-  pitchers:{[home]:firstPitcher(home),[away]:firstPitcher(away)},
-  usedPitchers:{[home]:[firstPitcher(home)],[away]:[firstPitcher(away)]},
-  balls:0,strikes:0,
-  log:['試合開始！'],lastResult:'プレイボール！',
-  done:false,startedAt:Date.now()
- };
- room.status='match';
- matchAuto=true;
- try{
-  await saveState(room);
-  render();
-  scheduleNextMatch();
- }catch(e){err('試合開始に失敗：'+e.message)}
+ const format=room.mode==='professional'?(room.matchSettings?.format||'single'):'single';
+ if(format==='best5'){
+  for(const uid of [room.host,opponent]){
+   const roles=room.teamSettings[uid]?.roles||{},starters=[1,2,3,4,5].map(n=>roles[`先発${n}`]);
+   if(starters.some(id=>!id)||new Set(starters).size!==5)return err(`${matchTeamName(uid)}の先発1〜5をそれぞれ別の投手に設定してください。`);
+  }
+ }
+ room.matchSeries=format==='best5'?{format:'best5',gameNumber:1,wins:{[room.host]:0,[opponent]:0},finished:false}:null;
+ await initializeMatchGame(1);
 };
+async function initializeMatchGame(gameNumber){
+ const home=room.host,away=room.matchSettings.opponentUid;
+ const starter=uid=>{const roles=room.teamSettings[uid]?.roles||{};return room.matchSeries?.format==='best5'?(roles[`先発${gameNumber}`]||''):(roles['先発']||roles['先発1']||Object.values(roles).find(Boolean)||'');};
+ const hp=starter(home),ap=starter(away);
+ if(!hp||!ap)return err(`第${gameNumber}戦の先発投手が設定されていません。プロの5試合制では先発1〜5を設定してください。`);
+ room.matchState={home,away,inning:1,half:0,outs:0,bases:[null,null,null],battingIndex:{[home]:0,[away]:0},runs:{[home]:0,[away]:0},lines:{[home]:Array(9).fill(null),[away]:Array(9).fill(null)},pitchCount:{[home]:0,[away]:0},pitchCounts:{[home]:{[hp]:0},[away]:{[ap]:0}},pitchers:{[home]:hp,[away]:ap},usedPitchers:{[home]:[hp],[away]:[ap]},balls:0,strikes:0,log:[`第${gameNumber}戦 試合開始！`],lastResult:'プレイボール！',done:false,startedAt:Date.now(),seriesRecorded:false};
+ room.status='match';matchAuto=true;
+ try{await saveState(room);render();scheduleNextMatch();}catch(e){err('試合開始に失敗：'+e.message)}
+}
+window.continueSeriesGame=async()=>{
+ if(room.host!==userId)return err('次の試合の開始はホストが行ってください。');
+ const x=room.matchSeries;if(!x||x.finished||!room.matchState?.done)return;
+ const n=x.gameNumber+1;if(n>5)return;
+ x.gameNumber=n;await initializeMatchGame(n);
+};
+function recordSeriesResult(g){
+ const x=room.matchSeries;if(!x||x.format!=='best5'||g.seriesRecorded)return;
+ const winner=g.runs[g.home]===g.runs[g.away]?null:(g.runs[g.home]>g.runs[g.away]?g.home:g.away);
+ if(winner)x.wins[winner]=(x.wins[winner]||0)+1;g.seriesRecorded=true;
+ if(x.gameNumber>=5)x.finished=true;
+ g.log.unshift(`シリーズ ${x.wins[g.home]}勝-${x.wins[g.away]}勝${x.finished?'（終了）':''}`);
+ if(x.finished)g.log.unshift(x.wins[g.home]===x.wins[g.away]?'シリーズ引き分け':`シリーズ優勝：${matchTeamName(x.wins[g.home]>x.wins[g.away]?g.home:g.away)}`);
+}
 
 function getMatchPitcher(uid){
  let id=room.matchState.pitchers[uid];
  let roles=room.teamSettings?.[uid]?.roles||{};
  let starter=roles['先発']||roles['先発1'];
- return matchPlayer(uid,id)||matchPlayer(uid,starter)||{
-  id:'unknown_pitcher',name:'投手',
+ const raw=matchPlayer(uid,id)||matchPlayer(uid,starter)||{
+  id:'unknown_pitcher',name:'投手',type:'投手',
   abilities:{球威:50,制球:50,スタミナ:50},pitches:{}
  };
+ return applyAbilityBonus(raw,rosterGlobalBonus(uid,raw.id));
 }
 
 function clampMatch(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
@@ -1072,7 +1079,7 @@ function maybeAutoChangePitcher(uid,g){
 function matchPositionMap(uid){
  let st=room.teamSettings?.[uid]||{},out={};
  for(let [pos,id] of Object.entries(st.positions||{})){
-  if(id){const raw=matchPlayer(uid,id);out[pos]=applyAbilityBonus(raw,lineupTeamBonus(uid,id));
+  if(id){const raw=matchPlayer(uid,id);out[pos]=applyAbilityBonus(raw,rosterGlobalBonus(uid,id));
    const defenseBonus=getDefenseComboBonus(uid,pos);
    if(defenseBonus){out[pos].positionAbilities=(out[pos].positionAbilities||[]).map(x=>({...x,value:Number(x.value||0)+defenseBonus}));}
   }
@@ -1584,7 +1591,7 @@ window.advanceMatch=async()=>{
   let defense=g.half===0?g.away:g.home;
   let setup=room.teamSettings[offense];
   let idx=g.battingIndex[offense]%9;
-  let batter=getBatterForMatch(offense,setup.lineup[idx]);
+  let batter=getBatterForMatch(offense,setup.lineup[idx],idx);
   // 疲労・投球数を打席間で判定し、必要なら救援投手へ交代する。
   maybeAutoChangePitcher(defense,g);
   let pitcher=getMatchPitcher(defense);
@@ -1606,6 +1613,7 @@ window.advanceMatch=async()=>{
    if(g.done){
     let winner=g.runs[g.home]===g.runs[g.away]?null:g.runs[g.home]>g.runs[g.away]?g.home:g.away;
     g.log.unshift(winner?`試合終了：${matchTeamName(winner)}の勝利`:'試合終了：引き分け');
+    recordSeriesResult(g);
     matchAuto=false;
    }
    room.matchState=g;
@@ -1655,6 +1663,7 @@ window.advanceMatch=async()=>{
    g.log.unshift(winner
     ?`試合終了：${matchTeamName(winner)}の勝利`
     :'試合終了：引き分け');
+   recordSeriesResult(g);
    matchAuto=false;
   }
 
@@ -1679,7 +1688,7 @@ function renderMatch(){
  let defense=g.half===0?g.away:g.home;
  let setup=room.teamSettings[offense];
  let idx=g.battingIndex[offense]%9;
- let batter=getBatterForMatch(offense,setup.lineup[idx]);
+ let batter=getBatterForMatch(offense,setup.lineup[idx],idx);
  let pitcher=getMatchPitcher(defense);
  let inningText=`${g.inning}回${g.half===0?'表':'裏'}`;
 
@@ -1698,6 +1707,13 @@ function renderMatch(){
   `第${idx+1}打者　${setup.positions?.[setup.lineup[idx]]||
   Object.keys(setup.positions||{}).find(k=>setup.positions[k]===setup.lineup[idx])||''}`;
  $('matchBatterName').textContent=batter?.name||'—';
+ const series=room.matchSeries,seriesEl=$('matchSeriesStatus'),nextBtn=$('nextSeriesGameBtn');
+ if(series&&series.format==='best5'){
+  seriesEl.textContent=`第${series.gameNumber}戦 ／ ${matchTeamName(g.home)} ${series.wins[g.home]}勝 - ${series.wins[g.away]}勝 ${matchTeamName(g.away)}`;
+  const canNext=g.done&&!series.finished&&series.gameNumber<5&&room.host===userId;
+  nextBtn.classList.toggle('hidden',!canNext);nextBtn.textContent=`第${series.gameNumber+1}戦へ`;
+ }else{seriesEl.textContent='';nextBtn.classList.add('hidden');}
+
 
  document.querySelector('#match .match-pitcher-line')?.classList.remove('hidden');
  $('matchPitcherName').textContent=pitcher?.name||'投手';
