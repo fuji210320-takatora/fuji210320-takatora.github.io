@@ -346,18 +346,22 @@ window.toggleDraftRoster=()=>{
 function renderDraftRoster(){
  let el=$('draftRoster');
  if(!el||el.classList.contains('hidden')||!room)return;
- let members=Object.values(room.players||{}),picks=room.picks||{};
+ let members=Object.values(room.players||{});
+ let currentRound=Number(room.round||1);
+ // 一覧には「獲得が確定した選手」だけを表示する。
+ // room.picks は未確定の指名なので参照せず、room.teams に反映済みの選手だけを使う。
+ // 抽選後、同じ巡目で外れチームが再指名する間も、他チームの確定選手は表示し続ける。
  el.innerHTML='<h3>指名選手一覧</h3>'+members.map(m=>{
-  let own=room.teams?.[m.uid]||[];
-  let current=picks[m.uid]?.playerId?[picks[m.uid]]:[];
-  let list=[
-   ...own.map(x=>players.find(p=>p.id===x.id)||x),
-   ...current.map(x=>players.find(p=>p.id===x.playerId)||x)
-  ];
-  return `<details class="result"><summary><b>${esc(m.name)}</b>（${list.length}人）</summary>${list.map(p=>{
+  let list=(room.teams?.[m.uid]||[]).map(x=>players.find(p=>p.id===x.id)||x);
+  let previous=list.filter(p=>Number(p.round||0)<currentRound);
+  let confirmedThisRound=list.filter(p=>Number(p.round||0)===currentRound);
+  let playerMarkup=p=>{
    let stat=p.type==='野手'?fielderStatMarkup(p):pitcherStatMarkup(p);
    return `<details class="player"><summary>${esc(p.name)}　${esc(p.team||'')}（${esc(p.type||'')}）</summary>${stat}</details>`;
-  }).join('')||'<small>指名選手なし</small>'}</details>`;
+  };
+  let previousMarkup=previous.map(playerMarkup).join('');
+  let currentMarkup=confirmedThisRound.map(playerMarkup).join('');
+  return `<details class="result"><summary><b>${esc(m.name)}</b>（${list.length}人）</summary>${previous.length?`<div class="muted" style="margin:8px 0 4px">過去の獲得選手</div>${previousMarkup}`:''}${`<div class="muted" style="margin:8px 0 4px">第${currentRound}巡目・確定した指名</div>${currentMarkup||'<small>この巡目の確定指名はまだありません</small>'}`}</details>`;
  }).join('');
 }
 
@@ -658,6 +662,7 @@ async function resolveRound(){
   }
 
   let results=[],teams=current.teams||{},losers=[];
+  let failedPickHistory={...(current.failedPickHistory||{})};
   for(let [pid,uids]of Object.entries(groups)){
    let winner=uids[Math.floor(Math.random()*uids.length)];
    let info=picks[winner];
@@ -672,7 +677,12 @@ async function resolveRound(){
      playerName:info.playerName,won:uid===winner,winnerUid:winner,
      winnerName:current.players[winner]?.name||'参加者'
     });
-    if(uid!==winner)losers.push(uid);
+    if(uid!==winner){
+     losers.push(uid);
+     failedPickHistory[uid]=[...(failedPickHistory[uid]||[]),{
+      round:current.round,playerId:pid,playerName:info.playerName,team:info.team,type:info.type||players.find(p=>p.id===pid)?.type
+     }];
+    }
    }
   }
 
@@ -696,7 +706,7 @@ async function resolveRound(){
   let nextActive=losers.length?losers:mem.filter(p=>!isComplete(p.uid)).map(p=>p.uid);
   let nextRound=losers.length?current.round:current.round+1;
   let next={
-   ...current,teams,teamSettings,cpuDraftPlans,roundResults:results,picks:{},
+   ...current,teams,teamSettings,cpuDraftPlans,failedPickHistory,roundResults:results,picks:{},
    activeUids:nextActive,round:nextRound,
    status:allDone?'finished':'draft',phase:'picking'
   };
